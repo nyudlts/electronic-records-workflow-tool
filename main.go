@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -19,26 +18,6 @@ var (
 	source       string
 	stagingLoc   string
 )
-
-type WorkOrderComponent struct {
-	ResourceID          string
-	RefID               string
-	URI                 string
-	ContainerIndicator1 string
-	ContainerIndicator2 string
-	ContainerIndicator3 string
-	Title               string
-	ComponentID         string
-}
-
-func (w WorkOrderComponent) String() string {
-	return fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", w.ResourceID, w.RefID, w.URI, w.ContainerIndicator1, w.ContainerIndicator2, w.ContainerIndicator3, w.Title, w.ComponentID)
-}
-
-func (w WorkOrderComponent) GetERID() (int, error) {
-	split := strings.Split(w.ContainerIndicator2, "_")
-	return strconv.Atoi(split[4])
-}
 
 func init() {
 	flag.StringVar(&source, "source", "", "")
@@ -226,4 +205,11 @@ func copyFile(src, dst string) (int64, error) {
 	defer destination.Close()
 	nBytes, err := io.Copy(destination, source)
 	return nBytes, err
+}
+
+func CreateDC(transferInfo TransferInfo, workOrderComponent WorkOrderComponent) DC {
+	dc := DC{}
+	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
+	dc.Title = workOrderComponent.Title
+	return dc
 }

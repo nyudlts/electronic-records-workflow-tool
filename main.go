@@ -2,12 +2,15 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 const woHeader = "Resource ID	Ref ID	URI	Container Indicator 1	Container Indicator 2	Container Indicator 3	Title	Component ID\n"
@@ -17,6 +20,7 @@ var (
 	resourceCode string
 	source       string
 	stagingLoc   string
+	transferInfo TransferInfo
 )
 
 func init() {
@@ -58,6 +62,17 @@ func main() {
 		panic(err)
 	}
 
+	//create the transfer-info struct
+	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
+	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
+		panic(err)
+	}
+
 	//process the components
 	for _, component := range components {
 		err := createERPackage(component)
@@ -88,14 +103,12 @@ func createERPackage(component WorkOrderComponent) error {
 		return err
 	}
 
-	//copy the metadata files
-	for _, mdFile := range []string{"dc.json", "transfer-info.txt"} {
-		mdSourceFile := filepath.Join(source, "metadata", mdFile)
-		mdTarget := filepath.Join(ERMDDirLoc, mdFile)
-		_, err = copyFile(mdSourceFile, mdTarget)
-		if err != nil {
-			return (err)
-		}
+	//copy the transfer-info.txt files
+	mdSourceFile := filepath.Join(source, "metadata", "transfer-info.txt")
+	mdTarget := filepath.Join(ERMDDirLoc, "transfer-info.txt")
+	_, err = copyFile(mdSourceFile, mdTarget)
+	if err != nil {
+		return (err)
 	}
 
 	//create the workorder
@@ -103,6 +116,18 @@ func createERPackage(component WorkOrderComponent) error {
 	if err != nil {
 		return err
 	}
+
+	//create the DC json
+	dc := CreateDC(transferInfo, component)
+	dcBytes, err := json.Marshal(dc)
+	if err != nil {
+		return err
+	}
+	dcLocation := filepath.Join(ERMDDirLoc, "dc.json")
+	if err := os.WriteFile(dcLocation, dcBytes, 0755); err != nil {
+		return (err)
+	}
+
 	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_electronic_records_%d_aspace_wo.tsv", partner, resourceCode, erID))
 	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
 		return err

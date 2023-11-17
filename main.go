@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,10 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
 )
-
-const woHeader = "Resource ID	Ref ID	URI	Container Indicator 1	Container Indicator 2	Container Indicator 3	Title	Component ID\n"
 
 var (
 	partner      string
@@ -48,17 +46,20 @@ func main() {
 	}
 
 	//find a work order
-	workorderName, err := getWorkOrder(mdDir)
+	workorderName, err := getWorkOrderFile(mdDir)
 	if err != nil {
 		panic(err)
 	}
 
 	partner, resourceCode = getPartnerAndResource(workorderName)
-
-	//get work order components
 	workOrderLoc := filepath.Join(mdDir, *workorderName)
-	components, err := getWorkOrderComponents(workOrderLoc)
+	wof, err := os.Open(workOrderLoc)
 	if err != nil {
+		panic(err)
+	}
+	defer wof.Close()
+	var wo aspace.WorkOrder
+	if err := wo.Load(wof); err != nil {
 		panic(err)
 	}
 
@@ -73,24 +74,19 @@ func main() {
 		panic(err)
 	}
 
-	//process the components
-	for _, component := range components {
-		err := createERPackage(component)
-		if err != nil {
-			fmt.Println(err)
+	for _, row := range wo.Rows {
+		if err := createERPackage(row); err != nil {
+			panic(err)
 		}
 	}
 
 }
 
-func createERPackage(component WorkOrderComponent) error {
-	erID, err := component.GetERID()
-	if err != nil {
-		return err
-	}
+func createERPackage(row aspace.WorkOrderRow) error {
+	erID := row.GetComponentID()
 
 	//create the staging directory
-	ERDirName := fmt.Sprintf("%s_%s_electronic-records-%d", partner, resourceCode, erID)
+	ERDirName := fmt.Sprintf("%s_%s_%s", partner, resourceCode, erID)
 	ERLoc := filepath.Join(stagingLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
@@ -98,7 +94,6 @@ func createERPackage(component WorkOrderComponent) error {
 
 	//create the metadata directory
 	ERMDDirLoc := filepath.Join(ERLoc, "metadata")
-	fmt.Println(ERMDDirLoc)
 	if err := os.Mkdir(ERMDDirLoc, 0755); err != nil {
 		return err
 	}
@@ -106,19 +101,24 @@ func createERPackage(component WorkOrderComponent) error {
 	//copy the transfer-info.txt files
 	mdSourceFile := filepath.Join(source, "metadata", "transfer-info.txt")
 	mdTarget := filepath.Join(ERMDDirLoc, "transfer-info.txt")
-	_, err = copyFile(mdSourceFile, mdTarget)
+	_, err := copyFile(mdSourceFile, mdTarget)
 	if err != nil {
 		return (err)
 	}
 
 	//create the workorder
-	woOutput := fmt.Sprintf("%s%s", woHeader, component)
+	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "/t"), row)
 	if err != nil {
 		return err
 	}
 
+	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", partner, resourceCode, erID))
+	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
+		return err
+	}
+
 	//create the DC json
-	dc := CreateDC(transferInfo, component)
+	dc := CreateDC(transferInfo, row)
 	dcBytes, err := json.Marshal(dc)
 	if err != nil {
 		return err
@@ -128,23 +128,19 @@ func createERPackage(component WorkOrderComponent) error {
 		return (err)
 	}
 
-	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_electronic_records_%d_aspace_wo.tsv", partner, resourceCode, erID))
-	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
-		return err
-	}
-
 	//create the ER Directory
-	dataDir := filepath.Join(ERLoc, component.ContainerIndicator2)
+	dataDir := filepath.Join(ERLoc, erID)
 	if err := os.Mkdir(dataDir, 0755); err != nil {
 		return err
 	}
 
 	//copy files from source to target
-	dataSource := filepath.Join(source, component.ContainerIndicator2)
+	dataSource := filepath.Join(source, erID)
 	sourceFiles, err := os.ReadDir(dataSource)
 	if err != nil {
 		return err
 	}
+
 	for _, sourceFile := range sourceFiles {
 		sourceDataFile := filepath.Join(dataSource, sourceFile.Name())
 		targetDataFile := filepath.Join(dataDir, sourceFile.Name())
@@ -170,7 +166,7 @@ func isDirectory(path string) error {
 	}
 }
 
-func getWorkOrder(path string) (*string, error) {
+func getWorkOrderFile(path string) (*string, error) {
 	mdFiles, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -183,23 +179,6 @@ func getWorkOrder(path string) (*string, error) {
 		}
 	}
 	return nil, fmt.Errorf("%s does not contain a work order", path)
-}
-
-func getWorkOrderComponents(workOrderFile string) ([]WorkOrderComponent, error) {
-	workOrderComponents := []WorkOrderComponent{}
-	workOrder, err := os.Open(workOrderFile)
-	if err != nil {
-		return workOrderComponents, err
-	}
-	defer workOrder.Close()
-
-	scanner := bufio.NewScanner(workOrder)
-	scanner.Scan() // skip the header
-	for scanner.Scan() {
-		line := strings.Split(scanner.Text(), "\t")
-		workOrderComponents = append(workOrderComponents, WorkOrderComponent{line[0], line[1], line[2], line[3], line[4], line[5], line[6], line[7]})
-	}
-	return workOrderComponents, nil
 }
 
 func getPartnerAndResource(workOrderName *string) (string, string) {
@@ -232,9 +211,9 @@ func copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
-func CreateDC(transferInfo TransferInfo, workOrderComponent WorkOrderComponent) DC {
+func CreateDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc := DC{}
 	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
-	dc.Title = workOrderComponent.Title
+	dc.Title = row.GetTitle()
 	return dc
 }

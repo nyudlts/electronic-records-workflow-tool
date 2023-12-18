@@ -1,35 +1,9 @@
 package main
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-)
-
 // {"title": "Electronic Records", "is_part_of": "AIC#MSS.267: Alan Sondheim Papers"}
 type DC struct {
 	Title    string `json:"title"`
 	IsPartOf string `json:"is_part_of"`
-}
-
-type WorkOrderComponent struct {
-	ResourceID          string
-	RefID               string
-	URI                 string
-	ContainerIndicator1 string
-	ContainerIndicator2 string
-	ContainerIndicator3 string
-	Title               string
-	ComponentID         string
-}
-
-func (w WorkOrderComponent) String() string {
-	return fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", w.ResourceID, w.RefID, w.URI, w.ContainerIndicator1, w.ContainerIndicator2, w.ContainerIndicator3, w.Title, w.ComponentID)
-}
-
-func (w WorkOrderComponent) GetERID() (int, error) {
-	split := strings.Split(w.ContainerIndicator2, "_")
-	return strconv.Atoi(split[4])
 }
 
 type TransferInfo struct {

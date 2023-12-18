@@ -107,7 +107,7 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the workorder
-	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "/t"), row)
+	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "\t"), row)
 	if err != nil {
 		return err
 	}

@@ -168,6 +168,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//complete
 	log.Printf("INFO WORKER %d %s complete", workerId, erID)
+	fmt.Printf("* WORKER %d %s complete", workerId, erID)
 	return nil
 }
 

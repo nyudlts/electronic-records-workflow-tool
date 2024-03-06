@@ -93,10 +93,10 @@ func processChunk(rows []aspace.WorkOrderRow, resultChan chan []string, workerId
 	results := []string{}
 	for _, row := range rows {
 		if err := createERPackage(row, workerId); err != nil {
-			results = append(results, fmt.Sprintf("%s\t%s\n", row.GetComponentID(), err))
+			results = append(results, fmt.Sprintf("WORKER %d\t%s\t%s\n", workerId, row.GetComponentID(), err))
 			continue
 		}
-		results = append(results, fmt.Sprintf("%s\t%s\n", row.GetComponentID(), "SUCCESS"))
+		results = append(results, fmt.Sprintf("WORKER %d\t%s\t%s\n", workerId, row.GetComponentID(), "SUCCESS"))
 	}
 	resultChan <- results
 }
@@ -168,7 +168,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//complete
 	log.Printf("INFO WORKER %d %s complete", workerId, erID)
-	fmt.Printf("* WORKER %d %s complete", workerId, erID)
+	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)
 	return nil
 }
 

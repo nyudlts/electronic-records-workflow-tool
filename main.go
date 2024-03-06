@@ -5,12 +5,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
+
+	cp "github.com/otiai10/copy"
 )
 
 var (
@@ -105,6 +108,7 @@ func main() {
 
 func createERPackage(row aspace.WorkOrderRow) error {
 	erID := row.GetComponentID()
+	log.Println("INFO\tprocessing", erID)
 
 	//create the staging directory
 	ERDirName := fmt.Sprintf("%s_%s_%s", partner, resourceCode, erID)
@@ -114,12 +118,14 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the metadata directory
+	log.Println("INFO\tcreating metadata directory")
 	ERMDDirLoc := filepath.Join(ERLoc, "metadata")
 	if err := os.Mkdir(ERMDDirLoc, 0755); err != nil {
 		return err
 	}
 
 	//copy the transfer-info.txt files
+	log.Println("INFO\tcopying transfer-info.txt")
 	mdSourceFile := filepath.Join(source, "metadata", "transfer-info.txt")
 	mdTarget := filepath.Join(ERMDDirLoc, "transfer-info.txt")
 	_, err := copyFile(mdSourceFile, mdTarget)
@@ -128,10 +134,8 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the workorder
+	log.Println("INFO\tcreating workorder")
 	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "\t"), row)
-	if err != nil {
-		return err
-	}
 
 	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", partner, resourceCode, erID))
 	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
@@ -139,6 +143,7 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the DC json
+	log.Println("INFO\tcreating dc.json")
 	dc := CreateDC(transferInfo, row)
 	dcBytes, err := json.Marshal(dc)
 	if err != nil {
@@ -150,27 +155,21 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the ER Directory
+	log.Println("INFO\tcreating data directory ", erID)
 	dataDir := filepath.Join(ERLoc, erID)
 	if err := os.Mkdir(dataDir, 0755); err != nil {
 		return err
 	}
 
 	//copy files from source to target
-	dataSource := filepath.Join(source, erID)
-	sourceFiles, err := os.ReadDir(dataSource)
-	if err != nil {
+	payloadSource := filepath.Join(source, erID)
+	payloadTarget := (filepath.Join(dataDir))
+	log.Printf("INFO\tcopying %s to payload", erID)
+	if err := cp.Copy(payloadSource, payloadTarget); err != nil {
 		return err
 	}
 
-	for _, sourceFile := range sourceFiles {
-		sourceDataFile := filepath.Join(dataSource, sourceFile.Name())
-		targetDataFile := filepath.Join(dataDir, sourceFile.Name())
-		_, err := copyFile(sourceDataFile, targetDataFile)
-		if err != nil {
-			return err
-		}
-	}
-
+	log.Printf("INFO\t%s complete", erID)
 	return nil
 }
 

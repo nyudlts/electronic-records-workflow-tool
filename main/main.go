@@ -14,6 +14,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const version = "0.1.0"
+
 var (
 	partner      string
 	resourceCode string
@@ -28,6 +30,7 @@ func init() {
 }
 
 func main() {
+	fmt.Printf("Archivematica Transfer Prep v%s\n", version)
 	flag.Parse()
 	params := amtp.Params{}
 

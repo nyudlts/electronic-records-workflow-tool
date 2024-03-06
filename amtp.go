@@ -104,6 +104,7 @@ func processChunk(rows []aspace.WorkOrderRow, resultChan chan []string, workerId
 func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	erID := row.GetComponentID()
 	log.Printf("INFO WORKER %d processing %s", workerId, erID)
+	fmt.Printf("* WORKER %d processing %s\n", workerId, erID)
 
 	//create the staging directory
 	log.Printf("INFO WORKER %d creating directory in staging location %s", workerId, erID)

@@ -24,6 +24,8 @@ var (
 	transferInfo TransferInfo
 )
 
+var options = cp.Options{}
+
 type DC struct {
 	Title    string `json:"title"`
 	IsPartOf string `json:"is_part_of"`
@@ -52,6 +54,9 @@ func init() {
 
 func main() {
 	flag.Parse()
+
+	options.PreserveTimes = true
+	options.NumOfWorkers = 4
 
 	//check that source exists and is a Directory
 	if err := isDirectory(source); err != nil {
@@ -155,7 +160,7 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the ER Directory
-	log.Println("INFO\tcreating data directory ", erID)
+	log.Println("INFO\tcreating data directory", erID)
 	dataDir := filepath.Join(ERLoc, erID)
 	if err := os.Mkdir(dataDir, 0755); err != nil {
 		return err
@@ -165,7 +170,7 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	payloadSource := filepath.Join(source, erID)
 	payloadTarget := (filepath.Join(dataDir))
 	log.Printf("INFO\tcopying %s to payload", erID)
-	if err := cp.Copy(payloadSource, payloadTarget); err != nil {
+	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
 		return err
 	}
 

@@ -1,8 +1,7 @@
-package main
+package amtp
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -11,21 +10,19 @@ import (
 	"strings"
 
 	"github.com/nyudlts/go-aspace"
-	"gopkg.in/yaml.v2"
-
 	cp "github.com/otiai10/copy"
 )
 
-var (
-	partner      string
-	resourceCode string
-	source       string
-	stagingLoc   string
-	transferInfo TransferInfo
-)
-
 var options = cp.Options{}
+var params Params
 
+type Params struct {
+	Partner      string
+	ResourceCode string
+	Source       string
+	StagingLoc   string
+	TransferInfo TransferInfo
+}
 type DC struct {
 	Title    string `json:"title"`
 	IsPartOf string `json:"is_part_of"`
@@ -47,91 +44,85 @@ type TransferInfo struct {
 	RStarCollectionID        string `yaml:"nyu-dl-rstar-collection-id"`
 }
 
-func init() {
-	flag.StringVar(&source, "source", "", "")
-	flag.StringVar(&stagingLoc, "staging", "", "")
-}
-
-func main() {
-	flag.Parse()
-
+func ProcessWorkOrderRows(workOrder aspace.WorkOrder, p Params, numWorkers int) ([]string, error) {
+	params = p
 	options.PreserveTimes = true
-	options.NumOfWorkers = 4
+	options.NumOfWorkers = int64(numWorkers)
 
-	//check that source exists and is a Directory
-	if err := isDirectory(source); err != nil {
-		panic(err)
-	}
+	//chunk the workorder rows
+	log.Println("INFO chunking work order rows")
+	chunks := chunkRows(workOrder.Rows, numWorkers)
 
-	//check that staging location exists and is a Directory
-	if err := isDirectory(stagingLoc); err != nil {
-		panic(err)
-	}
+	resultChan := make(chan []string)
 
-	//check that metadata directory exists and is a directory
-	mdDir := filepath.Join(source, "metadata")
-	if err := isDirectory(mdDir); err != nil {
-		panic(err)
+	for i, chunk := range chunks {
+		go processChunk(chunk, resultChan, i+1)
 	}
 
-	//find a work order
-	workorderName, err := getWorkOrderFile(mdDir)
-	if err != nil {
-		panic(err)
+	results := []string{}
+	for range chunks {
+		chunkResult := <-resultChan
+		results = append(results, chunkResult...)
 	}
 
-	partner, resourceCode = getPartnerAndResource(workorderName)
-	workOrderLoc := filepath.Join(mdDir, *workorderName)
-	wof, err := os.Open(workOrderLoc)
-	if err != nil {
-		panic(err)
-	}
-	defer wof.Close()
-	var wo aspace.WorkOrder
-	if err := wo.Load(wof); err != nil {
-		panic(err)
-	}
-
-	//create the transfer-info struct
-	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
-	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
-		panic(err)
-	}
-
-	for _, row := range wo.Rows {
-		if err := createERPackage(row); err != nil {
-			panic(err)
-		}
-	}
+	return results, nil
 
 }
 
-func createERPackage(row aspace.WorkOrderRow) error {
+func chunkRows(rows []aspace.WorkOrderRow, numWorkers int) [][]aspace.WorkOrderRow {
+
+	var divided [][]aspace.WorkOrderRow
+
+	chunkSize := (len(rows) + numWorkers - 1) / numWorkers
+
+	for i := 0; i < len(rows); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(rows) {
+			end = len(rows)
+		}
+
+		divided = append(divided, rows[i:end])
+	}
+
+	log.Printf("INFO create %d workorder row chunks", len(divided))
+	return divided
+}
+
+func processChunk(rows []aspace.WorkOrderRow, resultChan chan []string, workerId int) {
+	results := []string{}
+	for _, row := range rows {
+		if err := createERPackage(row, workerId); err != nil {
+			results = append(results, fmt.Sprintf("%s\t%s\n", row.GetComponentID(), err))
+			continue
+		}
+		results = append(results, fmt.Sprintf("%s\t%s\n", row.GetComponentID(), "SUCCESS"))
+	}
+	resultChan <- results
+}
+
+func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	erID := row.GetComponentID()
-	log.Println("INFO\tprocessing", erID)
+	log.Printf("INFO WORKER %d processing %s", workerId, erID)
 
 	//create the staging directory
-	ERDirName := fmt.Sprintf("%s_%s_%s", partner, resourceCode, erID)
-	ERLoc := filepath.Join(stagingLoc, ERDirName)
+	log.Printf("INFO WORKER %d creating directory in staging location %s", workerId, erID)
+	ERDirName := fmt.Sprintf("%s_%s_%s", params.Partner, params.ResourceCode, erID)
+	ERLoc := filepath.Join(params.StagingLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
 	}
 
 	//create the metadata directory
-	log.Println("INFO\tcreating metadata directory")
+	log.Printf("INFO WORKER %d creating metadata directory", workerId)
 	ERMDDirLoc := filepath.Join(ERLoc, "metadata")
 	if err := os.Mkdir(ERMDDirLoc, 0755); err != nil {
 		return err
 	}
 
 	//copy the transfer-info.txt files
-	log.Println("INFO\tcopying transfer-info.txt")
-	mdSourceFile := filepath.Join(source, "metadata", "transfer-info.txt")
+	log.Printf("INFO WORKER %d copying transfer-info.txt", workerId)
+	mdSourceFile := filepath.Join(params.Source, "metadata", "transfer-info.txt")
 	mdTarget := filepath.Join(ERMDDirLoc, "transfer-info.txt")
 	_, err := copyFile(mdSourceFile, mdTarget)
 	if err != nil {
@@ -139,17 +130,17 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the workorder
-	log.Println("INFO\tcreating workorder")
+	log.Printf("INFO WORKER %d creating workorder", workerId)
 	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "\t"), row)
 
-	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", partner, resourceCode, erID))
+	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.Partner, params.ResourceCode, erID))
 	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
 		return err
 	}
 
 	//create the DC json
-	log.Println("INFO\tcreating dc.json")
-	dc := CreateDC(transferInfo, row)
+	log.Printf("INFO WORKER %d creating dc.json", workerId)
+	dc := CreateDC(params.TransferInfo, row)
 	dcBytes, err := json.Marshal(dc)
 	if err != nil {
 		return err
@@ -160,55 +151,23 @@ func createERPackage(row aspace.WorkOrderRow) error {
 	}
 
 	//create the ER Directory
-	log.Println("INFO\tcreating data directory", erID)
+	log.Printf("INFO WORKER %d creating data directory %s", workerId, erID)
 	dataDir := filepath.Join(ERLoc, erID)
 	if err := os.Mkdir(dataDir, 0755); err != nil {
 		return err
 	}
 
 	//copy files from source to target
-	payloadSource := filepath.Join(source, erID)
+	payloadSource := filepath.Join(params.Source, erID)
 	payloadTarget := (filepath.Join(dataDir))
-	log.Printf("INFO\tcopying %s to payload", erID)
+	log.Printf("INFO WORKER %d copying %s to payload", workerId, erID)
 	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
 		return err
 	}
 
-	log.Printf("INFO\t%s complete", erID)
+	//complete
+	log.Printf("INFO WORKER %d %s complete", workerId, erID)
 	return nil
-}
-
-func isDirectory(path string) error {
-	fi, err := os.Stat(path)
-	if err == nil {
-		if fi.IsDir() {
-			return nil
-		} else {
-			return fmt.Errorf("%s is not a directory", path)
-		}
-	} else {
-		return err
-	}
-}
-
-func getWorkOrderFile(path string) (*string, error) {
-	mdFiles, err := os.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, mdFile := range mdFiles {
-		name := mdFile.Name()
-		if strings.Contains(name, "aspace_wo.tsv") {
-			return &name, nil
-		}
-	}
-	return nil, fmt.Errorf("%s does not contain a work order", path)
-}
-
-func getPartnerAndResource(workOrderName *string) (string, string) {
-	split := strings.Split(*workOrderName, "_")
-	return split[0], split[1]
 }
 
 func copyFile(src, dst string) (int64, error) {

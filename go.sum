@@ -1,3 +1,5 @@
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/nyudlts/go-aspace v0.4.2-0.20231117204422-445a087f7a54 h1:kUaH7KQS8DyZI+nwvsKgQw43rCGwOWe7CJrikO85gaQ=
 github.com/nyudlts/go-aspace v0.4.2-0.20231117204422-445a087f7a54/go.mod h1:RWXUaq2bBaIOIHYB+mtGSL0sQkgb/Jbkq6NdWFRJHAM=
 github.com/otiai10/copy v1.14.0 h1:dCI/t1iTdYGtkvCuBG2BgR6KZa83PTclw4U5n2wAllU=

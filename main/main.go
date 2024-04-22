@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	amtp "github.com/nyudlts/amatica-transfer-prep"
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
@@ -63,6 +64,7 @@ func main() {
 	}
 
 	log.Println("INFO locating work order")
+
 	//find a work order
 	workorderName, err := getWorkOrderFile(mdDir)
 	if err != nil {
@@ -99,6 +101,12 @@ func main() {
 	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
 		panic(err)
 	}
+
+	//ensure rstar uuid is present
+	if _, err := uuid.Parse(transferInfo.RStarCollectionID); err != nil {
+		panic(err)
+	}
+
 	params.TransferInfo = transferInfo
 
 	log.Println("INFO creating Transfer packages")

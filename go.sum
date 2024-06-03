@@ -1,7 +1,7 @@
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/nyudlts/go-aspace v0.4.2-0.20231117204422-445a087f7a54 h1:kUaH7KQS8DyZI+nwvsKgQw43rCGwOWe7CJrikO85gaQ=
-github.com/nyudlts/go-aspace v0.4.2-0.20231117204422-445a087f7a54/go.mod h1:RWXUaq2bBaIOIHYB+mtGSL0sQkgb/Jbkq6NdWFRJHAM=
+github.com/nyudlts/go-aspace v0.6.1 h1:BWHTeFg/NGfs13pkmwXJA6yowJN36B/aukmJbJQaX0I=
+github.com/nyudlts/go-aspace v0.6.1/go.mod h1:XjLzY7ig8xq5qgFpfyIXb6BJQ68f9e6V5zkI8nF7EHc=
 github.com/otiai10/copy v1.14.0 h1:dCI/t1iTdYGtkvCuBG2BgR6KZa83PTclw4U5n2wAllU=
 github.com/otiai10/copy v1.14.0/go.mod h1:ECfuL02W+/FkTWZWgQqXPWZgW9oeKCSQ5qVfSc4qc4w=
 github.com/otiai10/mint v1.5.1 h1:XaPLeE+9vGbuyEHem1JNk3bYc7KKqyI/na0/mLd/Kks=

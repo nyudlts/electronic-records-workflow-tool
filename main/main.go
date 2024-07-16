@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -98,14 +99,18 @@ func main() {
 		panic(err)
 	}
 
+	transferInfo := amtp.TransferInfo{}
+
 	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
 		panic(err)
 	}
+	/*
 
-	//ensure rstar uuid is present
-	if _, err := uuid.Parse(transferInfo.RStarCollectionID); err != nil {
-		panic(err)
-	}
+		//validate the transfer info
+		if err := validateTransferInfo(&transferInfo); err != nil {
+			panic(err)
+		}
+	*/
 
 	params.TransferInfo = transferInfo
 
@@ -162,4 +167,17 @@ func getWorkOrderFile(path string) (*string, error) {
 func getPartnerAndResource(workOrderName *string) (string, string) {
 	split := strings.Split(*workOrderName, "_")
 	return split[0], split[1]
+}
+
+var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives//].*`)
+
+func validateTransferInfo(ti *amtp.TransferInfo) error {
+	//ensure rstar uuid is present
+	if _, err := uuid.Parse(transferInfo.RStarCollectionID); err != nil {
+		return err
+	}
+
+	//ensure that the partner and codes are valid
+
+	return nil
 }

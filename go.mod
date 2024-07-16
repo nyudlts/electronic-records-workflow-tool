@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/nyudlts/go-bagit v0.3.0-alpha.0.20240604144738-a5553e8d0974 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )

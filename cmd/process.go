@@ -19,7 +19,7 @@ import (
 const version = "0.2.0"
 
 var (
-	partner      string
+	partnerCode  string
 	resourceCode string
 )
 
@@ -78,9 +78,7 @@ func process() {
 
 	//getting partner and resource code
 	log.Println("[INFO] getting partner and resource code")
-	partner, resourceCode = getPartnerAndResource(workorderName)
-	params.Partner = partner
-	params.ResourceCode = resourceCode
+	params.PartnerCode, params.ResourceCode = getPartnerAndResource(workorderName)
 
 	//load the work order
 	log.Println("[INFO] parsing work order")
@@ -139,7 +137,7 @@ func process() {
 	}
 	writer.Flush()
 
-	log.Printf("[INFO] adoc-preprocess complete for %s_%s", partner, resourceCode)
+	log.Printf("[INFO] adoc-preprocess complete for %s_%s", partnerCode, resourceCode)
 
 }
 

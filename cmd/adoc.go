@@ -18,7 +18,7 @@ var options = cp.Options{}
 var params Params
 
 type Params struct {
-	Partner      string
+	PartnerCode  string
 	ResourceCode string
 	Source       string
 	StagingLoc   string
@@ -110,7 +110,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//create the staging directory
 	log.Printf("[INFO] WORKER %d creating directory in staging location %s", workerId, erID)
-	ERDirName := fmt.Sprintf("%s_%s_%s", params.Partner, params.ResourceCode, erID)
+	ERDirName := fmt.Sprintf("%s_%s_%s", params.PartnerCode, params.ResourceCode, erID)
 	ERLoc := filepath.Join(params.StagingLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
@@ -132,10 +132,10 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		return (err)
 	}
 
-	//create the workorder
+	//create the workorder for ER
 	log.Printf("[INFO] WORKER %d creating workorder in metadata directory in %s", workerId, erID)
 
-	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.Partner, params.ResourceCode, erID))
+	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.PartnerCode, params.ResourceCode, erID))
 	woFile, err := os.Create(woLocation)
 	if err != nil {
 		return err

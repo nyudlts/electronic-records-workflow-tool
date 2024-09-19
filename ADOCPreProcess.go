@@ -1,6 +1,7 @@
-package amtp
+package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -44,7 +45,7 @@ type TransferInfo struct {
 	RStarCollectionID        string `yaml:"nyu-dl-rstar-collection-id"`
 }
 
-func ProcessWorkOrderRows(workOrder aspace.WorkOrder, p Params, numWorkers int) ([]string, error) {
+func ProcessWorkOrderRows(workOrder aspace.WorkOrder, p Params, numWorkers int) ([][]string, error) {
 	params = p
 	options.PreserveTimes = true
 	options.NumOfWorkers = int64(numWorkers)
@@ -53,13 +54,13 @@ func ProcessWorkOrderRows(workOrder aspace.WorkOrder, p Params, numWorkers int) 
 	log.Println("INFO chunking work order rows")
 	chunks := chunkRows(workOrder.Rows, numWorkers)
 
-	resultChan := make(chan []string)
+	resultChan := make(chan [][]string)
 
 	for i, chunk := range chunks {
 		go processChunk(chunk, resultChan, i+1)
 	}
 
-	results := []string{}
+	results := [][]string{}
 	for range chunks {
 		chunkResult := <-resultChan
 		results = append(results, chunkResult...)
@@ -89,14 +90,14 @@ func chunkRows(rows []aspace.WorkOrderRow, numWorkers int) [][]aspace.WorkOrderR
 	return divided
 }
 
-func processChunk(rows []aspace.WorkOrderRow, resultChan chan []string, workerId int) {
-	results := []string{}
+func processChunk(rows []aspace.WorkOrderRow, resultChan chan [][]string, workerId int) {
+	results := [][]string{}
 	for _, row := range rows {
 		if err := createERPackage(row, workerId); err != nil {
-			results = append(results, fmt.Sprintf("WORKER %d\t%s\t%s\n", workerId, row.GetComponentID(), err))
+			results = append(results, []string{fmt.Sprintf("%d", workerId), row.GetComponentID(), "ERROR", strings.ReplaceAll(err.Error(), "\n", "")})
 			continue
 		}
-		results = append(results, fmt.Sprintf("WORKER %d\t%s\t%s\n", workerId, row.GetComponentID(), "SUCCESS"))
+		results = append(results, []string{fmt.Sprintf("%d", workerId), row.GetComponentID(), "SUCCESS"})
 	}
 	resultChan <- results
 }
@@ -132,12 +133,18 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//create the workorder
 	log.Printf("INFO WORKER %d creating workorder", workerId)
-	woOutput := fmt.Sprintf("%s\n%s\n", strings.Join(aspace.HEADER_ROW, "\t"), row)
 
 	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.Partner, params.ResourceCode, erID))
-	if err := os.WriteFile(woLocation, []byte(woOutput), 0755); err != nil {
+	woFile, err := os.Create(woLocation)
+	if err != nil {
 		return err
 	}
+	defer woFile.Close()
+	csvWriter := csv.NewWriter(woFile)
+	csvWriter.Comma = '\t'
+	csvWriter.Write(aspace.HEADER_ROW)
+	csvWriter.Write(GetStringArray(row))
+	csvWriter.Flush()
 
 	//create the DC json
 	log.Printf("INFO WORKER %d creating dc.json", workerId)
@@ -149,6 +156,21 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	dcLocation := filepath.Join(ERMDDirLoc, "dc.json")
 	if err := os.WriteFile(dcLocation, dcBytes, 0755); err != nil {
 		return (err)
+	}
+
+	//check for and copy FTK CSV
+	ftkCSV := fmt.Sprintf("%s.tsv", erID)
+	ftkCSVLocation := filepath.Join(params.Source, "metadata", ftkCSV)
+	_, err = os.Stat(ftkCSVLocation)
+	if err != nil {
+		log.Printf("INFO WORKER %d no ftk csv in metadata dir", workerId)
+	} else {
+		log.Printf("INFO WORKER %d copying FTK CSV to target metadata directory", workerId)
+		ftkCSVTarget := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s-ftk.tsv", erID))
+		_, err := copyFile(ftkCSVLocation, ftkCSVTarget)
+		if err != nil {
+			return (err)
+		}
 	}
 
 	//create the ER Directory
@@ -202,4 +224,8 @@ func CreateDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
 	dc.Title = row.GetTitle()
 	return dc
+}
+
+func GetStringArray(row aspace.WorkOrderRow) []string {
+	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
 }

@@ -1,4 +1,4 @@
-module github.com/nyudlts/amatica-transfer-prep
+module github.com/nyudlts/adoc-preprocess
 
 go 1.21.4
 

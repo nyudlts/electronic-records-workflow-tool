@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"log"
@@ -11,19 +11,18 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	amtp "github.com/nyudlts/amatica-transfer-prep"
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 var (
 	partner      string
 	resourceCode string
 	source       string
 	stagingLoc   string
-	transferInfo amtp.TransferInfo
+	transferInfo TransferInfo
 )
 
 func init() {
@@ -34,9 +33,9 @@ func init() {
 func main() {
 	fmt.Printf("Archivematica Transfer Prep v%s\n", version)
 	flag.Parse()
-	params := amtp.Params{}
+	params := Params{}
 
-	logFile, err := os.Create("amtp.log")
+	logFile, err := os.Create("adoc-preprocess.log")
 	if err != nil {
 		panic(err)
 	}
@@ -99,40 +98,34 @@ func main() {
 		panic(err)
 	}
 
-	transferInfo := amtp.TransferInfo{}
+	transferInfo := TransferInfo{}
 
 	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
 		panic(err)
 	}
-	/*
-
-		//validate the transfer info
-		if err := validateTransferInfo(&transferInfo); err != nil {
-			panic(err)
-		}
-	*/
 
 	params.TransferInfo = transferInfo
 
 	log.Println("INFO creating Transfer packages")
-	results, err := amtp.ProcessWorkOrderRows(workOrder, params, 5)
+	results, err := ProcessWorkOrderRows(workOrder, params, 5)
 	if err != nil {
 		panic(err)
 	}
 
 	//create an output file
 	log.Println("INFO creating output report")
-	outputFile, err := os.Create("output.txt")
+	outputFile, err := os.Create("adoc-preprocess.tsv")
 	if err != nil {
 		panic(err)
 	}
 	defer outputFile.Close()
-	writer := bufio.NewWriter(outputFile)
-
+	writer := csv.NewWriter(outputFile)
+	writer.Comma = '\t'
+	writer.Write([]string{"worker_id", "component_id", "result", "error"})
 	for _, result := range results {
-		writer.WriteString(result)
-		writer.Flush()
+		writer.Write(result)
 	}
+	writer.Flush()
 
 }
 
@@ -171,7 +164,7 @@ func getPartnerAndResource(workOrderName *string) (string, string) {
 
 var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives//].*`)
 
-func validateTransferInfo(ti *amtp.TransferInfo) error {
+func validateTransferInfo(ti *TransferInfo) error {
 	//ensure rstar uuid is present
 	if _, err := uuid.Parse(transferInfo.RStarCollectionID); err != nil {
 		return err

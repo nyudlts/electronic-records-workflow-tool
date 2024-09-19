@@ -82,17 +82,11 @@ func process() {
 
 	//load the work order
 	log.Println("[INFO] parsing work order")
-	workOrderLoc := filepath.Join(mdDir, workorderName)
-	wof, err := os.Open(workOrderLoc)
+
+	params.WorkOrder, err = parseWorkOrder(mdDir, workorderName)
 	if err != nil {
 		panic(err)
 	}
-	defer wof.Close()
-	var workOrder aspace.WorkOrder
-	if err := workOrder.Load(wof); err != nil {
-		panic(err)
-	}
-	params.WorkOrder = workOrder
 
 	//find the transfer info file
 	log.Println("[INFO] checking transfer info exists")
@@ -184,4 +178,18 @@ func validateTransferInfo(ti *TransferInfo) error {
 	//ensure that the partner and codes are valid
 
 	return nil
+}
+
+func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
+	workOrderLoc := filepath.Join(mdDir, workorderName)
+	wof, err := os.Open(workOrderLoc)
+	if err != nil {
+		panic(err)
+	}
+	defer wof.Close()
+	var workOrder aspace.WorkOrder
+	if err := workOrder.Load(wof); err != nil {
+		return workOrder, err
+	}
+	return workOrder, nil
 }

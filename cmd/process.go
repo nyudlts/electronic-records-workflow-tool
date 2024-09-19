@@ -16,18 +16,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.1.1"
+const version = "0.2.0"
 
 var (
 	partner      string
 	resourceCode string
-	source       string
+	sourceLoc    string
 	stagingLoc   string
-	transferInfo TransferInfo
 )
 
 func init() {
-	processCmd.PersistentFlags().StringVar(&source, "source", "", "")
+	processCmd.PersistentFlags().StringVar(&sourceLoc, "source", "", "")
 	processCmd.PersistentFlags().StringVar(&stagingLoc, "staging", "", "")
 	rootCmd.AddCommand(processCmd)
 }
@@ -54,10 +53,10 @@ func process() {
 
 	log.Println("INFO checking source directory")
 	//check that source exists and is a Directory
-	if err := isDirectory(source); err != nil {
+	if err := isDirectory(sourceLoc); err != nil {
 		panic(err)
 	}
-	params.Source = source
+	params.Source = sourceLoc
 
 	//check that staging location exists and is a Directory
 	if err := isDirectory(stagingLoc); err != nil {
@@ -67,7 +66,7 @@ func process() {
 
 	log.Println("INFO checking metadata directory")
 	//check that metadata directory exists and is a directory
-	mdDir := filepath.Join(source, "metadata")
+	mdDir := filepath.Join(sourceLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		panic(err)
 	}
@@ -175,7 +174,7 @@ var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives//].*`)
 
 func validateTransferInfo(ti *TransferInfo) error {
 	//ensure rstar uuid is present
-	if _, err := uuid.Parse(transferInfo.RStarCollectionID); err != nil {
+	if _, err := uuid.Parse(ti.RStarCollectionID); err != nil {
 		return err
 	}
 

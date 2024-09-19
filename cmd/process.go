@@ -21,13 +21,11 @@ const version = "0.2.0"
 var (
 	partner      string
 	resourceCode string
-	sourceLoc    string
-	stagingLoc   string
 )
 
 func init() {
-	processCmd.PersistentFlags().StringVar(&sourceLoc, "source", "", "")
-	processCmd.PersistentFlags().StringVar(&stagingLoc, "staging", "", "")
+	processCmd.Flags().StringVar(&sourceLoc, "source", "", "")
+	processCmd.Flags().StringVar(&stagingLoc, "staging", "", "")
 	rootCmd.AddCommand(processCmd)
 }
 
@@ -39,11 +37,11 @@ var processCmd = &cobra.Command{
 }
 
 func process() {
-	fmt.Printf("Archivematica Transfer Prep v%s\n", version)
+	fmt.Printf("adoc-preprocess v%s\n", version)
 	flag.Parse()
 	params := Params{}
 
-	logFile, err := os.Create("adoc-preprocess.log")
+	logFile, err := os.Create("adoc-preprocess.log") //this should have the call number of the collection e.g. fales_mss318.log
 	if err != nil {
 		panic(err)
 	}

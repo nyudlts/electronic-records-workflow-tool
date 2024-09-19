@@ -1,5 +1,5 @@
 source/*
 staging/*
 .DS_Store
-amtp.log
-output.txt
+*.log
+*.tsv

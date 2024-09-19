@@ -16,5 +16,11 @@ var checkCmd = &cobra.Command{
 }
 
 func check() {
-
+	/*
+		The check command will ensure:
+			1. that there is a valid work-order
+			2. that there is a valid transfer-info.txt
+			3. that there is a ER directory in the transfer for each row in a work order
+			4. that there are no ER directories in the transfer that are not listed in the work order
+	*/
 }

@@ -48,7 +48,7 @@ func process() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	log.Println("[INFO] checking source directory")
+	log.Println("[INFO] checking source directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(sourceLoc); err != nil {
 		panic(err)
@@ -61,14 +61,14 @@ func process() {
 	}
 	params.StagingLoc = stagingLoc
 
-	log.Println("[INFO] checking metadata directory")
+	log.Println("[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
 	mdDir := filepath.Join(sourceLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		panic(err)
 	}
 
-	log.Println("[INFO] locating work order")
+	log.Println("[INFO] checking work order exists")
 
 	//find a work order
 	workorderName, err := getWorkOrderFile(mdDir)
@@ -83,7 +83,7 @@ func process() {
 	params.ResourceCode = resourceCode
 
 	//load the work order
-	log.Println("[INFO] loading work order")
+	log.Println("[INFO] parsing work order")
 	workOrderLoc := filepath.Join(mdDir, *workorderName)
 	wof, err := os.Open(workOrderLoc)
 	if err != nil {
@@ -96,9 +96,15 @@ func process() {
 	}
 	params.WorkOrder = workOrder
 
-	//create the transfer-info struct
-	log.Println("[INFO] creating transfer-info struct")
+	//find the transfer info file
+	log.Println("[INFO] checking transfer info exists")
 	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
+	if _, err = os.Stat(transferInfoLoc); err != nil {
+		panic(err)
+	}
+
+	//create the transfer-info struct
+	log.Println("[INFO] parsing transfer-info")
 	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
 	if err != nil {
 		panic(err)

@@ -24,8 +24,8 @@ var (
 )
 
 func init() {
-	processCmd.Flags().StringVar(&sourceLoc, "source", "", "")
-	processCmd.Flags().StringVar(&stagingLoc, "staging", "", "")
+	processCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
+	processCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
 	rootCmd.AddCommand(processCmd)
 }
 
@@ -46,10 +46,9 @@ func process() {
 		panic(err)
 	}
 	defer logFile.Close()
-
 	log.SetOutput(logFile)
 
-	log.Println("INFO checking source directory")
+	log.Println("[INFO] checking source directory")
 	//check that source exists and is a Directory
 	if err := isDirectory(sourceLoc); err != nil {
 		panic(err)
@@ -62,14 +61,14 @@ func process() {
 	}
 	params.StagingLoc = stagingLoc
 
-	log.Println("INFO checking metadata directory")
+	log.Println("[INFO] checking metadata directory")
 	//check that metadata directory exists and is a directory
 	mdDir := filepath.Join(sourceLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		panic(err)
 	}
 
-	log.Println("INFO locating work order")
+	log.Println("[INFO] locating work order")
 
 	//find a work order
 	workorderName, err := getWorkOrderFile(mdDir)
@@ -78,13 +77,13 @@ func process() {
 	}
 
 	//getting partner and resource code
-	log.Println("INFO getting partner and resource code")
+	log.Println("[INFO] getting partner and resource code")
 	partner, resourceCode = getPartnerAndResource(workorderName)
 	params.Partner = partner
 	params.ResourceCode = resourceCode
 
 	//load the work order
-	log.Println("INFO loading work order")
+	log.Println("[INFO] loading work order")
 	workOrderLoc := filepath.Join(mdDir, *workorderName)
 	wof, err := os.Open(workOrderLoc)
 	if err != nil {
@@ -95,9 +94,10 @@ func process() {
 	if err := workOrder.Load(wof); err != nil {
 		panic(err)
 	}
+	params.WorkOrder = workOrder
 
 	//create the transfer-info struct
-	log.Println("INFO creating transfer-info struct")
+	log.Println("[INFO] creating transfer-info struct")
 	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
 	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
 	if err != nil {
@@ -112,14 +112,14 @@ func process() {
 
 	params.TransferInfo = transferInfo
 
-	log.Println("INFO creating Transfer packages")
-	results, err := ProcessWorkOrderRows(workOrder, params, 5)
+	log.Println("[INFO] creating Transfer packages")
+	results, err := ProcessWorkOrderRows(params, 5)
 	if err != nil {
 		panic(err)
 	}
 
 	//create an output file
-	log.Println("INFO creating output report")
+	log.Println("[INFO] creating output report")
 	outputFile, err := os.Create("adoc-preprocess.tsv")
 	if err != nil {
 		panic(err)
@@ -132,6 +132,8 @@ func process() {
 		writer.Write(result)
 	}
 	writer.Flush()
+
+	log.Printf("[INFO] adoc-preprocess complete for %s_%s", partner, resourceCode)
 
 }
 

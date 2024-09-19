@@ -23,6 +23,7 @@ type Params struct {
 	Source       string
 	StagingLoc   string
 	TransferInfo TransferInfo
+	WorkOrder    aspace.WorkOrder
 }
 type DC struct {
 	Title    string `json:"title"`
@@ -45,14 +46,14 @@ type TransferInfo struct {
 	RStarCollectionID        string `yaml:"nyu-dl-rstar-collection-id"`
 }
 
-func ProcessWorkOrderRows(workOrder aspace.WorkOrder, p Params, numWorkers int) ([][]string, error) {
+func ProcessWorkOrderRows(p Params, numWorkers int) ([][]string, error) {
 	params = p
 	options.PreserveTimes = true
 	options.NumOfWorkers = int64(numWorkers)
 
 	//chunk the workorder rows
-	log.Println("INFO chunking work order rows")
-	chunks := chunkRows(workOrder.Rows, numWorkers)
+	log.Println("[INFO] chunking work order rows")
+	chunks := chunkRows(p.WorkOrder.Rows, numWorkers)
 
 	resultChan := make(chan [][]string)
 
@@ -86,7 +87,7 @@ func chunkRows(rows []aspace.WorkOrderRow, numWorkers int) [][]aspace.WorkOrderR
 		divided = append(divided, rows[i:end])
 	}
 
-	log.Printf("INFO create %d workorder row chunks", len(divided))
+	log.Printf("[INFO] create %d workorder row chunks", len(divided))
 	return divided
 }
 
@@ -104,11 +105,11 @@ func processChunk(rows []aspace.WorkOrderRow, resultChan chan [][]string, worker
 
 func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	erID := row.GetComponentID()
-	log.Printf("INFO WORKER %d processing %s", workerId, erID)
+	log.Printf("[INFO] WORKER %d processing %s", workerId, erID)
 	fmt.Printf("* WORKER %d processing %s\n", workerId, erID)
 
 	//create the staging directory
-	log.Printf("INFO WORKER %d creating directory in staging location %s", workerId, erID)
+	log.Printf("[INFO] WORKER %d creating directory in staging location %s", workerId, erID)
 	ERDirName := fmt.Sprintf("%s_%s_%s", params.Partner, params.ResourceCode, erID)
 	ERLoc := filepath.Join(params.StagingLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
@@ -116,14 +117,14 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	}
 
 	//create the metadata directory
-	log.Printf("INFO WORKER %d creating metadata directory", workerId)
+	log.Printf("[INFO] WORKER %d creating metadata directory in %s", workerId, erID)
 	ERMDDirLoc := filepath.Join(ERLoc, "metadata")
 	if err := os.Mkdir(ERMDDirLoc, 0755); err != nil {
 		return err
 	}
 
 	//copy the transfer-info.txt files
-	log.Printf("INFO WORKER %d copying transfer-info.txt", workerId)
+	log.Printf("[INFO] WORKER %d copying transfer-info.txt to metadata directory in %s", workerId, erID)
 	mdSourceFile := filepath.Join(params.Source, "metadata", "transfer-info.txt")
 	mdTarget := filepath.Join(ERMDDirLoc, "transfer-info.txt")
 	_, err := copyFile(mdSourceFile, mdTarget)
@@ -132,7 +133,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	}
 
 	//create the workorder
-	log.Printf("INFO WORKER %d creating workorder", workerId)
+	log.Printf("[INFO] WORKER %d creating workorder in metadata directory in %s", workerId, erID)
 
 	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.Partner, params.ResourceCode, erID))
 	woFile, err := os.Create(woLocation)
@@ -147,7 +148,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	csvWriter.Flush()
 
 	//create the DC json
-	log.Printf("INFO WORKER %d creating dc.json", workerId)
+	log.Printf("[INFO] WORKER %d creating dc.json in metadata directory in %s", workerId, erID)
 	dc := CreateDC(params.TransferInfo, row)
 	dcBytes, err := json.Marshal(dc)
 	if err != nil {
@@ -163,9 +164,9 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	ftkCSVLocation := filepath.Join(params.Source, "metadata", ftkCSV)
 	_, err = os.Stat(ftkCSVLocation)
 	if err != nil {
-		log.Printf("INFO WORKER %d no ftk csv in metadata dir", workerId)
+		log.Printf("[INFO] WORKER %d no ftk csv in metadata directory in %s", workerId, erID)
 	} else {
-		log.Printf("INFO WORKER %d copying FTK CSV to target metadata directory", workerId)
+		log.Printf("[INFO] WORKER %d copying FTK CSV to metadata directory in %s", workerId, erID)
 		ftkCSVTarget := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s-ftk.tsv", erID))
 		_, err := copyFile(ftkCSVLocation, ftkCSVTarget)
 		if err != nil {
@@ -174,7 +175,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	}
 
 	//create the ER Directory
-	log.Printf("INFO WORKER %d creating data directory %s", workerId, erID)
+	log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
 	dataDir := filepath.Join(ERLoc, erID)
 	if err := os.Mkdir(dataDir, 0755); err != nil {
 		return err
@@ -183,13 +184,13 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	//copy files from source to target
 	payloadSource := filepath.Join(params.Source, erID)
 	payloadTarget := (filepath.Join(dataDir))
-	log.Printf("INFO WORKER %d copying %s to payload", workerId, erID)
+	log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
 	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
 		return err
 	}
 
 	//complete
-	log.Printf("INFO WORKER %d %s complete", workerId, erID)
+	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)
 	return nil
 }

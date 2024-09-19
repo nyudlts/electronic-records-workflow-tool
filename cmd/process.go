@@ -84,7 +84,7 @@ func process() {
 
 	//load the work order
 	log.Println("[INFO] parsing work order")
-	workOrderLoc := filepath.Join(mdDir, *workorderName)
+	workOrderLoc := filepath.Join(mdDir, workorderName)
 	wof, err := os.Open(workOrderLoc)
 	if err != nil {
 		panic(err)
@@ -156,27 +156,26 @@ func isDirectory(path string) error {
 	}
 }
 
-func getWorkOrderFile(path string) (*string, error) {
+func getWorkOrderFile(path string) (string, error) {
 	mdFiles, err := os.ReadDir(path)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	for _, mdFile := range mdFiles {
 		name := mdFile.Name()
-		if strings.Contains(name, "aspace_wo.tsv") {
-			return &name, nil
+		if strings.Contains(name, "_aspace_wo.tsv") {
+			return name, nil
 		}
 	}
-	return nil, fmt.Errorf("%s does not contain a work order", path)
+	return "", fmt.Errorf("%s does not contain a work order", path)
+}
+func getPartnerAndResource(workOrderName string) (string, string) {
+	split := strings.Split(workOrderName, "_")
+	return split[0], strings.Join(split[1:len(split)-2], "_")
 }
 
-func getPartnerAndResource(workOrderName *string) (string, string) {
-	split := strings.Split(*workOrderName, "_")
-	return split[0], split[1]
-}
-
-var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives//].*`)
+var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives].*`)
 
 func validateTransferInfo(ti *TransferInfo) error {
 	//ensure rstar uuid is present

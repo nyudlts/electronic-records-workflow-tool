@@ -14,11 +14,6 @@ import (
 
 const version = "0.2.0"
 
-var (
-	partnerCode  string
-	resourceCode string
-)
-
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
 	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
@@ -116,7 +111,7 @@ func stage() {
 
 	//create an output file
 	log.Println("[INFO] creating output report")
-	outputFile, err := os.Create(fmt.Sprintf("%s_%s-adoc-stage.tsv", partnerCode, resourceCode))
+	outputFile, err := os.Create(fmt.Sprintf("%s_%s-adoc-stage.tsv", params.PartnerCode, params.ResourceCode))
 	if err != nil {
 		panic(err)
 	}
@@ -129,10 +124,10 @@ func stage() {
 	}
 	writer.Flush()
 
-	if err := os.Rename(logFileName, fmt.Sprintf("%s_%s-adoc-stage.log", partnerCode, resourceCode)); err != nil {
+	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
+
+	if err := os.Rename(logFileName, fmt.Sprintf("%s_%s-adoc-stage.log", params.PartnerCode, params.ResourceCode)); err != nil {
 		panic(err)
 	}
-
-	log.Printf("[INFO] adoc-stage complete for %s_%s", partnerCode, resourceCode)
 
 }

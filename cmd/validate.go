@@ -11,24 +11,24 @@ import (
 )
 
 func init() {
-	checkCmd.Flags().StringVar(&sourceLoc, "source-location", "", "")
-	rootCmd.AddCommand(checkCmd)
+	validateCmd.Flags().StringVar(&sourceLoc, "source-location", "", "")
+	rootCmd.AddCommand(validateCmd)
 }
 
-var checkCmd = &cobra.Command{
-	Use: "check",
+var validateCmd = &cobra.Command{
+	Use: "validate",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("aspace-preprocess v%s\n", version)
-		fmt.Printf("* validating transfer package at %s \n", sourceLoc)
-		if err := check(); err != nil {
+		fmt.Printf("* validating transfer package at %s\n", sourceLoc)
+		if err := validate(); err != nil {
 			panic(err)
 		} else {
-			fmt.Printf("* success, all checks passed for %s", sourceLoc)
+			fmt.Printf("* success, all checks passed for %s\n", sourceLoc)
 		}
 	},
 }
 
-func check() error {
+func validate() error {
 	//check that the source directory exists
 	fmt.Print("  1. checking that source location exists and is a directory: ")
 	fileInfo, err := os.Stat(sourceLoc)
@@ -39,7 +39,6 @@ func check() error {
 	if !fileInfo.IsDir() {
 		return fmt.Errorf("source location is not a directory")
 	}
-
 	fmt.Println("OK")
 
 	//check that there is a metadata directory
@@ -90,8 +89,8 @@ func check() error {
 	if err := yaml.Unmarshal(xferBytes, &transferInfo); err != nil {
 		return err
 	}
-
 	fmt.Println("OK")
+
 	//validate transfer-info.txt
 	fmt.Print("  7. validating transfer-info.txt: ")
 	if err := transferInfo.Validate(); err != nil {

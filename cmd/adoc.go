@@ -8,8 +8,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/nyudlts/go-aspace"
 	cp "github.com/otiai10/copy"
 )
@@ -35,15 +37,18 @@ type TransferInfo struct {
 	ContactPhone             string `yaml:"Contact-Phone"`
 	ContactEmail             string `yaml:"Contact-Email"`
 	InternalSenderIdentifier string `yaml:"Internal-Sender-Identifier"`
-	OrganizationAdress       string `yaml:"OrganizationAddress"`
-	SourceOrganization       string `yaml:"SourceOrganization"`
+	OrganizationAddress      string `yaml:"Organization-Address"`
+	SourceOrganization       string `yaml:"Source-Organization"`
 	ArchivesSpaceResourceURL string `yaml:"nyu-dl-archivesspace-resource-url"`
 	ResourceID               string `yaml:"nyu-dl-resource-id"`
 	ResourceTitle            string `yaml:"nyu-dl-resource-title"`
-	ContrentType             string `yaml:"nyu-dl-content-type"`
+	ContentType              string `yaml:"nyu-dl-content-type"`
 	ContentClassification    string `yaml:"nyu-dl-content-classification"`
 	ProjectName              string `yaml:"nyu-dl-project-name"`
 	RStarCollectionID        string `yaml:"nyu-dl-rstar-collection-id"`
+	PackageFormat            string `yaml:"nyu-dl-package-format"`
+	UseStatement             string `yaml:"nyu-dl-use-statement"`
+	TransferType             string `yaml:"nyu-dl-transfer-type"`
 }
 
 func ProcessWorkOrderRows(p Params, numWorkers int) ([][]string, error) {
@@ -229,4 +234,157 @@ func CreateDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 
 func GetStringArray(row aspace.WorkOrderRow) []string {
 	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
+}
+
+func isDirectory(path string) error {
+	fi, err := os.Stat(path)
+	if err == nil {
+		if fi.IsDir() {
+			return nil
+		} else {
+			return fmt.Errorf("%s is not a directory", path)
+		}
+	} else {
+		return err
+	}
+}
+
+func getWorkOrderFile(path string) (string, error) {
+	mdFiles, err := os.ReadDir(path)
+	if err != nil {
+		return "", err
+	}
+
+	for _, mdFile := range mdFiles {
+		name := mdFile.Name()
+		if strings.Contains(name, "_aspace_wo.tsv") {
+			return name, nil
+		}
+	}
+	return "", fmt.Errorf("%s does not contain a work order", path)
+}
+
+func getPartnerAndResource(workOrderName string) (string, string) {
+	split := strings.Split(workOrderName, "_")
+	return split[0], strings.Join(split[1:len(split)-2], "_")
+}
+
+// regexp definitions for validation
+var (
+	aspaceResourceURLPtn     = regexp.MustCompile(`^/repositories/[2|3|6]/resources/\d*$`)
+	partnerPtn               = regexp.MustCompile(`^[tamwag|fales|nyuarchives]`)
+	contentClassificationPtn = regexp.MustCompile(`[open|closed|restricted]`)
+	packageFormatPtn         = regexp.MustCompile(`["1.0.0"|"1.0.1"]`)
+	contentTypePtn           = regexp.MustCompile(`electronic_records|electronic_records-do-not-create-DOs`)
+	transferTypePtn          = regexp.MustCompile(`[AIP|SIP|DIP]`)
+	useStatementPtn          = regexp.MustCompile(`electronic-records-reading-room`)
+)
+
+func (ti TransferInfo) Validate() error {
+	//ensure contact-name is not blank
+	if ti.ContactName == "" {
+		return fmt.Errorf("field `Contact-Name` is blank in transfer-info.txt")
+	}
+
+	//ensure contact-email is not blank
+	if ti.ContactEmail == "" {
+		return fmt.Errorf("`Contact-Email` is blank in transfer-info.txt")
+	}
+
+	//ensure contact-phone is not blank
+	if ti.ContactPhone == "" {
+		return fmt.Errorf("`Contact-Phone` is blank in transfer-info.txt")
+	}
+
+	//ensure that Internal Sender Identifier is valid
+	split := strings.Split(ti.InternalSenderIdentifier, "/")
+	if len(split) != 2 {
+		return fmt.Errorf("`Internal-Sender-Identifier` is malformed in transfer-info.txt, must contains a single `/`")
+	}
+
+	if !partnerPtn.MatchString(split[0]) {
+		return fmt.Errorf("`Internal-Sender-Identifier` is malformed in transfer-info.txt, partner code must be one of: `fales`, `tamwag`, or `nyuarchive`")
+	}
+
+	//Ensure Source Organization is not blank
+	if ti.OrganizationAddress == "" {
+		return fmt.Errorf("`Organization-Address` is blank in transfer-info.txt")
+	}
+
+	//Ensure Source Organization is not blank
+	if ti.SourceOrganization == "" {
+		return fmt.Errorf("`Source-Organization` is blank in transfer-info.txt")
+	}
+
+	//Ensure there is A ArchivesSpace Resource URL is present and valid
+	if !aspaceResourceURLPtn.MatchString(ti.ArchivesSpaceResourceURL) {
+		return fmt.Errorf("`nyu-dl-archivesspace-resource-url` malformed in transfer-info.txt, must be in the form `/repositories/X/resources/Y`")
+	}
+
+	//Ensure Resource-ID is not blank
+	if ti.ResourceID == "" {
+		return fmt.Errorf("`nyu-dl-resource-id` is blank in transfer-info.txt")
+	}
+
+	//Ensure Resource-Title is not blank
+	if ti.ResourceTitle == "" {
+		return fmt.Errorf("`nyu-dl-resource-title` is blank in transfer-info.txt")
+	}
+
+	//ensure the Content-Type is valid
+	if !contentTypePtn.MatchString(ti.ContentType) {
+		return fmt.Errorf("`nyu-dl-content-type` must have a value of `electronic_records`, or `electronic_records-do-not-create-DOs`, values was %s", ti.ContentType)
+	}
+
+	//ensure the Content-Classification is valid
+	if !contentClassificationPtn.MatchString(ti.ContentClassification) {
+		return fmt.Errorf("`nyu-dl-content-classification` must have a value of `open`, `closed`, or `restricted`")
+	}
+
+	//ensure that the project name is valid
+	split = strings.Split(ti.ProjectName, "/")
+	if len(split) != 2 {
+		return fmt.Errorf("`nyu-dl-project-name` is malformed in transfer-info.txt, must contains a single `/`")
+	}
+
+	if !partnerPtn.MatchString(split[0]) {
+		return fmt.Errorf("`nyu-dl-project-name` is malformed in transfer-info.txt, partner code must be one of: `fales`, `tamwag`, or `nyuarchive`")
+	}
+
+	//ensure rstar uuid is present and valid
+	if _, err := uuid.Parse(ti.RStarCollectionID); err != nil {
+		return err
+	}
+
+	//ensure the package-format is valid
+	if !packageFormatPtn.MatchString(ti.PackageFormat) {
+		return fmt.Errorf("`nyu-dl-package-format` is malformed in transfer-info.txt, partner code must be one of: `1.0.0`, or 	`1.0.1`")
+	}
+
+	//ensure the use-statement is valid
+	if !useStatementPtn.MatchString(ti.UseStatement) {
+		return fmt.Errorf("`nyu-dl-use-statement` is malformed in transfer-info.txt, use statement must be `electronic-records-reading-room`")
+	}
+
+	//ensure the transfer-type is valid
+	if !transferTypePtn.MatchString(ti.TransferType) {
+		return fmt.Errorf("`nyu-dl-transfer-type` is malformed in transfer-info.txt, transfer type must be one of: `AIP`, `DIP`, or `SIP`")
+	}
+
+	return nil
+}
+
+func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
+	workOrderLoc := filepath.Join(mdDir, workorderName)
+
+	wof, err := os.Open(workOrderLoc)
+	if err != nil {
+		panic(err)
+	}
+	defer wof.Close()
+	var workOrder aspace.WorkOrder
+	if err := workOrder.Load(wof); err != nil {
+		return workOrder, err
+	}
+	return workOrder, nil
 }

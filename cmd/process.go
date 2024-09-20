@@ -7,11 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
-	"github.com/google/uuid"
-	"github.com/nyudlts/go-aspace"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -133,63 +129,4 @@ func process() {
 
 	log.Printf("[INFO] adoc-preprocess complete for %s_%s", partnerCode, resourceCode)
 
-}
-
-func isDirectory(path string) error {
-	fi, err := os.Stat(path)
-	if err == nil {
-		if fi.IsDir() {
-			return nil
-		} else {
-			return fmt.Errorf("%s is not a directory", path)
-		}
-	} else {
-		return err
-	}
-}
-
-func getWorkOrderFile(path string) (string, error) {
-	mdFiles, err := os.ReadDir(path)
-	if err != nil {
-		return "", err
-	}
-
-	for _, mdFile := range mdFiles {
-		name := mdFile.Name()
-		if strings.Contains(name, "_aspace_wo.tsv") {
-			return name, nil
-		}
-	}
-	return "", fmt.Errorf("%s does not contain a work order", path)
-}
-func getPartnerAndResource(workOrderName string) (string, string) {
-	split := strings.Split(workOrderName, "_")
-	return split[0], strings.Join(split[1:len(split)-2], "_")
-}
-
-var partnerAndCode = regexp.MustCompile(`^[tamwag|fales|nyuarchives].*`)
-
-func validateTransferInfo(ti *TransferInfo) error {
-	//ensure rstar uuid is present
-	if _, err := uuid.Parse(ti.RStarCollectionID); err != nil {
-		return err
-	}
-
-	//ensure that the partner and codes are valid
-
-	return nil
-}
-
-func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
-	workOrderLoc := filepath.Join(mdDir, workorderName)
-	wof, err := os.Open(workOrderLoc)
-	if err != nil {
-		panic(err)
-	}
-	defer wof.Close()
-	var workOrder aspace.WorkOrder
-	if err := workOrder.Load(wof); err != nil {
-		return workOrder, err
-	}
-	return workOrder, nil
 }

@@ -1,4 +1,4 @@
-module github.com/nyudlts/adoc-preprocess
+module github.com/nyudlts/adoc-process
 
 go 1.22
 

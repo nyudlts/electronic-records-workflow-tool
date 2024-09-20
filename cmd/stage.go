@@ -126,8 +126,4 @@ func stage() {
 
 	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
 
-	if err := os.Rename(logFileName, fmt.Sprintf("%s_%s-adoc-stage.log", params.PartnerCode, params.ResourceCode)); err != nil {
-		panic(err)
-	}
-
 }

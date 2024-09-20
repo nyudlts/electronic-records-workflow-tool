@@ -116,7 +116,7 @@ func validate() error {
 		if _, err := os.Stat(erLocation); err != nil {
 			return err
 		}
-		fmt.Printf("    %s exists\n", componentID)
+		fmt.Printf("    * %s exists\n", componentID)
 	}
 
 	//check there are no extra directories in source location

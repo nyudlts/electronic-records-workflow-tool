@@ -20,24 +20,26 @@ var (
 )
 
 func init() {
-	processCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
-	processCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
-	rootCmd.AddCommand(processCmd)
+	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
+	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
+	rootCmd.AddCommand(stageCmd)
 }
 
-var processCmd = &cobra.Command{
-	Use: "process",
+var stageCmd = &cobra.Command{
+	Use:   "stage",
+	Short: "pre-process submission package from source-location and move to archivematica staging-location",
 	Run: func(cmd *cobra.Command, args []string) {
-		process()
+		stage()
 	},
 }
 
-func process() {
-	fmt.Printf("adoc-preprocess v%s\n", version)
+func stage() {
+	fmt.Printf("adoc-process v%s\n", version)
 	flag.Parse()
 	params := Params{}
 
-	logFile, err := os.Create("adoc-preprocess.log") //this should have the call number of the collection e.g. fales_mss318.log
+	logFileName := "adoc-stage.log"
+	logFile, err := os.Create(logFileName) //this should have the call number of the collection e.g. fales_mss318.log
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +116,7 @@ func process() {
 
 	//create an output file
 	log.Println("[INFO] creating output report")
-	outputFile, err := os.Create("adoc-preprocess.tsv")
+	outputFile, err := os.Create(fmt.Sprintf("%s_%s-adoc-stage.tsv", partnerCode, resourceCode))
 	if err != nil {
 		panic(err)
 	}
@@ -127,6 +129,10 @@ func process() {
 	}
 	writer.Flush()
 
-	log.Printf("[INFO] adoc-preprocess complete for %s_%s", partnerCode, resourceCode)
+	if err := os.Rename(logFileName, fmt.Sprintf("%s_%s-adoc-stage.log", partnerCode, resourceCode)); err != nil {
+		panic(err)
+	}
+
+	log.Printf("[INFO] adoc-stage complete for %s_%s", partnerCode, resourceCode)
 
 }

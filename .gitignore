@@ -3,3 +3,4 @@ staging/*
 .DS_Store
 *.log
 *.tsv
+.vscode/*

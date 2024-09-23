@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -16,8 +17,11 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
-var options = cp.Options{}
-var params Params
+var (
+	options          = cp.Options{}
+	params           Params
+	infectedFilesPtn = regexp.MustCompile("^Infected files: 0$")
+)
 
 type Params struct {
 	PartnerCode  string
@@ -176,6 +180,24 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		_, err := copyFile(ftkCSVLocation, ftkCSVTarget)
 		if err != nil {
 			return (err)
+		}
+	}
+
+	//check for and copy Clamscan logs
+	clamscanLog := fmt.Sprintf("%s_clamscan.log", erID)
+	clamscanLogLocation := filepath.Join(params.Source, "metadata", clamscanLog)
+	_, err = os.Stat(clamscanLogLocation)
+	if err != nil {
+		log.Printf("[INFO] WORKER %d no clamscan log in metadata directory in %s", workerId, erID)
+	} else {
+		if !checkClamscanLog(clamscanLogLocation) {
+			return fmt.Errorf("clamscan.txt contained infected files")
+		}
+		log.Printf("[INFO] WORKER %d copying clamscan log to metadata directory in %s", workerId, erID)
+		clamscanLogTarget := filepath.Join(ERMDDirLoc, clamscanLog)
+		_, err := copyFile(clamscanLogLocation, clamscanLogTarget)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -387,4 +409,18 @@ func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error
 		return workOrder, err
 	}
 	return workOrder, nil
+}
+
+func checkClamscanLog(logPath string) bool {
+	logFile, err := os.Open(logPath)
+	if err != nil {
+		panic(err)
+	}
+	scanner := bufio.NewScanner(logFile)
+	for scanner.Scan() {
+		if infectedFilesPtn.MatchString(scanner.Text()) {
+			return true
+		}
+	}
+	return false
 }

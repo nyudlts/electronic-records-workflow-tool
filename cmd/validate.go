@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -135,7 +136,34 @@ func validate() error {
 		}
 	}
 	fmt.Println("OK")
+
+	//check that clamscan logs
+	fmt.Print("  10. checking clamscan.logs: ")
+	clamscanLogPtn := regexp.MustCompile("clamscan.log$")
+
+	//check there are no failed clamscan logs
+	mdFiles, err := os.ReadDir(mdDirLocation)
+	if err != nil {
+		return err
+	}
+
+	clamInfectedPtn := regexp.MustCompile("\nInfected files: 0")
+	for _, mdFile := range mdFiles {
+		if clamscanLogPtn.MatchString(mdFile.Name()) {
+			fileBytes, err := os.ReadFile(filepath.Join(mdDirLocation, mdFile.Name()))
+			if err != nil {
+				return err
+			}
+			if !clamInfectedPtn.Match(fileBytes) {
+				return fmt.Errorf("%s reports infected files", mdFile.Name())
+			}
+		}
+	}
+	fmt.Println("OK")
+
+	//validation complete
 	return nil
+
 }
 
 func contains(s string, sl []string) bool {

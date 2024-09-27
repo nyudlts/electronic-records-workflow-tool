@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -20,7 +19,7 @@ import (
 var (
 	options          = cp.Options{}
 	params           Params
-	infectedFilesPtn = regexp.MustCompile("^Infected files: 0$")
+	infectedFilesPtn = regexp.MustCompile("\nInfected files: 0\n")
 )
 
 type Params struct {
@@ -412,15 +411,14 @@ func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error
 }
 
 func checkClamscanLog(logPath string) bool {
-	logFile, err := os.Open(logPath)
+	logBytes, err := os.ReadFile(logPath)
 	if err != nil {
 		panic(err)
 	}
-	scanner := bufio.NewScanner(logFile)
-	for scanner.Scan() {
-		if infectedFilesPtn.MatchString(scanner.Text()) {
-			return true
-		}
+
+	if infectedFilesPtn.Match(logBytes) {
+		return true
 	}
+
 	return false
 }

@@ -5,6 +5,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/nyudlts/go-aspace v0.6.1 h1:BWHTeFg/NGfs13pkmwXJA6yowJN36B/aukmJbJQaX0I=
 github.com/nyudlts/go-aspace v0.6.1/go.mod h1:XjLzY7ig8xq5qgFpfyIXb6BJQ68f9e6V5zkI8nF7EHc=
+github.com/nyudlts/go-bagit v0.3.0-alpha h1:Ph+Z/nOtU2pXamS9D+jyVV664+oe2slvlT5cp7Q7n9Y=
+github.com/nyudlts/go-bagit v0.3.0-alpha/go.mod h1:lxs6pH5oi1hPyCb8EXhi+iYoenemRZ1+flHPjXYI0Do=
 github.com/otiai10/copy v1.14.0 h1:dCI/t1iTdYGtkvCuBG2BgR6KZa83PTclw4U5n2wAllU=
 github.com/otiai10/copy v1.14.0/go.mod h1:ECfuL02W+/FkTWZWgQqXPWZgW9oeKCSQ5qVfSc4qc4w=
 github.com/otiai10/mint v1.5.1 h1:XaPLeE+9vGbuyEHem1JNk3bYc7KKqyI/na0/mLd/Kks=

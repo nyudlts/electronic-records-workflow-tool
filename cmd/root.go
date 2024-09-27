@@ -9,9 +9,13 @@ import (
 
 var rootCmd = &cobra.Command{}
 
+const version = "v0.2.0"
+
 var (
 	sourceLoc  string
 	stagingLoc string
+	aipLoc     string
+	tmpLoc     string
 )
 
 func Execute() {

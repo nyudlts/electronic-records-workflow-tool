@@ -12,8 +12,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const version = "0.2.0"
-
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
 	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")

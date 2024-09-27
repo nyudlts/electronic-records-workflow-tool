@@ -16,6 +16,7 @@ var (
 	stagingLoc string
 	aipLoc     string
 	tmpLoc     string
+	aipFileLoc string
 )
 
 func Execute() {

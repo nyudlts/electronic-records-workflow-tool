@@ -21,6 +21,8 @@ var prepSingleCmd = &cobra.Command{
 }
 
 func prepSingle() {
+	fmt.Println("ADOC Prep", version)
+	fmt.Printf("Preping bag at %s for transfer to R*\n", aipLoc)
 	//check that aip exists
 	aip, err := os.Stat(aipLoc)
 	if err != nil {

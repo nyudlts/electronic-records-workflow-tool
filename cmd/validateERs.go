@@ -59,9 +59,7 @@ func validateERs() error {
 			}
 
 			if err := bag.ValidateBag(true, false); err != nil {
-				log.Printf("[ERROR] %s not valid according to Payload-Oxum", erPath)
-			} else {
-				log.Printf("[INFO] %s valid according to Payload-Oxum", erPath)
+				return err
 			}
 		}
 	}

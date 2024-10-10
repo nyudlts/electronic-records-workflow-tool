@@ -12,11 +12,14 @@ var rootCmd = &cobra.Command{}
 const version = "v0.2.0"
 
 var (
-	sourceLoc  string
-	stagingLoc string
-	aipLoc     string
-	tmpLoc     string
-	aipFileLoc string
+	aipLoc          string
+	aipFileLoc      string
+	sourceLoc       string
+	stagingLoc      string
+	tmpLoc          string
+	aspaceConfigLoc string
+	aspaceWOLoc     string
+	aspaceEnv       string
 )
 
 func Execute() {

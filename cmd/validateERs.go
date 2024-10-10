@@ -44,7 +44,7 @@ func validateERs() error {
 		return fmt.Errorf("regexp cannot not be nil")
 	}
 
-	ersPtn := regexp.MustCompile(fmt.Sprintf("*%s*", ersRegex))
+	ersPtn := regexp.MustCompile(fmt.Sprintf(".*%s.*", ersRegex))
 
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {

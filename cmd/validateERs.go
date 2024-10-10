@@ -20,8 +20,9 @@ var validateERsCmd = &cobra.Command{
 	Use: "validate-ers",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := validateERs(); err != nil {
-			fmt.Println("All ER bags are valid")
+			panic(err)
 		}
+		fmt.Println("All ER bags are valid")
 	},
 }
 
@@ -44,10 +45,11 @@ func validateERs() error {
 		return fmt.Errorf("regexp cannot not be nil")
 	}
 
-	ersPtn := regexp.MustCompile(fmt.Sprintf(".*%s.*", ersRegex))
+	ersPtn := regexp.MustCompile(fmt.Sprintf(".*%s*", ersRegex))
 
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
+			fmt.Printf("fast validating %s\n", entry.Name())
 			bag, err := bagit.GetExistingBag(filepath.Join(ersLoc, entry.Name()))
 			if err != nil {
 				return err

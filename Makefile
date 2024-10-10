@@ -3,6 +3,6 @@ tidy:
 clean:
 	rm adoc
 build:
-	go build -o adoc main.go
+	go build ain.go
 install:
-	sudo mv adoc-preprocess /usr/local/bin/
+	sudo mv adoc /usr/local/bin/

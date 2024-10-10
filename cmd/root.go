@@ -20,6 +20,8 @@ var (
 	aspaceConfigLoc string
 	aspaceWOLoc     string
 	aspaceEnv       string
+	ersLoc          string
+	ersRegex        string
 )
 
 func Execute() {

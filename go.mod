@@ -1,4 +1,4 @@
-module github.com/nyudlts/adoc-process
+module github.com/nyudlts/adoc
 
 go 1.23.1
 

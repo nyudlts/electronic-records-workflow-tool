@@ -12,6 +12,7 @@ import (
 )
 
 func init() {
+	log.SetOutput(os.Stdout)
 	validateERsCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
 	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
 	rootCmd.AddCommand(validateERsCmd)

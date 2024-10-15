@@ -48,18 +48,16 @@ func processList() error {
 		options.PermissionControl = cp.AddPermission(0755)
 
 		//copy the directory to the staging area
-		aipLoc = filepath.Join(stagingLoc, fi.Name())
+		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
 		fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
-		if err := cp.Copy(aipLoc, aipLoc, options); err != nil {
+		if err := cp.Copy(aipLocation, aipStageLoc, options); err != nil {
 			return err
 		}
 
-		/*
-			fmt.Printf("\nUpdating package at %s\n", aipLoc)
-			if err := prepPackage(aipLoc, tmpLoc); err != nil {
-				return err
-			}
-		*/
+		fmt.Printf("\nUpdating package at %s\n", aipLoc)
+		if err := prepPackage(aipStageLoc, tmpLoc); err != nil {
+			return err
+		}
 
 	}
 

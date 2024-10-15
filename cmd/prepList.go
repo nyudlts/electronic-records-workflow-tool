@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 
-	cp "github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 )
 
@@ -41,26 +39,30 @@ func processList() error {
 			return err
 		}
 
-		//set copy options
-		options.PreserveTimes = true
-		options.PermissionControl = cp.AddPermission(0755)
+		fmt.Println(fi.Name())
 
-		//copy the directory to the staging area
-		aipLoc = filepath.Join(stagingLoc, fi.Name())
-		fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
-		if err := cp.Copy(aipLoc, aipLoc, options); err != nil {
-			return err
-		}
+		/*
+			//set copy options
+			options.PreserveTimes = true
+			options.PermissionControl = cp.AddPermission(0755)
 
-		//run the update process
-		if tmpLoc == "" {
-			tmpLoc = "/tmp"
-		}
+			//copy the directory to the staging area
+			aipLoc = filepath.Join(stagingLoc, fi.Name())
+			fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
+			if err := cp.Copy(aipLoc, aipLoc, options); err != nil {
+				return err
+			}
 
-		fmt.Printf("\nUpdating package at %s\n", aipLoc)
-		if err := prepPackage(aipLoc, tmpLoc); err != nil {
-			return err
-		}
+			//run the update process
+			if tmpLoc == "" {
+				tmpLoc = "/tmp"
+			}
+
+			fmt.Printf("\nUpdating package at %s\n", aipLoc)
+			if err := prepPackage(aipLoc, tmpLoc); err != nil {
+				return err
+			}
+		*/
 
 	}
 

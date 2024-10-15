@@ -35,7 +35,8 @@ func processList() error {
 
 	for scanner.Scan() {
 		aipLocation := scanner.Text()
-		fi, err := os.Stat(aipLoc)
+		fmt.Println(aipLocation)
+		fi, err := os.Stat(aipLocation)
 		if err != nil {
 			return err
 		}

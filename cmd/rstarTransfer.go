@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	validateERsCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
-	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	rstarXfrCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
+	rstarXfrCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
 	rootCmd.AddCommand(rstarXfrCmd)
 }
 

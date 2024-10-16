@@ -4,3 +4,4 @@ staging/*
 *.log
 *.tsv
 .vscode/*
+*.exe

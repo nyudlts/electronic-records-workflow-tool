@@ -12,9 +12,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var numWorkers int
+
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
 	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
+	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "")
 	rootCmd.AddCommand(stageCmd)
 }
 
@@ -27,7 +30,7 @@ var stageCmd = &cobra.Command{
 }
 
 func stage() {
-	fmt.Printf("adoc-process v%s\n", version)
+	fmt.Printf("adoc-process %s\n", version)
 	flag.Parse()
 	params := Params{}
 
@@ -102,7 +105,7 @@ func stage() {
 	params.TransferInfo = transferInfo
 
 	log.Println("[INFO] creating Transfer packages")
-	results, err := ProcessWorkOrderRows(params, 5)
+	results, err := ProcessWorkOrderRows(params, numWorkers)
 	if err != nil {
 		panic(err)
 	}

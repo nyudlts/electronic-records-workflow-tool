@@ -23,8 +23,6 @@ var (
 	xferDirectoryPtn *regexp.Regexp
 )
 
-const locationName = "amatica rws ingest point"
-
 func init() {
 	if runtime.GOOS == "windows" {
 		windows = true
@@ -35,6 +33,10 @@ func init() {
 	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
+
+const locationName = "amatica rws ingest point"
+
+var amLocation amatica.Location
 
 var xferAmaticaCmd = &cobra.Command{
 	Use: "transfer-amatica",
@@ -132,6 +134,7 @@ func xferDiretories() error {
 		if xferDirectoryPtn.MatchString(xferDir.Name()) {
 			xipPath := filepath.Join(xferDirectory, xferDir.Name())
 			if err := transferPackage(xipPath); err != nil {
+				//log the err instead
 				return err
 			}
 		} else {
@@ -145,19 +148,54 @@ func xferDiretories() error {
 
 func transferPackage(xipPath string) error {
 	xipName := filepath.Base(xipPath)
-
-	location, err := client.GetLocationByName(locationName)
+	fmt.Printf
+	("Initializing transfer for %s", xipName)
+	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Location:", location)
+	transferUUID, err := requestTransfer(amXIPPath)
+	if err != nil {
+		return err
+	}
+	fmt.Println(transferUUID)
+	return nil
+}
 
-	amXIPPath := filepath.Join(location.Path, xipName)
+func initTransfer(xipName string) (string, error) {
+	var err error
+	amLocation, err = client.GetLocationByName(locationName)
+	if err != nil {
+		return "", err
+	}
+
+	//convert windows path seperators
+	amXIPPath := filepath.Join(amLocation.Path, xipName)
 	if windows {
 		amXIPPath = strings.Replace(amXIPPath, "\\", "/", -1)
 	}
-	fmt.Printf("\nTransfering package: %s to archivematica\n", amXIPPath)
-	log.Printf("[INFO] transfering package: %s to archivematica", amXIPPath)
-	return nil
+	return amXIPPath, nil
+}
+
+func requestTransfer(xipPath string) (string, error) {
+	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
+	if err != nil {
+		return "", err
+	}
+
+	//catch the soft error
+	if regexp.MustCompile("^Error").MatchString(startTransferResponse.Message) {
+		return "", fmt.Errorf("%s", startTransferResponse.Message)
+	}
+
+	fmt.Printf("\nStart Transfer Request Message: %s\n", startTransferResponse.Message)
+	log.Printf("[INFO] start Transfer Request Message: %s", startTransferResponse.Message)
+
+	//get the uuid for the transfer
+	uuid, err := startTransferResponse.GetUUID()
+	if err != nil {
+		return "", err
+	}
+	return uuid, nil
 }

@@ -211,8 +211,15 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	payloadSource := filepath.Join(params.Source, erID)
 	payloadTarget := (filepath.Join(dataDir))
 	log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
-	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
-		return err
+	/*
+		if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
+			return err
+		}
+	*/
+
+	fsys := os.DirFS(payloadSource)
+	if err := os.CopyFS(payloadTarget, fsys); err != nil {
+
 	}
 
 	//complete

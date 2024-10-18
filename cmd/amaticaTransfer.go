@@ -148,8 +148,7 @@ func xferDiretories() error {
 
 func transferPackage(xipPath string) error {
 	xipName := filepath.Base(xipPath)
-	fmt.Printf
-	("Initializing transfer for %s", xipName)
+	fmt.Printf("Initializing transfer for %s", xipName)
 	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err

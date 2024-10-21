@@ -201,21 +201,22 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	}
 
 	//create the ER Directory
-	log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
-	dataDir := filepath.Join(ERLoc, erID)
-	if err := os.Mkdir(dataDir, 0755); err != nil {
-		return err
-	}
+	/*
+		log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
+		dataDir := filepath.Join(ERLoc, erID)
+		if err := os.Mkdir(dataDir, 0755); err != nil {
+			return err
+		}
 
-	//copy files from source to target
-	payloadSource := filepath.Join(params.Source, erID)
-	payloadTarget := (filepath.Join(dataDir))
-	log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
+		//copy files from source to target
+		payloadSource := filepath.Join(params.Source, erID)
+		payloadTarget := (filepath.Join(dataDir))
+		log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
 
-	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
-		return err
-	}
-
+		if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
+			return err
+		}
+	*/
 	//complete
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)

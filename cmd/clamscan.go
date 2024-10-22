@@ -50,6 +50,9 @@ func clamscan() error {
 			fmt.Printf("Scanning %s for viruses\n", entry.Name())
 			xfer := filepath.Join(ersLoc, entry.Name())
 			logName := filepath.Join(ersLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
+			if _, err := os.Create(logName); err != nil {
+				return err
+			}
 			clamscanCmd := exec.Command("clamscan", "-r", "-l", logName, xfer)
 			clamscanCmd.Stdout = os.Stdout
 			if err := clamscanCmd.Run(); err != nil {

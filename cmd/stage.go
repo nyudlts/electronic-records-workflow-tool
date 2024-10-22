@@ -23,7 +23,7 @@ func init() {
 
 var stageCmd = &cobra.Command{
 	Use:   "stage",
-	Short: "pre-process submission package from source-location and move to archivematica staging-location",
+	Short: "pre-process submission package",
 	Run: func(cmd *cobra.Command, args []string) {
 		stage()
 	},

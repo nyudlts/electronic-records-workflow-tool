@@ -11,21 +11,21 @@ import (
 )
 
 func init() {
-	rstarXfrCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
-	rstarXfrCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
-	rootCmd.AddCommand(rstarXfrCmd)
+	clamCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
+	clamCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	rootCmd.AddCommand(clamCmd)
 }
 
-var rstarXfrCmd = &cobra.Command{
-	Use: "transfer",
+var clamCmd = &cobra.Command{
+	Use: "clamscan",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := transferToRstar(); err != nil {
+		if err := clamscan(); err != nil {
 			panic(err)
 		}
 	},
 }
 
-func transferToRstar() error {
+func clamscan() error {
 	ers, err := os.Stat(ersLoc)
 	if err != nil {
 		return err
@@ -45,14 +45,14 @@ func transferToRstar() error {
 	}
 
 	ersPtn := regexp.MustCompile(fmt.Sprintf("%s", ersRegex))
-
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
-			fmt.Println("transferring", entry.Name())
-			xferBag := filepath.Join(ersLoc, entry.Name())
-			xferCmd := exec.Command("rstar-scp.exp", xferBag)
-			xferCmd.Stdout = os.Stdout
-			if err := xferCmd.Run(); err != nil {
+			fmt.Printf("Scanning %s for viruses\n", entry.Name())
+			xfer := filepath.Join(ersLoc, entry.Name())
+			logName := filepath.Join(ersLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
+			clamscanCmd := exec.Command("clamscan", "-r", "-l", logName, xfer)
+			clamscanCmd.Stdout = os.Stdout
+			if err := clamscanCmd.Run(); err != nil {
 				return err
 			}
 		}

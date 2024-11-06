@@ -198,14 +198,14 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//copy the ER Directory to Archivematica staging location
 
-	stagingER := filepath.Join(params.Staging, ERLoc)
-	cmd := exec.Command("rsync", "-rav", ERLoc, stagingER)
+	fmt.Println("payload-source:", payloadSource)
+	stagingTarget := filepath.Join(params.Staging, ERDirName)
+	fmt.Println("staging-target:", stagingTarget)
+
+	cmd := exec.Command("rsync", "-rav", payloadSource, stagingTarget)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingER)
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingTarget)
 
 	/*
 		//create the ER Directory

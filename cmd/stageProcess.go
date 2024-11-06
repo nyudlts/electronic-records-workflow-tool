@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -19,14 +20,6 @@ var (
 	params           Params
 	infectedFilesPtn = regexp.MustCompile("\nInfected files: 0\n")
 )
-
-type Params struct {
-	PartnerCode  string
-	ResourceCode string
-	Source       string
-	TransferInfo TransferInfo
-	WorkOrder    aspace.WorkOrder
-}
 
 type DC struct {
 	Title    string `json:"title"`
@@ -200,6 +193,17 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	payloadSource := filepath.Join(params.Source, erID)
 	payloadTarget := filepath.Join(ERLoc, erID)
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
+		return err
+	}
+
+	//copy the ER Directory to Archivematica staging location
+
+	stagingER := filepath.Join(params.Staging, ERLoc)
+	cmd := exec.Command("rsync", "-rav", ERLoc, stagingER)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingER)
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 

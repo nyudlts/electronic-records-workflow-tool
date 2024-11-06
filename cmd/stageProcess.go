@@ -198,7 +198,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(params.Source, erID)
-	payloadTarget := filepath.Join(ERMDDirLoc, erID)
+	payloadTarget := filepath.Join(ERLoc, erID)
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err
 	}

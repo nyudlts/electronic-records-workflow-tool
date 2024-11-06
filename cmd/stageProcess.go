@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -198,15 +197,16 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//copy the ER Directory to Archivematica staging location
 
-	fmt.Println("payload-source:", payloadSource)
+	log.Println("payload-target:", payloadTarget)
 	stagingTarget := filepath.Join(params.Staging, ERDirName)
-	fmt.Println("staging-target:", stagingTarget)
+	log.Println("staging-target:", stagingTarget)
 
-	cmd := exec.Command("rsync", "-rav", payloadSource, stagingTarget)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingTarget)
-
+	/*
+		cmd := exec.Command("rsync", "-rav", payloadSource, stagingTarget)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingTarget)
+	*/
 	/*
 		//create the ER Directory
 

@@ -24,6 +24,8 @@ var listCmd = &cobra.Command{
 	},
 }
 
+var options = cp.Options{}
+
 func processList() error {
 	fmt.Println(aipFileLoc)
 	aipFile, err := os.Open(aipFileLoc)

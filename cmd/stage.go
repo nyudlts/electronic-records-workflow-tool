@@ -16,7 +16,6 @@ var numWorkers int
 
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
-	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
 	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "")
 	rootCmd.AddCommand(stageCmd)
 }
@@ -48,12 +47,6 @@ func stage() {
 		panic(err)
 	}
 	params.Source = sourceLoc
-
-	//check that staging location exists and is a Directory
-	if err := isDirectory(stagingLoc); err != nil {
-		panic(err)
-	}
-	params.StagingLoc = stagingLoc
 
 	log.Println("[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory

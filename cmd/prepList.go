@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
-	cp "github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +23,6 @@ var listCmd = &cobra.Command{
 		processList()
 	},
 }
-
-var options = cp.Options{}
 
 func processList() error {
 	fmt.Println(aipFileLoc)
@@ -45,14 +43,14 @@ func processList() error {
 
 		fmt.Println(fi.Name())
 
-		//set copy options
-		options.PreserveTimes = true
-		options.PermissionControl = cp.AddPermission(0755)
-
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
 		fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
-		if err := cp.Copy(aipLocation, aipStageLoc, options); err != nil {
+		cmd := exec.Command("rsync", "-rav", aipLocation, aipStageLoc)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
 			return err
 		}
 

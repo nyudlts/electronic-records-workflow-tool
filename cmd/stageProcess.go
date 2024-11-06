@@ -202,7 +202,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	log.Println("er-source:", ERLoc)
 	log.Println("staging-target:", params.Staging)
 	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
-	cmd := exec.Command("rsync", "-rav", ERLoc, params.Staging)
+	cmd := exec.Command("rsync", "-rav", "--perms", "--chmod=u+rwx,g+rx,o+rx", ERLoc, params.Staging)
 
 	rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
 	defer rof.Close()

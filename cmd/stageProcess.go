@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -197,16 +199,22 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//copy the ER Directory to Archivematica staging location
 
-	log.Println("payload-target:", payloadTarget)
-	stagingTarget := filepath.Join(params.Staging, ERDirName)
-	log.Println("staging-target:", stagingTarget)
+	log.Println("er-source:", ERLoc)
+	log.Println("staging-target:", params.Staging)
+	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
+	cmd := exec.Command("rsync", "-rav", ERLoc, params.Staging)
 
-	/*
-		cmd := exec.Command("rsync", "-rav", payloadSource, stagingTarget)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		log.Printf("[INFO] WORKER %d copying %s to %s", workerId, erID, stagingTarget)
-	*/
+	rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
+	defer rof.Close()
+	writer := bufio.NewWriter(rof)
+	cmd.Stdout = writer
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	writer.Flush()
+	log.Printf("worker %d copy complete", workerId)
+
 	/*
 		//create the ER Directory
 

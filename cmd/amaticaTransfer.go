@@ -24,7 +24,9 @@ var (
 )
 
 func init() {
+	fmt.Printf("adoc %s transfer-am", version)
 	if runtime.GOOS == "windows" {
+		fmt.Println("setting Windows mode")
 		windows = true
 	}
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "")
@@ -41,9 +43,18 @@ var amLocation amatica.Location
 var xferAmaticaCmd = &cobra.Command{
 	Use: "transfer-am",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {
 			panic(err)
 		}
+
+		fmt.Println("creating log File")
+		logFile, err := os.Create("am-tools-transfer.log")
+		if err != nil {
+			panic(err)
+		}
+		defer logFile.Close()
+		log.SetOutput(logFile)
 
 		if err := setup(); err != nil {
 			panic(err)
@@ -84,13 +95,6 @@ func checkFlags() error {
 }
 
 func setup() error {
-	fmt.Println("Creating Log File")
-	logFile, err := os.Create("am-tools-transfer.log")
-	if err != nil {
-		return err
-	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
 
 	//create an output file
 	fmt.Println("creating aip-file.txt")
@@ -105,8 +109,7 @@ func setup() error {
 	//set the poll time
 	fmt.Printf("setting polling time to %d seconds\n", pollTime)
 	log.Printf("[INFO] setting polling time to %d seconds", pollTime)
-	poll = time.Duration(pollTime)
-
+	poll = time.Duration(pollTime * int(time.Second))
 	//create a client
 	fmt.Println("creating go-archivematica client")
 	log.Println("[INFO] creating go-archivematica client")
@@ -116,7 +119,7 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("Reading source directory: %s\n", xferDirectory)
+	fmt.Printf("reading source directory: %s\n", xferDirectory)
 	log.Printf("[INFO] reading source directory: %s", xferDirectory)
 
 	xferDirs, err = os.ReadDir(xferDirectory)
@@ -132,7 +135,7 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("Transferring packages from %s\n", xferDirectory)
+	fmt.Printf("transferring packages from %s\n", xferDirectory)
 	log.Printf("[INFO] transferring packages from %s", xferDirectory)
 
 	for _, xferDir := range xferDirs {
@@ -152,24 +155,34 @@ func xferDirectories() error {
 }
 
 func transferPackage(xipPath string) error {
+
 	//initialize the transfer
 	xipName := filepath.Base(xipPath)
-	fmt.Printf("Initializing transfer for %s", xipName)
+	fmt.Printf("initializing transfer for %s\n", xipName)
 	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Initialized Transfer for %s", amXIPPath)
-	log.Printf("Initialized Transfer for %s", amXIPPath)
+	fmt.Printf("transfer %s initialized\n", amXIPPath)
+	log.Printf("[INFO] transfer %s initialized\n", amXIPPath)
 
 	//request the transfer through archivematica
-	fmt.Printf("Requesting transfer for %s", xipName)
+	fmt.Printf("requesting transfer for %s\n", xipName)
 	transferUUID, err := requestTransfer(amXIPPath)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Transfer requested for %s: %s", amXIPPath, transferUUID)
-	log.Printf("Transfer requested for %s: %s", amXIPPath, transferUUID)
+	fmt.Printf("transfer requested for %s-%s\n", amXIPPath, transferUUID)
+	log.Printf("[INFO] transfer requested for %s-%s", amXIPPath, transferUUID)
+
+	//approve the transfer
+	fmt.Printf("approving %s: %s\n", amXIPPath, transferUUID)
+	transferStatus, err := approveTransfer(transferUUID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("transfer approved for %s-%s\n", amXIPPath, transferStatus.UUID.String())
+	log.Printf("[INFO] transfer approved for %s-%s", amXIPPath, transferStatus.UUID.String())
 
 	//done
 	return nil
@@ -182,7 +195,7 @@ func initTransfer(xipName string) (string, error) {
 		return "", err
 	}
 
-	//convert windows path seperators
+	//convert windows path separators
 	amXIPPath := filepath.Join(amLocation.Path, xipName)
 	if windows {
 		amXIPPath = strings.Replace(amXIPPath, "\\", "/", -1)
@@ -201,8 +214,8 @@ func requestTransfer(xipPath string) (string, error) {
 		return "", fmt.Errorf("%s", startTransferResponse.Message)
 	}
 
-	fmt.Printf("\nStart Transfer Request Message: %s\n", startTransferResponse.Message)
-	log.Printf("[INFO] start Transfer Request Message: %s", startTransferResponse.Message)
+	fmt.Printf("transfer request message: %s\n", startTransferResponse.Message)
+	log.Printf("[INFO] transfer request message: %s", startTransferResponse.Message)
 
 	//get the uuid for the transfer
 	uuid, err := startTransferResponse.GetUUID()
@@ -210,4 +223,58 @@ func requestTransfer(xipPath string) (string, error) {
 		return "", err
 	}
 	return uuid, nil
+}
+
+func approveTransfer(xferUUID string) (amatica.TransferStatus, error) {
+	foundUnapproved := false
+	for !foundUnapproved {
+		var err error
+		foundUnapproved, err = findUnapprovedTransfer(xferUUID)
+		if err != nil {
+			return amatica.TransferStatus{}, err
+		}
+
+		if !foundUnapproved {
+			fmt.Println("  * waiting for approval process to complete")
+			time.Sleep(poll)
+		}
+	}
+
+	//approve the transfer
+	transfer, err := client.GetTransferStatus(xferUUID)
+	if err != nil {
+		return amatica.TransferStatus{}, err
+	}
+
+	if err := client.ApproveTransfer(transfer.Directory, "standard"); err != nil {
+		return amatica.TransferStatus{}, err
+	}
+
+	approvedTransfer, err := client.GetTransferStatus(xferUUID)
+	if err != nil {
+		return amatica.TransferStatus{}, err
+	}
+
+	return approvedTransfer, nil
+}
+
+func findUnapprovedTransfer(uuid string) (bool, error) {
+	unapprovedTransfers, err := client.GetUnapprovedTransfers()
+	if err != nil {
+		return false, err
+	}
+
+	unapprovedTransfersMap, err := client.GetUnapprovedTransfersMap(unapprovedTransfers)
+	if err != nil {
+		return false, err
+	}
+
+	//find the unapproved transfer
+	for k, _ := range unapprovedTransfersMap {
+		if k == uuid {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

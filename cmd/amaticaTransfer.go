@@ -34,12 +34,12 @@ func init() {
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
-const locationName = "amatica rws ingest point"
+const locationName = "Default transfer source"
 
 var amLocation amatica.Location
 
 var xferAmaticaCmd = &cobra.Command{
-	Use: "transfer-amatica",
+	Use: "transfer-am",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := checkFlags(); err != nil {
 			panic(err)
@@ -49,14 +49,14 @@ var xferAmaticaCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if err := xferDiretories(); err != nil {
+		if err := xferDirectories(); err != nil {
 			panic(err)
 		}
 	},
 }
 
 func checkFlags() error {
-	//check config exists
+	//check config exists					//modification check $HOME/.config/go-archivematica if not defined
 	fi, err := os.Stat(amaticaConfigLoc)
 	if err != nil {
 		return err
@@ -73,6 +73,7 @@ func checkFlags() error {
 	if !fi.IsDir() {
 		return fmt.Errorf("%s is not a directory", xferDirectory)
 	}
+
 	//check regexp is not empty
 	if ersRegex == "" {
 		return fmt.Errorf("regexp is empty, must be defined")
@@ -120,13 +121,17 @@ func setup() error {
 
 	xferDirs, err = os.ReadDir(xferDirectory)
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	if len(xferDirs) < 1 {
+		return fmt.Errorf("transfer directory is empty")
 	}
 
 	return nil
 }
 
-func xferDiretories() error {
+func xferDirectories() error {
 	fmt.Printf("Transferring packages from %s\n", xferDirectory)
 	log.Printf("[INFO] transferring packages from %s", xferDirectory)
 
@@ -154,11 +159,16 @@ func transferPackage(xipPath string) error {
 		return err
 	}
 
-	transferUUID, err := requestTransfer(amXIPPath)
-	if err != nil {
-		return err
-	}
-	fmt.Println(transferUUID)
+	/*
+		transferUUID, err := requestTransfer(amXIPPath)
+		if err != nil {
+			return err
+		}
+		fmt.Println(transferUUID)
+	*/
+
+	fmt.Println(amXIPPath)
+
 	return nil
 }
 
@@ -176,6 +186,8 @@ func initTransfer(xipName string) (string, error) {
 	}
 	return amXIPPath, nil
 }
+
+/*
 
 func requestTransfer(xipPath string) (string, error) {
 	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
@@ -198,3 +210,4 @@ func requestTransfer(xipPath string) (string, error) {
 	}
 	return uuid, nil
 }
+*/

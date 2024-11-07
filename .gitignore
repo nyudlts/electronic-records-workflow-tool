@@ -5,3 +5,4 @@ staging/*
 *.tsv
 .vscode/*
 *.exe
+aip-file.txt

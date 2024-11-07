@@ -152,23 +152,26 @@ func xferDirectories() error {
 }
 
 func transferPackage(xipPath string) error {
+	//initialize the transfer
 	xipName := filepath.Base(xipPath)
 	fmt.Printf("Initializing transfer for %s", xipName)
 	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Initialized Transfer for %s", amXIPPath)
+	log.Printf("Initialized Transfer for %s", amXIPPath)
 
-	/*
-		transferUUID, err := requestTransfer(amXIPPath)
-		if err != nil {
-			return err
-		}
-		fmt.Println(transferUUID)
-	*/
+	//request the transfer through archivematica
+	fmt.Printf("Requesting transfer for %s", xipName)
+	transferUUID, err := requestTransfer(amXIPPath)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Transfer requested for %s: %s", amXIPPath, transferUUID)
+	log.Printf("Transfer requested for %s: %s", amXIPPath, transferUUID)
 
-	fmt.Println(amXIPPath)
-
+	//done
 	return nil
 }
 
@@ -186,8 +189,6 @@ func initTransfer(xipName string) (string, error) {
 	}
 	return amXIPPath, nil
 }
-
-/*
 
 func requestTransfer(xipPath string) (string, error) {
 	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
@@ -210,4 +211,3 @@ func requestTransfer(xipPath string) (string, error) {
 	}
 	return uuid, nil
 }
-*/

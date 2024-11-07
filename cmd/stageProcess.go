@@ -1,35 +1,27 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/nyudlts/go-aspace"
-	cp "github.com/otiai10/copy"
 )
 
 var (
-	options          = cp.Options{}
 	params           Params
 	infectedFilesPtn = regexp.MustCompile("\nInfected files: 0\n")
 )
 
-type Params struct {
-	PartnerCode  string
-	ResourceCode string
-	Source       string
-	StagingLoc   string
-	TransferInfo TransferInfo
-	WorkOrder    aspace.WorkOrder
-}
 type DC struct {
 	Title    string `json:"title"`
 	IsPartOf string `json:"is_part_of"`
@@ -56,9 +48,6 @@ type TransferInfo struct {
 
 func ProcessWorkOrderRows(p Params, numWorkers int) ([][]string, error) {
 	params = p
-	options.PreserveTimes = true
-	options.NumOfWorkers = int64(numWorkers)
-	options.PermissionControl = cp.AddPermission(0755)
 
 	//chunk the workorder rows
 	log.Println("[INFO] chunking work order rows")
@@ -120,7 +109,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	//create the staging directory
 	log.Printf("[INFO] WORKER %d creating directory in staging location %s", workerId, erID)
 	ERDirName := fmt.Sprintf("%s_%s_%s", params.PartnerCode, params.ResourceCode, erID)
-	ERLoc := filepath.Join(params.StagingLoc, ERDirName)
+	ERLoc := filepath.Join(params.Source, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
 	}
@@ -201,22 +190,49 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		}
 	}
 
-	//create the ER Directory
-
-	log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
-	dataDir := filepath.Join(ERLoc, erID)
-	if err := os.Mkdir(dataDir, 0755); err != nil {
-		return err
-	}
-
-	//copy files from source to target
+	// move the payload directory to to er directory
 	payloadSource := filepath.Join(params.Source, erID)
-	payloadTarget := (filepath.Join(dataDir))
-	log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
-
-	if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
+	payloadTarget := filepath.Join(ERLoc, erID)
+	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err
 	}
+
+	//copy the ER Directory to Archivematica staging location
+
+	log.Println("er-source:", ERLoc)
+	log.Println("staging-target:", params.Staging)
+	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
+	cmd := exec.Command("rsync", "-rav", "--perms", "--chmod=u+rwx,g+rx,o+rx", ERLoc, params.Staging)
+
+	rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
+	defer rof.Close()
+	writer := bufio.NewWriter(rof)
+	cmd.Stdout = writer
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	writer.Flush()
+	log.Printf("worker %d copy complete", workerId)
+
+	/*
+		//create the ER Directory
+
+		log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
+		dataDir := filepath.Join(ERLoc, erID)
+		if err := os.Mkdir(dataDir, 0755); err != nil {
+			return err
+		}
+
+		//copy files from source to target
+		payloadSource := filepath.Join(params.Source, erID)
+		payloadTarget := (filepath.Join(dataDir))
+		log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
+
+		if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
+			return err
+		}
+	*/
 
 	//complete
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)

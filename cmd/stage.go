@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nyudlts/go-aspace"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -16,7 +17,7 @@ var numWorkers int
 
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
-	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the staging location for Archivematica")
+	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the locatin to copy packages to")
 	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "")
 	rootCmd.AddCommand(stageCmd)
 }
@@ -27,6 +28,15 @@ var stageCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		stage()
 	},
+}
+
+type Params struct {
+	PartnerCode  string
+	ResourceCode string
+	Source       string
+	Staging      string
+	TransferInfo TransferInfo
+	WorkOrder    aspace.WorkOrder
 }
 
 func stage() {
@@ -49,11 +59,13 @@ func stage() {
 	}
 	params.Source = sourceLoc
 
-	//check that staging location exists and is a Directory
+	log.Println("[INFO] checking the staging directory exists")
+	//check that source exists and is a Directory
 	if err := isDirectory(stagingLoc); err != nil {
 		panic(err)
 	}
-	params.StagingLoc = stagingLoc
+
+	params.Staging = stagingLoc
 
 	log.Println("[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory

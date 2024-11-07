@@ -21,6 +21,7 @@ var (
 	client           *amatica.AMClient
 	xferDirs         []fs.DirEntry
 	xferDirectoryPtn *regexp.Regexp
+	aipWriter        *bufio.Writer
 )
 
 func init() {
@@ -55,6 +56,16 @@ var xferAmaticaCmd = &cobra.Command{
 		}
 		defer logFile.Close()
 		log.SetOutput(logFile)
+
+		//create an output file
+		fmt.Println("creating aip-file.txt")
+		log.Println("[INFO] creating aip-file.txt")
+		of, err := os.Create("aip-file.txt")
+		if err != nil {
+			panic(err)
+		}
+		defer of.Close()
+		aipWriter = bufio.NewWriter(of)
 
 		if err := setup(); err != nil {
 			panic(err)
@@ -96,16 +107,6 @@ func checkFlags() error {
 
 func setup() error {
 
-	//create an output file
-	fmt.Println("creating aip-file.txt")
-	log.Println("[INFO] creating aip-file.txt")
-	of, err := os.Create("aip-file.txt")
-	if err != nil {
-		return err
-	}
-	defer of.Close()
-	writer = bufio.NewWriter(of)
-
 	//set the poll time
 	fmt.Printf("setting polling time to %d seconds\n", pollTime)
 	log.Printf("[INFO] setting polling time to %d seconds", pollTime)
@@ -113,6 +114,7 @@ func setup() error {
 	//create a client
 	fmt.Println("creating go-archivematica client")
 	log.Println("[INFO] creating go-archivematica client")
+	var err error
 	client, err = amatica.NewAMClient(amaticaConfigLoc, 20)
 	if err != nil {
 		return err
@@ -121,7 +123,6 @@ func setup() error {
 	//process the directory
 	fmt.Printf("reading source directory: %s\n", xferDirectory)
 	log.Printf("[INFO] reading source directory: %s", xferDirectory)
-
 	xferDirs, err = os.ReadDir(xferDirectory)
 	if err != nil {
 		return err
@@ -167,22 +168,61 @@ func transferPackage(xipPath string) error {
 	log.Printf("[INFO] transfer %s initialized\n", amXIPPath)
 
 	//request the transfer through archivematica
-	fmt.Printf("requesting transfer for %s\n", xipName)
+	fmt.Printf("requesting transfer processing for %s\n", xipName)
 	transferUUID, err := requestTransfer(amXIPPath)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("transfer requested for %s-%s\n", amXIPPath, transferUUID)
-	log.Printf("[INFO] transfer requested for %s-%s", amXIPPath, transferUUID)
+	fmt.Printf("transfer processing requested for %s-%s\n", amXIPPath, transferUUID)
+	log.Printf("[INFO] transfer processing requested for %s-%s", amXIPPath, transferUUID)
 
 	//approve the transfer
-	fmt.Printf("approving %s: %s\n", amXIPPath, transferUUID)
+	fmt.Printf("approving %s: %s for transfer processing\n", amXIPPath, transferUUID)
 	transferStatus, err := approveTransfer(transferUUID)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("transfer approved for %s-%s\n", amXIPPath, transferStatus.UUID.String())
-	log.Printf("[INFO] transfer approved for %s-%s", amXIPPath, transferStatus.UUID.String())
+
+	xferLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferUUID)
+	fmt.Printf("transfer processing approved for %s\n", xferLabel)
+	log.Printf("[INFO] transfer processing archivematica approved for %s", xferLabel)
+
+	//transfer processing
+	fmt.Printf("transfer processing started for %s\n", xferLabel)
+	transferStatus, err = transferProcessing(transferStatus.UUID.String())
+	if err != nil {
+		return err
+	}
+	ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
+	fmt.Printf("transfer processing completed for %s\n", ingestLabel)
+	log.Printf("[INFO] transfer processing completed for %s", ingestLabel)
+
+	//ingest processing
+	fmt.Printf("ingest processing started for %s\n", xferLabel)
+	ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ingest processing completed for %s\n", ingestLabel)
+	log.Printf("[INFO] ingest processing completed for %s", ingestLabel)
+
+	//write path to aip-file
+	aipPath, err := amatica.ConvertUUIDToAMDirectory(ingestStatus.UUID.String())
+	if err != nil {
+		return err
+	}
+
+	aipPath = filepath.Join(aipPath, fmt.Sprintf("%s-%s", filepath.Base(xipPath), ingestStatus.UUID.String()))
+	if windows {
+		aipPath = strings.Replace(aipPath, "\\", "/", -1)
+	}
+
+	aipPath = fmt.Sprintf("%s%s", "/mnt/amatica/AIPsStore/", aipPath)
+	fmt.Printf("writing %s to aip-file\n", aipPath)
+	aipWriter.WriteString(fmt.Sprintf("%s\n", aipPath))
+	aipWriter.Flush()
+	log.Printf("[INFO] %s written to aip-file", aipPath)
+	fmt.Printf("%s written to aip-file\n", aipPath)
 
 	//done
 	return nil
@@ -277,4 +317,77 @@ func findUnapprovedTransfer(uuid string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func transferProcessing(xferUUID string) (amatica.TransferStatus, error) {
+
+	//change this logic over to a channel
+	foundCompleted := false
+	for !foundCompleted {
+		ts, err := client.GetTransferStatus(xferUUID)
+		if err != nil {
+			return amatica.TransferStatus{}, err
+		}
+
+		if ts.Status == "FAILED" {
+			return amatica.TransferStatus{}, fmt.Errorf(ts.Microservice)
+		}
+
+		if ts.Status == "" {
+			return amatica.TransferStatus{}, fmt.Errorf("no status being returned")
+		}
+
+		if ts.Status == "COMPLETE" {
+			foundCompleted = true
+		}
+
+		if !foundCompleted {
+			fmt.Printf("  * %s Transfer Status: %s,  Microservice: %s\n", time.Now().Format("2006-01-02 15:04:05"), ts.Status, ts.Microservice)
+			time.Sleep(poll)
+		}
+	}
+
+	completedTransfer, err := client.GetTransferStatus(xferUUID)
+	if err != nil {
+		return amatica.TransferStatus{}, err
+	}
+
+	sipUUID := completedTransfer.SIPUUID
+	if sipUUID == "" {
+		return amatica.TransferStatus{}, fmt.Errorf("no sip-uuid returned")
+	}
+
+	return completedTransfer, nil
+}
+
+func ingestProcessing(ingestUUID string) (amatica.IngestStatus, error) {
+	foundIngestCompleted := false
+	var ingestStatus amatica.IngestStatus
+	var err error
+	for !foundIngestCompleted {
+		ingestStatus, err = client.GetIngestStatus(ingestUUID)
+		if err != nil {
+			return amatica.IngestStatus{}, err
+		}
+
+		if ingestStatus.Status == "FAILED" {
+			return amatica.IngestStatus{}, fmt.Errorf(ingestStatus.Microservice)
+		}
+
+		if ingestStatus.Status == "" {
+			return amatica.IngestStatus{}, fmt.Errorf("no status being returned")
+		}
+
+		if ingestStatus.Status == "COMPLETE" {
+			foundIngestCompleted = true
+		}
+
+		if !foundIngestCompleted {
+			fmt.Printf("  * %s Ingest Status: %s,  Microservice: %s\n", time.Now().Format("2006-01-02 15:04:05"), ingestStatus.Status, ingestStatus.Microservice)
+			time.Sleep(poll)
+		}
+	}
+
+	return ingestStatus, nil
+
 }

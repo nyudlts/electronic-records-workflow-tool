@@ -37,7 +37,10 @@ func init() {
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
-const locationName = "Default transfer source"
+const (
+	locationName = "Default transfer source"
+	timeFormat   = "2006-01-02 15:04:05"
+)
 
 var amLocation amatica.Location
 
@@ -193,12 +196,14 @@ func transferPackage(xipPath string) error {
 	if err != nil {
 		return err
 	}
-	ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
-	fmt.Printf("transfer processing completed for %s\n", ingestLabel)
-	log.Printf("[INFO] transfer processing completed for %s", ingestLabel)
+	fmt.Printf("transfer processing completed for %s\n", xferLabel)
+	log.Printf("[INFO] transfer processing completed for %s", xferLabel)
 
 	//ingest processing
-	fmt.Printf("ingest processing started for %s\n", xferLabel)
+	ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
+	fmt.Printf("ingest processing started for %s\n", ingestLabel)
+	//pause for api to update
+	time.Sleep(5 * time.Second)
 	ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
 	if err != nil {
 		return err
@@ -275,7 +280,7 @@ func approveTransfer(xferUUID string) (amatica.TransferStatus, error) {
 		}
 
 		if !foundUnapproved {
-			fmt.Println("  * waiting for approval process to complete")
+			fmt.Printf("  * %s waiting for approval process to complete", time.Now().Format(timeFormat))
 			time.Sleep(poll)
 		}
 	}
@@ -342,7 +347,7 @@ func transferProcessing(xferUUID string) (amatica.TransferStatus, error) {
 		}
 
 		if !foundCompleted {
-			fmt.Printf("  * %s Transfer Status: %s,  Microservice: %s\n", time.Now().Format("2006-01-02 15:04:05"), ts.Status, ts.Microservice)
+			fmt.Printf("  * %s Transfer Status: %s,  Microservice: %s\n", time.Now().Format(timeFormat), ts.Status, ts.Microservice)
 			time.Sleep(poll)
 		}
 	}
@@ -383,7 +388,7 @@ func ingestProcessing(ingestUUID string) (amatica.IngestStatus, error) {
 		}
 
 		if !foundIngestCompleted {
-			fmt.Printf("  * %s Ingest Status: %s,  Microservice: %s\n", time.Now().Format("2006-01-02 15:04:05"), ingestStatus.Status, ingestStatus.Microservice)
+			fmt.Printf("  * %s Ingest Status: %s,  Microservice: %s\n", time.Now().Format(timeFormat), ingestStatus.Status, ingestStatus.Microservice)
 			time.Sleep(poll)
 		}
 	}

@@ -46,7 +46,7 @@ func processList() error {
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
 		fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
-		cmd := exec.Command("rsync", "-rav", aipLocation, aipStageLoc)
+		cmd := exec.Command("rsync", "-rav", aipLocation, stagingLoc)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 

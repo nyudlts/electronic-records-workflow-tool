@@ -16,12 +16,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	locationName = "Default transfer source"
+	timeFormat   = "2006-01-02 15:04:05"
+)
+
 var (
 	poll             time.Duration
 	client           *amatica.AMClient
 	xferDirs         []fs.DirEntry
 	xferDirectoryPtn *regexp.Regexp
 	aipWriter        *bufio.Writer
+	amLocation       amatica.Location
 )
 
 func init() {
@@ -36,13 +42,6 @@ func init() {
 	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
-
-const (
-	locationName = "Default transfer source"
-	timeFormat   = "2006-01-02 15:04:05"
-)
-
-var amLocation amatica.Location
 
 var xferAmaticaCmd = &cobra.Command{
 	Use: "transfer-am",
@@ -280,7 +279,7 @@ func approveTransfer(xferUUID string) (amatica.TransferStatus, error) {
 		}
 
 		if !foundUnapproved {
-			fmt.Printf("  * %s waiting for approval process to complete", time.Now().Format(timeFormat))
+			fmt.Printf("  * %s waiting for approval process to complete\n", time.Now().Format(timeFormat))
 			time.Sleep(poll)
 		}
 	}

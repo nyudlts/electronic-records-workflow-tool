@@ -19,7 +19,8 @@ func init() {
 }
 
 var checkCmd = &cobra.Command{
-	Use: "check",
+	Use:   "check",
+	Short: "Check that DOs exist in Archivesspace",
 	Run: func(cmd *cobra.Command, args []string) {
 		aspaceCheck()
 	},

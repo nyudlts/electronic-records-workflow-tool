@@ -17,7 +17,8 @@ func init() {
 }
 
 var rstarXfrCmd = &cobra.Command{
-	Use: "transfer",
+	Use:   "transfer-rs",
+	Short: "Transfer processed AIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := transferToRstar(); err != nil {
 			panic(err)

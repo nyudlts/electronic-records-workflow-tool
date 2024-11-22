@@ -18,7 +18,8 @@ func init() {
 }
 
 var listCmd = &cobra.Command{
-	Use: "prep-list",
+	Use:   "prep-list",
+	Short: "Prepare a list of AIPs for transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		processList()
 	},

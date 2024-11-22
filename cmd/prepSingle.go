@@ -14,7 +14,8 @@ func init() {
 }
 
 var prepSingleCmd = &cobra.Command{
-	Use: "prep-single",
+	Use:   "prep-single",
+	Short: "Prepare a single AIP for transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		prepSingle()
 	},

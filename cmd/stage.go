@@ -24,7 +24,7 @@ func init() {
 
 var stageCmd = &cobra.Command{
 	Use:   "stage",
-	Short: "pre-process submission package",
+	Short: "pre-process SIPs",
 	Run: func(cmd *cobra.Command, args []string) {
 		stage()
 	},

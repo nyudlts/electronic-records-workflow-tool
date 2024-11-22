@@ -17,7 +17,8 @@ func init() {
 }
 
 var validateERsCmd = &cobra.Command{
-	Use: "validate-ers",
+	Use:   "validate-aips",
+	Short: "Validate AIPS prior to transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := validateERs(); err != nil {
 			panic(err)

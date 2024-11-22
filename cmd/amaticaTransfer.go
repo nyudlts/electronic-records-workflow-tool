@@ -44,7 +44,8 @@ func init() {
 }
 
 var xferAmaticaCmd = &cobra.Command{
-	Use: "transfer-am",
+	Use:   "transfer-am",
+	Short: "Transfer SIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {

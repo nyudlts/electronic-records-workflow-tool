@@ -21,7 +21,8 @@ var writer *bufio.Writer
 var report *os.File
 
 var validateCmd = &cobra.Command{
-	Use: "validate",
+	Use:   "validate-sip",
+	Short: "validate sips prior to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		getWriter()
 		fmt.Printf("adoc-process validate v%s\n", version)

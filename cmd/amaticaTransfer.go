@@ -92,7 +92,7 @@ func checkFlags() error {
 			return fmt.Errorf("%s is a directory, config file required", amaticaConfigLoc)
 		}
 	} else {
-	
+
 		currentUser, err := user.Current()
 		if err != nil {
 			return (err)
@@ -107,20 +107,18 @@ func checkFlags() error {
 		if cf.IsDir() {
 			return fmt.Errorf("%s is a directory, config file required", configPath)
 		}
-		
+
 		amaticaConfigLoc = configPath
 	}
 
 	//check transfer directory exists
-	fi, err = os.Stat(xferDirectory)
+	fi, err := os.Stat(xferDirectory)
 	if err != nil {
 		return err
 	}
+
 	if !fi.IsDir() {
 		return fmt.Errorf("%s is not a directory", xferDirectory)
-	}
-
-		
 	}
 
 	//check regexp is not empty

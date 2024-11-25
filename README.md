@@ -1,6 +1,7 @@
 # adoc-preprocess
 Prep Tool for Electronic Records being transferred to R* through Archivematica
 
+## commands
 <pre>
 Available Commands:
   check         Check that DOs exist in ArchivesSpace
@@ -16,3 +17,15 @@ Available Commands:
   validate-sip  validate sips prior to transfer to Archivematica
   version       print the version of adoc
 </pre>
+
+## check
+## clamscan
+## help
+## prep-list
+## prep-single
+## stage 
+## transfer-am
+## transfer-rs
+## validate-aips
+## vaidate-sips
+## version

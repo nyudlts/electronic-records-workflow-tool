@@ -11,9 +11,9 @@ import (
 )
 
 func init() {
-	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "", "")
-	listCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "")
-	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", "", "")
+	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "aip-file.txt", "the location of the aip-file containing aips to process")
+	listCmd.Flags().StringVar(&stagingLoc, "staging-location", ".", "location to stage aips")
+	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location to store tmp bag-info.txt")
 	rootCmd.AddCommand(listCmd)
 }
 

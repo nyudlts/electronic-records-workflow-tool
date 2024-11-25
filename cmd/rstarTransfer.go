@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	rstarXfrCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
-	rstarXfrCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	rstarXfrCmd.Flags().StringVar(&ersLoc, "staging-location", ".", "location of AIPS to transfer to r*")
+	rstarXfrCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regexp of files to match")
 	rootCmd.AddCommand(rstarXfrCmd)
 }
 

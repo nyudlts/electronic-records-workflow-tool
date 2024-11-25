@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	validateCmd.Flags().StringVar(&sourceLoc, "source-location", "", "")
+	validateCmd.Flags().StringVar(&sourceLoc, "source-location", "", "location of sip to validate (required)")
 	rootCmd.AddCommand(validateCmd)
 }
 

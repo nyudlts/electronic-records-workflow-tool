@@ -17,14 +17,14 @@ var numWorkers int
 
 func init() {
 	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
-	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the locatin to copy packages to")
-	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "")
+	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location to copy packages to")
+	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
 	rootCmd.AddCommand(stageCmd)
 }
 
 var stageCmd = &cobra.Command{
 	Use:   "stage",
-	Short: "pre-process SIPs",
+	Short: "generate SIPs to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		stage()
 	},

@@ -11,8 +11,8 @@ import (
 )
 
 func init() {
-	clamCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
-	clamCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	clamCmd.Flags().StringVar(&ersLoc, "staging-location", "", "location of directories to run clamav on")
+	clamCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regular expression of files to run clamav on")
 	rootCmd.AddCommand(clamCmd)
 }
 

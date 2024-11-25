@@ -10,9 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var full bool
+
 func init() {
-	validateERsCmd.Flags().StringVar(&ersLoc, "staging-location", "", "")
-	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	validateERsCmd.Flags().StringVar(&ersLoc, "staging-location", ".", "location of AIPS to validate")
+	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regexp for directories tp validate.")
+	validateERsCmd.Flags().BoolVar(&full, "full", false, "do a full validation instead of fast validation")
 	rootCmd.AddCommand(validateERsCmd)
 }
 

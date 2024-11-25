@@ -8,8 +8,8 @@ import (
 )
 
 func init() {
-	prepSingleCmd.Flags().StringVar(&aipLoc, "aip-location", "", "location of aip to be prepped")
-	prepSingleCmd.Flags().StringVar(&tmpLoc, "tmp-location", "", "location for temp processing")
+	prepSingleCmd.Flags().StringVar(&aipLoc, "aip-location", "", "location of aip to be prepped (required)")
+	prepSingleCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location for temp processing")
 	rootCmd.AddCommand(prepSingleCmd)
 }
 

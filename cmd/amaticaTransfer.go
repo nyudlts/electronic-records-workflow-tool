@@ -37,10 +37,10 @@ func init() {
 		fmt.Println("setting Windows mode")
 		windows = true
 	}
-	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "")
-	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "")
-	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
+	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
+	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "Location of directories top transfer to Archivematica (required)")
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
+	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regular expression to filter directory names to transfer to Archivmatica")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -82,7 +82,7 @@ var xferAmaticaCmd = &cobra.Command{
 }
 
 func checkFlags() error {
-	//check config exists					//modification check $HOME/.config/go-archivematica if not defined
+	//check config exists
 	if amaticaConfigLoc != "" {
 		fi, err := os.Stat(amaticaConfigLoc)
 		if err != nil {

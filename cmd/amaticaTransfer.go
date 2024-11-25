@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -37,7 +38,7 @@ func init() {
 		windows = true
 	}
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "")
-	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "transfer-directory", "", "")
+	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "")
 	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
@@ -82,12 +83,32 @@ var xferAmaticaCmd = &cobra.Command{
 
 func checkFlags() error {
 	//check config exists					//modification check $HOME/.config/go-archivematica if not defined
-	fi, err := os.Stat(amaticaConfigLoc)
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
-		return fmt.Errorf("%s is a directory, config file required", amaticaConfigLoc)
+	if amaticaConfigLoc != "" {
+		fi, err := os.Stat(amaticaConfigLoc)
+		if err != nil {
+			return err
+		}
+		if fi.IsDir() {
+			return fmt.Errorf("%s is a directory, config file required", amaticaConfigLoc)
+		}
+	} else {
+	
+		currentUser, err := user.Current()
+		if err != nil {
+			return (err)
+		}
+
+		configPath := fmt.Sprintf("/home/%s/.config/go-archivematica.yml", currentUser.Username)
+		cf, err := os.Stat(configPath)
+		if err != nil {
+			return err
+		}
+
+		if cf.IsDir() {
+			return fmt.Errorf("%s is a directory, config file required", configPath)
+		}
+		
+		amaticaConfigLoc = configPath
 	}
 
 	//check transfer directory exists
@@ -97,6 +118,9 @@ func checkFlags() error {
 	}
 	if !fi.IsDir() {
 		return fmt.Errorf("%s is not a directory", xferDirectory)
+	}
+
+		
 	}
 
 	//check regexp is not empty

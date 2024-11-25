@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{}
 
-const version = "v0.2.0"
+const version = "v0.2.1"
 
 var (
 	aipLoc           string

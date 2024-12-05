@@ -58,6 +58,8 @@ func getFileCount(path string) error {
 	if err != nil {
 		return err
 	}
-	wrtr.WriteString(fmt.Sprintf("%s\t%d\n", filepath.Base(path), count))
+	msg := fmt.Sprintf("%s\t%d\n", filepath.Base(path), count)
+	fmt.Print(msg)
+	wrtr.WriteString(msg)
 	return nil
 }

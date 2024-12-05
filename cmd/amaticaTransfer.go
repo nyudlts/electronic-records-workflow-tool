@@ -32,11 +32,6 @@ var (
 )
 
 func init() {
-	fmt.Printf("adoc %s transfer-am", version)
-	if runtime.GOOS == "windows" {
-		fmt.Println("setting Windows mode")
-		windows = true
-	}
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
 	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "Location of directories top transfer to Archivematica (required)")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
@@ -48,6 +43,10 @@ var xferAmaticaCmd = &cobra.Command{
 	Use:   "transfer-am",
 	Short: "Transfer SIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
+		if runtime.GOOS == "windows" {
+			fmt.Println("setting Windows mode")
+			windows = true
+		}
 		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {
 			panic(err)

@@ -46,16 +46,33 @@ func transferToRstar() error {
 	}
 
 	ersPtn := regexp.MustCompile(fmt.Sprintf("%s", ersRegex))
+	xferLog := "rstar-scp.log"
+	_, err = os.Create(xferLog)
+	if err != nil {
+		return err
+	}
 
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
 			fmt.Println("transferring", entry.Name())
 			xferBag := filepath.Join(ersLoc, entry.Name())
 			xferCmd := exec.Command("rstar-scp.exp", xferBag)
-			xferCmd.Stdout = os.Stdout
-			if err := xferCmd.Run(); err != nil {
+			cmdOutput, err := xferCmd.CombinedOutput()
+			if err != nil {
 				return err
 			}
+			cmdOutput = append(cmdOutput, []byte("\n")...)
+
+			f, err := os.OpenFile(xferLog, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			if _, err = f.Write(cmdOutput); err != nil {
+				panic(err)
+			}
+
 		}
 	}
 	return nil

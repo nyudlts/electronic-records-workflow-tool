@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -40,6 +41,13 @@ func validateERs() error {
 		return fmt.Errorf("%s is not a location", ersLoc)
 	}
 
+	logFile, err := os.Create("validation.log")
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	directoryEntries, err := os.ReadDir(ersLoc)
 	if err != nil {
 		return err
@@ -53,15 +61,22 @@ func validateERs() error {
 
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
-			fmt.Printf("fast validating %s\n", entry.Name())
 			erPath := filepath.Join(ersLoc, entry.Name())
 			bag, err := bagit.GetExistingBag(erPath)
 			if err != nil {
 				return err
 			}
 
-			if err := bag.ValidateBag(true, false); err != nil {
-				return err
+			if full {
+				fmt.Printf("validating %s\n", entry.Name())
+				if err := bag.ValidateBag(false, false); err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("fast validating %s\n", entry.Name())
+				if err := bag.ValidateBag(true, false); err != nil {
+					return err
+				}
 			}
 		}
 	}

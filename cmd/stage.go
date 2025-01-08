@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/csv"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -40,26 +39,18 @@ type Params struct {
 }
 
 func stage() {
-	fmt.Printf("adoc-process %s\n", version)
-	flag.Parse()
+	fmt.Printf("adoc %s\n", version)
 	params := Params{}
+	msgs := []string{}
 
-	logFileName := "adoc-stage.log"
-	logFile, err := os.Create(logFileName) //this should have the call number of the collection e.g. fales_mss318.log
-	if err != nil {
-		panic(err)
-	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
-
-	log.Println("[INFO] checking source directory exists")
+	msgs = append(msgs, "[INFO] checking source directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(sourceLoc); err != nil {
 		panic(err)
 	}
 	params.Source = sourceLoc
 
-	log.Println("[INFO] checking the staging directory exists")
+	msgs = append(msgs, "[INFO] checking the staging directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(stagingLoc); err != nil {
 		panic(err)
@@ -67,15 +58,14 @@ func stage() {
 
 	params.Staging = stagingLoc
 
-	log.Println("[INFO] checking metadata directory exists")
+	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
 	mdDir := filepath.Join(sourceLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		panic(err)
 	}
 
-	log.Println("[INFO] checking work order exists")
-
+	msgs = append(msgs, "[INFO] checking work order exists")
 	//find a work order
 	workorderName, err := getWorkOrderFile(mdDir)
 	if err != nil {
@@ -83,8 +73,22 @@ func stage() {
 	}
 
 	//getting partner and resource code
-	log.Println("[INFO] getting partner and resource code")
+	msgs = append(msgs, "[INFO] getting partner and resource code")
 	params.PartnerCode, params.ResourceCode = getPartnerAndResource(workorderName)
+
+	//create the logfile
+	logFileName := fmt.Sprintf("%s_%s-adoc-stage.log", params.PartnerCode, params.ResourceCode)
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	//write the log messages
+	for _, msg := range msgs {
+		log.Println(msg)
+	}
 
 	//load the work order
 	log.Println("[INFO] parsing work order")

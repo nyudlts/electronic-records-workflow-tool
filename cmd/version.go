@@ -14,6 +14,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "print the version of adoc",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("adoc-preprocess v%s\n", version)
+		fmt.Printf("adoc v%s\n", version)
 	},
 }

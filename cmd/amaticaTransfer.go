@@ -183,7 +183,7 @@ func transferPackage(xipPath string) error {
 
 	//initialize the transfer
 	xipName := filepath.Base(xipPath)
-	fmt.Printf("initializing transfer for %s\n", xipName)
+	fmt.Printf("\ninitializing transfer for %s\n", xipName)
 	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err

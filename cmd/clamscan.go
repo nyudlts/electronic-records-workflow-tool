@@ -54,11 +54,16 @@ func clamscan() error {
 			if _, err := os.Create(logName); err != nil {
 				return err
 			}
-			clamscanCmd := exec.Command("clamscan", "-r", "-l", logName, xfer)
-			clamscanCmd.Stdout = os.Stdout
-			if err := clamscanCmd.Run(); err != nil {
+			clamscanCmd := exec.Command("clamscan", "-r", xfer)
+			cmdOut, err := clamscanCmd.CombinedOutput()
+			if err != nil {
 				return err
 			}
+
+			if err := os.WriteFile(logName, cmdOut, 0644); err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil

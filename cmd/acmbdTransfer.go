@@ -24,6 +24,7 @@ func init() {
 var acmbdXferCmd = &cobra.Command{
 	Use: "transfer-acm",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("adoc %s transfer-acm", version)
 		if err := transferACM(); err != nil {
 			panic(err)
 		}
@@ -43,7 +44,7 @@ func transferACM() error {
 
 	targetDir := filepath.Join(stagingLocation, collectionCode)
 	cmd := exec.Command("rsync", "-rav", sourceLocation, targetDir)
-	fmt.Println(cmd)
+	fmt.Printf("copying %s to %s\n", sourceLocation, targetDir)
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

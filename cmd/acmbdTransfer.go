@@ -40,14 +40,19 @@ func transferACM() error {
 	defer logFile.Close()
 
 	targetDir := filepath.Join(stagingLocation, collectionCode)
-	cmd := exec.Command("rsync", "-av", sourceLocation, targetDir)
+	cmd := exec.Command("rsync", "-rav", sourceLocation, targetDir)
 	cmd.Stdout = os.Stdout
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil
 	}
+
 	if _, err := writer.Write(b); err != nil {
+		return err
+	}
+
+	if err := writer.Flush(); err != nil {
 		return err
 	}
 

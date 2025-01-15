@@ -15,8 +15,8 @@ var stagingLocation string
 var collectionCode string
 
 func init() {
-	acmbdXferCmd.Flags().StringVar(&sourceLocation, "source", "", "Source location")
-	acmbdXferCmd.Flags().StringVar(&stagingLocation, "staging", "", "Staging location")
+	acmbdXferCmd.Flags().StringVar(&sourceLocation, "source-location", "", "Source location")
+	acmbdXferCmd.Flags().StringVar(&stagingLocation, "staging-location", "", "Staging location")
 	acmbdXferCmd.Flags().StringVar(&collectionCode, "collection-code", "", "Collection code")
 	rootCmd.AddCommand(acmbdXferCmd)
 }
@@ -24,7 +24,9 @@ func init() {
 var acmbdXferCmd = &cobra.Command{
 	Use: "transfer-acm",
 	Run: func(cmd *cobra.Command, args []string) {
-		transferACM()
+		if err := transferACM(); err != nil {
+			panic(err)
+		}
 	},
 }
 
@@ -41,7 +43,7 @@ func transferACM() error {
 
 	targetDir := filepath.Join(stagingLocation, collectionCode)
 	cmd := exec.Command("rsync", "-rav", sourceLocation, targetDir)
-	cmd.Stdout = os.Stdout
+	fmt.Println(cmd)
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

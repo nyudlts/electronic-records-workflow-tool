@@ -44,7 +44,7 @@ func transferACM() error {
 
 	targetDir := filepath.Join(stagingLocation, collectionCode)
 	cmd := exec.Command("rsync", "-rav", sourceLocation, targetDir)
-	fmt.Printf("copying %s to %s\n", sourceLocation, targetDir)
+	fmt.Printf("copying %s to %s\n", sourceLocation, stagingLoc)
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

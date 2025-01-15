@@ -43,8 +43,14 @@ func transferACM() error {
 	defer logFile.Close()
 
 	targetDir := filepath.Join(stagingLocation, collectionCode)
+	if err := os.Mkdir(targetDir, 0775); err != nil {
+		return err
+	}
+
+	sourceLocation = filepath.Join(sourceLocation, "*")
+
 	cmd := exec.Command("rsync", "-rav", sourceLocation, targetDir)
-	fmt.Printf("copying %s to %s\n", sourceLocation, stagingLocation)
+	fmt.Printf("copying %s to %s\n", sourceLocation, targetDir)
 	fmt.Println(cmd)
 
 	b, err := cmd.CombinedOutput()

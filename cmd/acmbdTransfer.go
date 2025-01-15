@@ -48,7 +48,7 @@ func transferACM() error {
 	}
 
 	sourceLocationFiles := fmt.Sprintf("%s/*", sourceLocation)
-
+	targetDir = fmt.Sprintf("%s/", targetDir)
 	cmd := exec.Command("rsync", "-rav", sourceLocationFiles, targetDir)
 	fmt.Printf("copying %s to %s\n", sourceLocation, targetDir)
 	fmt.Println(cmd.String())

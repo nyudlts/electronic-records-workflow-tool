@@ -24,7 +24,7 @@ func init() {
 var acmbdXferCmd = &cobra.Command{
 	Use: "transfer-acm",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("adoc %s transfer-acm", version)
+		fmt.Printf("adoc %s transfer-acm\n", version)
 		if err := transferACM(); err != nil {
 			panic(err)
 		}

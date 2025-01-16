@@ -13,7 +13,7 @@ import (
 
 func init() {
 	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "aip-file.txt", "the location of the aip-file containing aips to process")
-	listCmd.Flags().StringVar(&stagingLoc, "staging-location", ".", "location to stage aips")
+	listCmd.Flags().StringVar(&stagingLoc, "aip-location", "ers", "location to stage aips")
 	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location to store tmp bag-info.txt")
 	listCmd.Flags().StringVar(&collectionCode, "collection-code", "", "the collection code for the aips")
 	rootCmd.AddCommand(listCmd)
@@ -28,6 +28,7 @@ var listCmd = &cobra.Command{
 }
 
 func processList() error {
+	aipFileLoc := fmt.Sprintf("%s-%s", collectionCode, aipFileLoc)
 	aipFile, err := os.Open(aipFileLoc)
 	if err != nil {
 		return err

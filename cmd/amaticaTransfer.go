@@ -63,8 +63,8 @@ var xferAmaticaCmd = &cobra.Command{
 		log.SetOutput(logFile)
 
 		//create an output file
-		fmt.Println("creating aip-file.txt")
-		log.Println("[INFO] creating aip-file.txt")
+		fmt.Sprintf("creating %s-aip-file.txt\n", collectionCode)
+		log.Printf("[INFO] creating %s-aip-file.txt", collectionCode)
 		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", collectionCode))
 		if err != nil {
 			panic(err)

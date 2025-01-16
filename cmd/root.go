@@ -24,7 +24,6 @@ var (
 	aspaceEnv        string
 	ersLoc           string
 	ersRegex         string
-	xferDirectory    string
 	pollTime         int
 	windows          bool
 	collectionCode   string

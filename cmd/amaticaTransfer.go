@@ -23,19 +23,18 @@ const (
 )
 
 var (
-	poll             time.Duration
-	client           *amatica.AMClient
-	xferDirs         []fs.DirEntry
-	xferDirectoryPtn *regexp.Regexp
-	aipWriter        *bufio.Writer
-	amLocation       amatica.Location
+	poll       time.Duration
+	client     *amatica.AMClient
+	xferDirs   []fs.DirEntry
+	xferLocPtn *regexp.Regexp
+	aipWriter  *bufio.Writer
+	amLocation amatica.Location
 )
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "Location of directories top transfer to Archivematica (required)")
+	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
-	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regular expression to filter directory names to transfer to Archivmatica")
 	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
@@ -67,7 +66,7 @@ var xferAmaticaCmd = &cobra.Command{
 		//create an output file
 		fmt.Println("creating aip-file.txt")
 		log.Println("[INFO] creating aip-file.txt")
-		of, err := os.Create("aip-file.txt")
+		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", collectionCode))
 		if err != nil {
 			panic(err)
 		}
@@ -115,20 +114,20 @@ func checkFlags() error {
 	}
 
 	//check transfer directory exists
-	fi, err := os.Stat(xferDirectory)
+	fi, err := os.Stat(xferLoc)
 	if err != nil {
 		return err
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", xferDirectory)
+		return fmt.Errorf("%s is not a directory", xferLoc)
 	}
 
 	//check regexp is not empty
 	if ersRegex == "" {
 		return fmt.Errorf("regexp is empty, must be defined")
 	}
-	xferDirectoryPtn = regexp.MustCompile(ersRegex)
+	xferLocPtn = regexp.MustCompile(ersRegex)
 
 	return nil
 }
@@ -149,9 +148,9 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", xferDirectory)
-	log.Printf("[INFO] reading source directory: %s", xferDirectory)
-	xferDirs, err = os.ReadDir(xferDirectory)
+	fmt.Printf("reading source directory: %s\n", xferLoc)
+	log.Printf("[INFO] reading source directory: %s", xferLoc)
+	xferDirs, err = os.ReadDir(xferLoc)
 	if err != nil {
 		return err
 	}
@@ -164,12 +163,12 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("transferring packages from %s\n", xferDirectory)
-	log.Printf("[INFO] transferring packages from %s", xferDirectory)
+	fmt.Printf("transferring packages from %s\n", xferLoc)
+	log.Printf("[INFO] transferring packages from %s", xferLoc)
 
 	for _, xferDir := range xferDirs {
-		if xferDirectoryPtn.MatchString(xferDir.Name()) {
-			xipPath := filepath.Join(xferDirectory, xferDir.Name())
+		if xferLocPtn.MatchString(xferDir.Name()) {
+			xipPath := filepath.Join(xferLoc, xferDir.Name())
 			if err := transferPackage(xipPath); err != nil {
 				//log the err instead
 				return err

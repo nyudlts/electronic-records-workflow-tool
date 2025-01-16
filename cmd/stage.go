@@ -48,14 +48,14 @@ func stage() error {
 	msgs = append(msgs, "[INFO] checking staging directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(stagingLoc); err != nil {
-		panic(err)
+		return err
 	}
 	params.Source = stagingLoc
 
 	msgs = append(msgs, "[INFO] checking the xfer directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(xferLoc); err != nil {
-		panic(err)
+		return err
 	}
 
 	params.Staging = xferLoc
@@ -64,14 +64,14 @@ func stage() error {
 	//check that metadata directory exists and is a directory
 	mdDir := filepath.Join(stagingLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
-		panic(err)
+		return err
 	}
 
 	msgs = append(msgs, "[INFO] checking work order exists")
 	//find a work order
 	workorderName, err := getWorkOrderFile(mdDir)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	//getting partner and resource code
@@ -82,7 +82,7 @@ func stage() error {
 	logFileName := fmt.Sprintf("%s_%s-adoc-stage.log", params.PartnerCode, params.ResourceCode)
 	logFile, err := os.Create(logFileName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer logFile.Close()
 	log.SetOutput(logFile)
@@ -97,27 +97,27 @@ func stage() error {
 
 	params.WorkOrder, err = parseWorkOrder(mdDir, workorderName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	//find the transfer info file
 	log.Println("[INFO] checking transfer info exists")
 	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
 	if _, err = os.Stat(transferInfoLoc); err != nil {
-		panic(err)
+		return err
 	}
 
 	//create the transfer-info struct
 	log.Println("[INFO] parsing transfer-info.txt")
 	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	transferInfo := TransferInfo{}
 
 	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
-		panic(err)
+		return err
 	}
 
 	params.TransferInfo = transferInfo
@@ -125,14 +125,14 @@ func stage() error {
 	log.Println("[INFO] creating Transfer packages")
 	results, err := ProcessWorkOrderRows(params, numWorkers)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	//create an output file
 	log.Println("[INFO] creating output report")
 	outputFile, err := os.Create(fmt.Sprintf("%s_%s-adoc-stage.tsv", params.PartnerCode, params.ResourceCode))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer outputFile.Close()
 	writer := csv.NewWriter(outputFile)
@@ -144,5 +144,7 @@ func stage() error {
 	writer.Flush()
 
 	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
+
+	return nil
 
 }

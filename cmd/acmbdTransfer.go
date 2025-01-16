@@ -12,7 +12,6 @@ import (
 
 var sourceLocation string
 var stagingLocation string
-var collectionCode string
 
 func init() {
 	acmbdXferCmd.Flags().StringVar(&sourceLocation, "source-location", "", "Source location")

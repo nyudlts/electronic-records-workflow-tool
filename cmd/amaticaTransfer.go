@@ -15,7 +15,6 @@ import (
 
 	amatica "github.com/nyudlts/go-archivematica"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -37,6 +36,7 @@ func init() {
 	xferAmaticaCmd.Flags().StringVar(&xferDirectory, "xfer-directory", "", "Location of directories top transfer to Archivematica (required)")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
 	xferAmaticaCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regular expression to filter directory names to transfer to Archivmatica")
+	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -55,15 +55,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		transferInfo, err := findTransferInfo()
-		if err != nil {
-			panic(err)
-		}
-
-		logFilename, err := getLogFilename(transferInfo)
-		if err != nil {
-			panic(err)
-		}
+		logFilename := fmt.Sprintf("%s-archivematica-transfer.log", collectionCode)
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -428,36 +420,4 @@ func ingestProcessing(ingestUUID string) (amatica.IngestStatus, error) {
 
 	return ingestStatus, nil
 
-}
-
-func findTransferInfo() (string, error) {
-	var p string
-	err := filepath.Walk(xferDirectory,
-		func(path string, info fs.FileInfo, err error) error {
-			if info.Name() == "transfer-info.txt" && p != "" {
-				p = path
-			}
-			return nil
-		},
-	)
-
-	if err != nil {
-		return "", err
-	}
-
-	return "", nil
-}
-
-func getLogFilename(transferInfoLoc string) (string, error) {
-	transferInfo := TransferInfo{}
-	transferInfoFile, err := os.ReadFile(transferInfoLoc)
-	if err != nil {
-		return "", err
-	}
-
-	if err := yaml.Unmarshal(transferInfoFile, &transferInfo); err != nil {
-		return "", err
-	}
-
-	return strings.ReplaceAll(transferInfo.ProjectName, "/", "_") + "_amatica_xfer.log", nil
 }

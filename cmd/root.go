@@ -11,6 +11,7 @@ var rootCmd = &cobra.Command{}
 
 const version = "v0.2.2"
 
+// common flags
 var (
 	aipLoc           string
 	aipFileLoc       string
@@ -26,6 +27,7 @@ var (
 	xferDirectory    string
 	pollTime         int
 	windows          bool
+	collectionCode   string
 )
 
 func Execute() {

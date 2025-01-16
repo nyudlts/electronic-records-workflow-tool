@@ -30,8 +30,8 @@ var validateCmd = &cobra.Command{
 		defer logFile.Close()
 		log.SetOutput(logFile)
 
-		fmt.Printf("adoc-process validate v%s\n", version)
-		log.Printf("[INFO] adoc-process validate v%s\n", version)
+		fmt.Printf("adoc validate-sip %s\n", version)
+		log.Printf("[INFO] adoc-process validate-sip %s\n", version)
 		fmt.Printf("* validating transfer package at %s\n", stagingLoc)
 		log.Printf("[INFO] validating transfer package at %s\n", stagingLoc)
 

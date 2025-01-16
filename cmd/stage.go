@@ -15,8 +15,8 @@ import (
 var numWorkers int
 
 func init() {
-	stageCmd.Flags().StringVar(&sourceLoc, "source-location", "", "the location of the package to be transferred to r*")
-	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location to copy packages to")
+	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the package to be transferred to r*")
+	stageCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "the location to copy packages to")
 	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
 	rootCmd.AddCommand(stageCmd)
 }
@@ -25,7 +25,9 @@ var stageCmd = &cobra.Command{
 	Use:   "stage",
 	Short: "generate SIPs to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
-		stage()
+		if err := stage(); err != nil {
+			panic(err)
+		}
 	},
 }
 
@@ -38,29 +40,29 @@ type Params struct {
 	WorkOrder    aspace.WorkOrder
 }
 
-func stage() {
-	fmt.Printf("adoc %s\n", version)
+func stage() error {
+	fmt.Printf("adoc stage %s\n", version)
 	params := Params{}
 	msgs := []string{}
 
-	msgs = append(msgs, "[INFO] checking source directory exists")
-	//check that source exists and is a Directory
-	if err := isDirectory(sourceLoc); err != nil {
-		panic(err)
-	}
-	params.Source = sourceLoc
-
-	msgs = append(msgs, "[INFO] checking the staging directory exists")
+	msgs = append(msgs, "[INFO] checking staging directory exists")
 	//check that source exists and is a Directory
 	if err := isDirectory(stagingLoc); err != nil {
 		panic(err)
 	}
+	params.Source = stagingLoc
 
-	params.Staging = stagingLoc
+	msgs = append(msgs, "[INFO] checking the xfer directory exists")
+	//check that source exists and is a Directory
+	if err := isDirectory(xferLoc); err != nil {
+		panic(err)
+	}
+
+	params.Staging = xferLoc
 
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
-	mdDir := filepath.Join(sourceLoc, "metadata")
+	mdDir := filepath.Join(stagingLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		panic(err)
 	}
@@ -106,7 +108,7 @@ func stage() {
 	}
 
 	//create the transfer-info struct
-	log.Println("[INFO] parsing transfer-info")
+	log.Println("[INFO] parsing transfer-info.txt")
 	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
 	if err != nil {
 		panic(err)

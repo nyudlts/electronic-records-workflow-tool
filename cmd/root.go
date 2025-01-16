@@ -28,6 +28,7 @@ var (
 	pollTime         int
 	windows          bool
 	collectionCode   string
+	xferLoc          string
 )
 
 func Execute() {

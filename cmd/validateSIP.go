@@ -14,6 +14,7 @@ import (
 
 func init() {
 	validateCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "location of sip to validate (required)")
+	validateCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(validateCmd)
 }
 
@@ -22,8 +23,7 @@ var validateCmd = &cobra.Command{
 	Short: "validate sips prior to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		//create a logger
-		_, dirName := filepath.Split(stagingLoc)
-		logFile, err := os.Create(fmt.Sprintf("adoc-validation-report-%s.txt", dirName))
+		logFile, err := os.Create(fmt.Sprintf("%s-adoc-validation-report.log", collectionCode))
 		if err != nil {
 			panic(err)
 		}

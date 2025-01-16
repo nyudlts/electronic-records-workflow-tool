@@ -45,26 +45,31 @@ func processList() error {
 
 	for scanner.Scan() {
 		aipLocation := scanner.Text()
-		fmt.Println(aipLocation)
 		fi, err := os.Stat(aipLocation)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(fi.Name())
+		msg := fmt.Sprintf("updating %s\n", fi.Name())
+		fmt.Println(msg)
+		log.Println("INFO", msg)
 
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
-		msg := fmt.Sprintf("\nCopying package from %s to %s", aipLocation, aipLoc)
+		msg = fmt.Sprintf("\nCopying package from %s to %s", aipLocation, aipLoc)
 		fmt.Println(msg)
 		log.Printf("[INFO] %s", msg)
 		cmd := exec.Command("rsync", "-rav", aipLocation, stagingLoc)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
 
-		if err := cmd.Run(); err != nil {
+		b, err := cmd.CombinedOutput()
+		if err != nil {
 			return err
 		}
+
+		if err := os.WriteFile(fmt.Sprintf("%s-rsync-output.txt", fi.Name()), b, 0775); err != nil {
+			return err
+		}
+
 		fmt.Println("OK")
 
 		msg = fmt.Sprintf("\nUpdating package at %s", aipLoc)

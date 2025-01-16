@@ -15,8 +15,9 @@ var full bool
 
 func init() {
 	validateERsCmd.Flags().StringVar(&ersLoc, "staging-location", ".", "location of AIPS to validate")
-	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regexp for directories tp validate.")
+	validateERsCmd.Flags().StringVar(&ersRegex, "regexp", "", "regexp for directories tp validate.")
 	validateERsCmd.Flags().BoolVar(&full, "full", false, "do a full validation instead of fast validation")
+	validateERsCmd.Flags().StringVar(&collectionCode, "collection-code", "", "collection code to validate")
 	rootCmd.AddCommand(validateERsCmd)
 }
 
@@ -41,7 +42,7 @@ func validateERs() error {
 		return fmt.Errorf("%s is not a location", ersLoc)
 	}
 
-	logFile, err := os.Create("validation.log")
+	logFile, err := os.Create(fmt.Sprintf("%s-adoc-aip-validation.log", collectionCode))
 	if err != nil {
 		return err
 	}
@@ -57,25 +58,30 @@ func validateERs() error {
 		return fmt.Errorf("regexp cannot not be nil")
 	}
 
-	ersPtn := regexp.MustCompile(fmt.Sprintf(".*%s*", ersRegex))
+	var ersPtn *regexp.Regexp
+	if ersRegex != "" {
+		ersPtn = regexp.MustCompile(fmt.Sprintf(".*%s*", ersRegex))
+	}
 
 	for _, entry := range directoryEntries {
-		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
-			erPath := filepath.Join(ersLoc, entry.Name())
-			bag, err := bagit.GetExistingBag(erPath)
-			if err != nil {
-				return err
-			}
-
-			if full {
-				fmt.Printf("validating %s\n", entry.Name())
-				if err := bag.ValidateBag(false, false); err != nil {
+		if entry.IsDir() {
+			if ersPtn == nil || ersPtn.MatchString(entry.Name()) {
+				erPath := filepath.Join(ersLoc, entry.Name())
+				bag, err := bagit.GetExistingBag(erPath)
+				if err != nil {
 					return err
 				}
-			} else {
-				fmt.Printf("fast validating %s\n", entry.Name())
-				if err := bag.ValidateBag(true, false); err != nil {
-					return err
+
+				if full {
+					fmt.Printf("validating %s\n", entry.Name())
+					if err := bag.ValidateBag(false, false); err != nil {
+						return err
+					}
+				} else {
+					fmt.Printf("fast validating %s\n", entry.Name())
+					if err := bag.ValidateBag(true, false); err != nil {
+						return err
+					}
 				}
 			}
 		}

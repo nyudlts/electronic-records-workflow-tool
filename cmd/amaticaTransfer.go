@@ -55,7 +55,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		logFilename := fmt.Sprintf("%s-archivematica-transfer.log", collectionCode)
+		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode)
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {

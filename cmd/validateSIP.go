@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	validateCmd.Flags().StringVar(&sourceLoc, "source-location", "", "location of sip to validate (required)")
+	validateCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "location of sip to validate (required)")
 	rootCmd.AddCommand(validateCmd)
 }
 
@@ -27,8 +27,8 @@ var validateCmd = &cobra.Command{
 		getWriter()
 		fmt.Printf("adoc-process validate v%s\n", version)
 		writer.WriteString(fmt.Sprintf("[INFO] adoc-process validate v%s\n", version))
-		fmt.Printf("* validating transfer package at %s\n", sourceLoc)
-		writer.WriteString(fmt.Sprintf("[INFO] validating transfer package at %s\n", sourceLoc))
+		fmt.Printf("* validating transfer package at %s\n", stagingLoc)
+		writer.WriteString(fmt.Sprintf("[INFO] validating transfer package at %s\n", stagingLoc))
 
 		if err := validate(); err != nil {
 			panic(err)
@@ -41,22 +41,22 @@ var validateCmd = &cobra.Command{
 func validate() error {
 	//check that the source directory exists
 	fmt.Print("  1. checking that source location exists and is a directory: ")
-	fileInfo, err := os.Stat(sourceLoc)
+	fileInfo, err := os.Stat(stagingLoc)
 	if err != nil {
 		writer.WriteString(fmt.Sprintf("[ERROR] %s\n", err.Error()))
 		return err
 	}
 
 	if !fileInfo.IsDir() {
-		writer.WriteString(fmt.Sprintf("[ERROR] %s is not a directory\n", sourceLoc))
+		writer.WriteString(fmt.Sprintf("[ERROR] %s is not a directory\n", stagingLoc))
 		return fmt.Errorf("source location is not a directory")
 	}
 	fmt.Println("OK")
-	writer.WriteString(fmt.Sprintf("[INFO] check 1. %s exists and is a directory\n", sourceLoc))
+	writer.WriteString(fmt.Sprintf("[INFO] check 1. %s exists and is a directory\n", stagingLoc))
 
 	//check that there is a metadata directory
 	fmt.Print("  2. checking that source directory contains a metadata directory: ")
-	mdDirLocation := filepath.Join(sourceLoc, "metadata")
+	mdDirLocation := filepath.Join(stagingLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func validate() error {
 		return fmt.Errorf("source metadata location is not a directory")
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 2. %s contains a metadata directory\n", sourceLoc))
+	writer.WriteString(fmt.Sprintf("[INFO] check 2. %s contains a metadata directory\n", stagingLoc))
 	fmt.Println("OK")
 
 	//check that a workOrder exists
@@ -134,7 +134,7 @@ func validate() error {
 	fmt.Print("  6. checking all ER directories in workorder exist: ")
 	missingDirs := 0
 	for _, componentID := range componentIDs {
-		erLocation := filepath.Join(sourceLoc, componentID)
+		erLocation := filepath.Join(stagingLoc, componentID)
 		if _, err := os.Stat(erLocation); err != nil {
 			missingDirs++
 			writer.WriteString(fmt.Sprintf("[ERROR] componentID, %s is missing in transfered directories\n", componentID))
@@ -151,7 +151,7 @@ func validate() error {
 
 	//check there are no extra directories in source location
 	fmt.Print("  7. checking that there no extra directories or files in source location: ")
-	sourceDirs, err := os.ReadDir(sourceLoc)
+	sourceDirs, err := os.ReadDir(stagingLoc)
 	if err != nil {
 		panic(err)
 	}
@@ -167,7 +167,7 @@ func validate() error {
 		}
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 7. %s contained %d extra objects\n", sourceLoc, extraDirs))
+	writer.WriteString(fmt.Sprintf("[INFO] check 7. %s contained %d extra objects\n", stagingLoc, extraDirs))
 	if extraDirs > 0 {
 		fmt.Println("ERROR")
 	} else {
@@ -200,7 +200,7 @@ func validate() error {
 		}
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 8. %s contained %d failed clamscan scans", sourceLoc, failedClamScans))
+	writer.WriteString(fmt.Sprintf("[INFO] check 8. %s contained %d failed clamscan scans", stagingLoc, failedClamScans))
 
 	if failedClamScans > 0 {
 		fmt.Println("ERROR")
@@ -223,7 +223,7 @@ func contains(s string, sl []string) bool {
 }
 
 func getWriter() error {
-	_, dirName := filepath.Split(sourceLoc)
+	_, dirName := filepath.Split(stagingLoc)
 	var err error
 	report, err = os.Create(fmt.Sprintf("adoc-validation-report-%s.txt", dirName))
 	if err != nil {

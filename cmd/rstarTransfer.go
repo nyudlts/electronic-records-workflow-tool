@@ -5,14 +5,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rstarXfrCmd.Flags().StringVar(&ersLoc, "staging-location", ".", "location of AIPS to transfer to r*")
-	rstarXfrCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regexp of files to match")
+	rstarXfrCmd.Flags().StringVar(&ersLoc, "aips-location", "ers/", "location of AIPS to transfer to r*")
+	rstarXfrCmd.Flags().StringVar(&collectionCode, "collection-code", ".*", "")
 	rootCmd.AddCommand(rstarXfrCmd)
 }
 
@@ -41,38 +40,30 @@ func transferToRstar() error {
 		return err
 	}
 
-	if ersRegex == "" {
-		return fmt.Errorf("regexp cannot not be nil")
-	}
-
-	ersPtn := regexp.MustCompile(fmt.Sprintf("%s", ersRegex))
-	xferLog := "rstar-scp.log"
+	xferLog := fmt.Sprintf("%S-adoc-transfer-rs.txt", collectionCode)
 	_, err = os.Create(xferLog)
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range directoryEntries {
-		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
-			fmt.Println("transferring", entry.Name())
-			xferBag := filepath.Join(ersLoc, entry.Name())
-			xferCmd := exec.Command("rstar-scp.exp", xferBag)
-			cmdOutput, err := xferCmd.CombinedOutput()
-			if err != nil {
-				return err
-			}
-			cmdOutput = append(cmdOutput, []byte("\n")...)
+		fmt.Println("transferring", entry.Name())
+		xferBag := filepath.Join(ersLoc, entry.Name())
+		xferCmd := exec.Command("rstar-scp.exp", xferBag)
+		cmdOutput, err := xferCmd.CombinedOutput()
+		if err != nil {
+			return err
+		}
+		cmdOutput = append(cmdOutput, []byte("\n")...)
 
-			f, err := os.OpenFile(xferLog, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
-			if err != nil {
-				panic(err)
-			}
-			defer f.Close()
+		f, err := os.OpenFile(xferLog, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
 
-			if _, err = f.Write(cmdOutput); err != nil {
-				panic(err)
-			}
-
+		if _, err = f.Write(cmdOutput); err != nil {
+			panic(err)
 		}
 	}
 	return nil

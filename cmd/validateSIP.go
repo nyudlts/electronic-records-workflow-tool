@@ -23,7 +23,7 @@ var validateCmd = &cobra.Command{
 	Short: "validate sips prior to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		//create a logger
-		logFile, err := os.Create(fmt.Sprintf("%s-adoc-validation-report.log", collectionCode))
+		logFile, err := os.Create(fmt.Sprintf("%s-adoc-validate-sip.log", collectionCode))
 		if err != nil {
 			panic(err)
 		}

@@ -28,7 +28,6 @@ var listCmd = &cobra.Command{
 }
 
 func processList() error {
-	fmt.Println(aipFileLoc)
 	aipFile, err := os.Open(aipFileLoc)
 	if err != nil {
 		return err
@@ -36,7 +35,7 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
-	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.txt", collectionCode))
+	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.log", collectionCode))
 	if err != nil {
 		return err
 	}
@@ -56,7 +55,7 @@ func processList() error {
 
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
-		msg = fmt.Sprintf("\nCopying package from %s to %s", aipLocation, aipLoc)
+		msg = fmt.Sprintf("Copying package from %s to %s", aipLocation, aipLoc)
 		fmt.Println(msg)
 		log.Printf("[INFO] %s", msg)
 		cmd := exec.Command("rsync", "-rav", aipLocation, stagingLoc)
@@ -66,18 +65,19 @@ func processList() error {
 			return err
 		}
 
-		if err := os.WriteFile(fmt.Sprintf("%s-rsync-output.txt", fi.Name()), b, 0775); err != nil {
+		if err := os.WriteFile(fmt.Sprintf("%s-rsync-output.txt", fi.Name()), b, 0666); err != nil {
 			return err
 		}
 
 		fmt.Println("OK")
 
-		msg = fmt.Sprintf("\nUpdating package at %s", aipLoc)
-		fmt.Println(msg)
+		msg = fmt.Sprintf("Updating package at %s", aipLoc)
+		fmt.Print(msg + ": ")
 		log.Printf("[INFO] %s", msg)
 		if err := prepPackage(aipStageLoc, tmpLoc); err != nil {
 			return err
 		}
+		fmt.Println("OK")
 
 	}
 

@@ -6,3 +6,4 @@ staging/*
 .vscode/*
 *.exe
 aip-file.txt
+Makefile

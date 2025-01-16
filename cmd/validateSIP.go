@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -17,24 +17,28 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 }
 
-var writer *bufio.Writer
-var report *os.File
-
 var validateCmd = &cobra.Command{
 	Use:   "validate-sip",
 	Short: "validate sips prior to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
-		getWriter()
+		//create a logger
+		_, dirName := filepath.Split(stagingLoc)
+		logFile, err := os.Create(fmt.Sprintf("adoc-validation-report-%s.txt", dirName))
+		if err != nil {
+			panic(err)
+		}
+		defer logFile.Close()
+		log.SetOutput(logFile)
+
 		fmt.Printf("adoc-process validate v%s\n", version)
-		writer.WriteString(fmt.Sprintf("[INFO] adoc-process validate v%s\n", version))
+		log.Printf("[INFO] adoc-process validate v%s\n", version)
 		fmt.Printf("* validating transfer package at %s\n", stagingLoc)
-		writer.WriteString(fmt.Sprintf("[INFO] validating transfer package at %s\n", stagingLoc))
+		log.Printf("[INFO] validating transfer package at %s\n", stagingLoc)
 
 		if err := validate(); err != nil {
 			panic(err)
 		}
-		fmt.Printf("* Report file written to %s", report.Name())
-		writer.Flush()
+		fmt.Printf("* Report file written to %s", logFile.Name())
 	},
 }
 
@@ -43,16 +47,16 @@ func validate() error {
 	fmt.Print("  1. checking that source location exists and is a directory: ")
 	fileInfo, err := os.Stat(stagingLoc)
 	if err != nil {
-		writer.WriteString(fmt.Sprintf("[ERROR] %s\n", err.Error()))
+		log.Printf("[ERROR] %s\n", err.Error())
 		return err
 	}
 
 	if !fileInfo.IsDir() {
-		writer.WriteString(fmt.Sprintf("[ERROR] %s is not a directory\n", stagingLoc))
+		log.Printf("[ERROR] %s is not a directory\n", stagingLoc)
 		return fmt.Errorf("source location is not a directory")
 	}
 	fmt.Println("OK")
-	writer.WriteString(fmt.Sprintf("[INFO] check 1. %s exists and is a directory\n", stagingLoc))
+	log.Printf("[INFO] check 1. %s exists and is a directory\n", stagingLoc)
 
 	//check that there is a metadata directory
 	fmt.Print("  2. checking that source directory contains a metadata directory: ")
@@ -66,7 +70,7 @@ func validate() error {
 		return fmt.Errorf("source metadata location is not a directory")
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 2. %s contains a metadata directory\n", stagingLoc))
+	log.Printf("[INFO] check 2. %s contains a metadata directory\n", stagingLoc)
 	fmt.Println("OK")
 
 	//check that a workOrder exists
@@ -82,7 +86,7 @@ func validate() error {
 		return err
 	}
 	fmt.Println("OK")
-	writer.WriteString(fmt.Sprintf("[INFO] check 3. %s contains a valid worker order \n", mdDirLocation))
+	log.Printf("[INFO] check 3. %s contains a valid worker order \n", mdDirLocation)
 
 	//check that a transfer info exists
 	fmt.Printf("  4. checking that %s contains a valid transfer-info.txt: ", mdDirLocation)
@@ -106,7 +110,7 @@ func validate() error {
 	if err := transferInfo.Validate(); err != nil {
 		return err
 	}
-	writer.WriteString(fmt.Sprintf("[INFO] check 4. %s contains a valid transfer-info.txt \n", mdDirLocation))
+	log.Printf("[INFO] check 4. %s contains a valid transfer-info.txt \n", mdDirLocation)
 	fmt.Println("OK")
 
 	//get a list of componentIDs from work order
@@ -116,15 +120,14 @@ func validate() error {
 	dupeCount := 0
 	for _, row := range workOrder.Rows {
 		if contains(row.GetComponentID(), componentIDs) {
-			writer.WriteString(fmt.Sprintf("[ERROR] duplicate componentID, %s, found in workorder\n", row.GetComponentID()))
-			//fmt.Printf("  * duplicate cuid found: %s", row.GetComponentID())
+			log.Printf("[ERROR] duplicate componentID, %s, found in workorder\n", row.GetComponentID())
 			dupeCount++
 		} else {
 			componentIDs = append(componentIDs, row.GetComponentID())
 		}
 	}
 	sort.Strings(componentIDs)
-	writer.WriteString(fmt.Sprintf("[INFO] check 5. %s contains %d duplicate cuids \n", workorderName, dupeCount))
+	log.Printf("[INFO] check 5. %s contains %d duplicate cuids \n", workorderName, dupeCount)
 	if dupeCount > 0 {
 		fmt.Println("ERROR")
 	} else {
@@ -137,11 +140,11 @@ func validate() error {
 		erLocation := filepath.Join(stagingLoc, componentID)
 		if _, err := os.Stat(erLocation); err != nil {
 			missingDirs++
-			writer.WriteString(fmt.Sprintf("[ERROR] componentID, %s is missing in transfered directories\n", componentID))
+			log.Printf("[ERROR] componentID, %s is missing in transfered directories\n", componentID)
 			//fmt.Printf("  * cuid %s is missing from transferred directories", componentID)
 		}
 	}
-	writer.WriteString(fmt.Sprintf("[INFO] check 6. %s contains %d missing transfer directories \n", workorderName, missingDirs))
+	log.Printf("[INFO] check 6. %s contains %d missing transfer directories \n", workorderName, missingDirs)
 
 	if missingDirs > 0 {
 		fmt.Println("ERROR")
@@ -161,13 +164,12 @@ func validate() error {
 		if sourceDir.Name() != "metadata" {
 			if !contains(sourceDir.Name(), componentIDs) {
 				extraDirs++
-				writer.WriteString(fmt.Sprintf("[ERROR] %s is not listed on workorder\n", sourceDir.Name()))
-				//fmt.Printf("\t%s is not listed on workorder\n", sourceDir.Name())
+				log.Printf("[ERROR] %s is not listed on workorder\n", sourceDir.Name())
 			}
 		}
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 7. %s contained %d extra objects\n", stagingLoc, extraDirs))
+	log.Printf("[INFO] check 7. %s contained %d extra objects\n", stagingLoc, extraDirs)
 	if extraDirs > 0 {
 		fmt.Println("ERROR")
 	} else {
@@ -194,13 +196,12 @@ func validate() error {
 			}
 			if !clamInfectedPtn.Match(fileBytes) {
 				failedClamScans++
-				writer.WriteString(fmt.Sprintf("[ERROR] %s reports infected files\n", mdFile.Name()))
-				//fmt.Printf("%s reports infected files", mdFile.Name())
+				log.Printf("[ERROR] %s reports infected files\n", mdFile.Name())
 			}
 		}
 	}
 
-	writer.WriteString(fmt.Sprintf("[INFO] check 8. %s contained %d failed clamscan scans", stagingLoc, failedClamScans))
+	log.Printf("[INFO] check 8. %s contained %d failed clamscan scans", stagingLoc, failedClamScans)
 
 	if failedClamScans > 0 {
 		fmt.Println("ERROR")
@@ -220,15 +221,4 @@ func contains(s string, sl []string) bool {
 		}
 	}
 	return false
-}
-
-func getWriter() error {
-	_, dirName := filepath.Split(stagingLoc)
-	var err error
-	report, err = os.Create(fmt.Sprintf("adoc-validation-report-%s.txt", dirName))
-	if err != nil {
-		return err
-	}
-	writer = bufio.NewWriter(report)
-	return nil
 }

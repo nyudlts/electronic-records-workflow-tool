@@ -5,14 +5,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 
 	"github.com/spf13/cobra"
 )
 
 func init() {
 	clamCmd.Flags().StringVar(&ersLoc, "staging-location", "", "location of directories to run clamav on")
-	clamCmd.Flags().StringVar(&ersRegex, "regexp", ".*", "regular expression of files to run clamav on")
 	rootCmd.AddCommand(clamCmd)
 }
 
@@ -41,13 +39,8 @@ func clamscan() error {
 		return err
 	}
 
-	if ersRegex == "" {
-		return fmt.Errorf("regexp cannot not be nil")
-	}
-
-	ersPtn := regexp.MustCompile(fmt.Sprintf("%s", ersRegex))
 	for _, entry := range directoryEntries {
-		if entry.IsDir() && ersPtn.MatchString(entry.Name()) {
+		if entry.IsDir() && entry.Name() != "metadata" {
 			fmt.Printf("Scanning %s for viruses\n", entry.Name())
 			xfer := filepath.Join(ersLoc, entry.Name())
 			logName := filepath.Join(ersLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))

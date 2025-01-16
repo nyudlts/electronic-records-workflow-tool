@@ -33,7 +33,7 @@ var acmbdXferCmd = &cobra.Command{
 func transferACM() error {
 
 	//create the logfile
-	logFileName := fmt.Sprintf("%s-adoc-acm-transfer.txt", collectionCode)
+	logFileName := fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", collectionCode)
 	logFile, err := os.Create(logFileName)
 	if err != nil {
 		return err

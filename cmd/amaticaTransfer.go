@@ -160,15 +160,10 @@ func xferDirectories() error {
 	log.Printf("[INFO] transferring packages from %s", xferLoc)
 
 	for _, xferDir := range xferDirs {
-		if xferLocPtn.MatchString(xferDir.Name()) {
-			xipPath := filepath.Join(xferLoc, xferDir.Name())
-			if err := transferPackage(xipPath); err != nil {
-				//log the err instead
-				return err
-			}
-		} else {
-			fmt.Printf("skipping %s, does not match pattern %s", xferDir.Name(), ersRegex)
-			continue
+		xipPath := filepath.Join(xferLoc, xferDir.Name())
+		if err := transferPackage(xipPath); err != nil {
+			//log the err instead
+			return err
 		}
 	}
 

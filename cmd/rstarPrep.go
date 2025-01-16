@@ -167,6 +167,13 @@ func prepPackage(bagLocation string, tmpLocation string) error {
 	}
 	fmt.Printf("OK\n")
 
+	//delete the backup bag-info
+	fmt.Printf("  * Deleting backup bag-info.txt: ")
+	if err := os.Remove(backupLocation); err != nil {
+		return err
+	}
+	fmt.Printf("OK\n")
+
 	fmt.Println("\nPackage preparation complete")
 
 	return nil

@@ -1,6 +1,6 @@
 tidy:
-    go mod tidy
+        go mod tidy
 clean:
-	rm ~/bin/adoc
+        rm ~/bin/adoc
 build:
-    go build -o ~/bin/adoc
+        go build -o ~/bin/adoc

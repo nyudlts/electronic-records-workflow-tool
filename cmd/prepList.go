@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +15,7 @@ func init() {
 	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "aip-file.txt", "the location of the aip-file containing aips to process")
 	listCmd.Flags().StringVar(&stagingLoc, "staging-location", ".", "location to stage aips")
 	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location to store tmp bag-info.txt")
+	listCmd.Flags().StringVar(&collectionCode, "collection-code", "", "the collection code for the aips")
 	rootCmd.AddCommand(listCmd)
 }
 
@@ -34,6 +36,13 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
+	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.txt", collectionCode))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	for scanner.Scan() {
 		aipLocation := scanner.Text()
 		fmt.Println(aipLocation)
@@ -46,7 +55,9 @@ func processList() error {
 
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
-		fmt.Printf("\nCopying package from %s to %s\n", aipLocation, aipLoc)
+		msg := fmt.Sprintf("\nCopying package from %s to %s", aipLocation, aipLoc)
+		fmt.Println(msg)
+		log.Printf("[INFO] %s", msg)
 		cmd := exec.Command("rsync", "-rav", aipLocation, stagingLoc)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -54,8 +65,11 @@ func processList() error {
 		if err := cmd.Run(); err != nil {
 			return err
 		}
+		fmt.Println("OK")
 
-		fmt.Printf("\nUpdating package at %s\n", aipLoc)
+		msg = fmt.Sprintf("\nUpdating package at %s", aipLoc)
+		fmt.Println(msg)
+		log.Printf("[INFO] %s", msg)
 		if err := prepPackage(aipStageLoc, tmpLoc); err != nil {
 			return err
 		}

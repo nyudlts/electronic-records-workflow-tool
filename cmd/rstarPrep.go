@@ -20,7 +20,7 @@ func prepPackage(bagLocation string, tmpLocation string) error {
 
 	bag, err := bagit.GetExistingBag(bagLocation)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	//validate the bag

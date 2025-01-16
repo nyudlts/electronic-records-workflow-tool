@@ -26,7 +26,6 @@ var (
 	poll       time.Duration
 	client     *amatica.AMClient
 	xferDirs   []fs.DirEntry
-	xferLocPtn *regexp.Regexp
 	aipWriter  *bufio.Writer
 	amLocation amatica.Location
 )
@@ -122,12 +121,6 @@ func checkFlags() error {
 	if !fi.IsDir() {
 		return fmt.Errorf("%s is not a directory", xferLoc)
 	}
-
-	//check regexp is not empty
-	if ersRegex == "" {
-		return fmt.Errorf("regexp is empty, must be defined")
-	}
-	xferLocPtn = regexp.MustCompile(ersRegex)
 
 	return nil
 }

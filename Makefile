@@ -1,8 +1,6 @@
 tidy:
-	go mod tidy
+    go mod tidy
 clean:
-	rm adoc
+	rm ~/bin/adoc
 build:
-	go build -o adoc main.go
-install:
-	sudo mv adoc /usr/local/bin/
+    go build -o ~/bin/adoc

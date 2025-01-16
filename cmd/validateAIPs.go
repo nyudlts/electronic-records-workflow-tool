@@ -54,10 +54,6 @@ func validateERs() error {
 		return err
 	}
 
-	if ersRegex == "" {
-		return fmt.Errorf("regexp cannot not be nil")
-	}
-
 	var ersPtn *regexp.Regexp
 	if ersRegex != "" {
 		ersPtn = regexp.MustCompile(fmt.Sprintf(".*%s*", ersRegex))

@@ -67,15 +67,15 @@ func mkProjectDir() error {
 		return err
 	}
 
-	if err := os.Mkdir(filepath.Join(adocConfig.PartnerCode, "ers"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "ers"), 0775); err != nil {
 		return err
 	}
 
-	if err := os.Mkdir(filepath.Join(adocConfig.PartnerCode, "logs"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "logs"), 0775); err != nil {
 		return err
 	}
 
-	if err := os.Mkdir(filepath.Join(adocConfig.PartnerCode, "logs"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "rsync"), 0775); err != nil {
 		return err
 	}
 

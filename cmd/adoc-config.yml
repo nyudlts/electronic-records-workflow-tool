@@ -1,0 +1,3 @@
+staging-location: /mnt/amatica/staging/
+xfer-location: /mnt/amatica/ingest/
+project-location: /var/archivematica/adoc/

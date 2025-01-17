@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"embed"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+//go:embed adoc-config.yml
+var vfs embed.FS
 
 var rootCmd = &cobra.Command{}
 
@@ -28,6 +32,8 @@ var (
 	windows          bool
 	collectionCode   string
 	xferLoc          string
+	partnerCode      string
+	collectionCall   string
 )
 
 func Execute() {

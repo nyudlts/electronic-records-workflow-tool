@@ -56,6 +56,7 @@ func loadConfig() (*AdocConfig, error) {
 		return nil, err
 	}
 
+	config.PartnerCode = partnerCode
 	config.StagingLoc = filepath.Join(config.StagingLoc, partnerCode, collectionCall)
 	config.CollectionCall = collectionCall
 	config.ProjectLoc = filepath.Join(config.ProjectLoc, config.CollectionCall)

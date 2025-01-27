@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -27,6 +28,9 @@ func init() {
 var initCmd = &cobra.Command{
 	Use: "init",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("partner-code: %s\n", partnerCode)
+		fmt.Printf("collection-code: %s\n", collectionCode)
+
 		if err := initAdoc(); err != nil {
 			panic(err)
 		}

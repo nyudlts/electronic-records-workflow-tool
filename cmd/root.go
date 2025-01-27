@@ -27,13 +27,11 @@ var (
 	aspaceWOLoc      string
 	aspaceEnv        string
 	ersLoc           string
-	ersRegex         string
 	pollTime         int
 	windows          bool
 	collectionCode   string
 	xferLoc          string
 	partnerCode      string
-	collectionCall   string
 )
 
 func Execute() {

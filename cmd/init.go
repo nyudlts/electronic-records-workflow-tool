@@ -81,17 +81,17 @@ func mkProjectDir() error {
 	}
 
 	//create the aips directory
-	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "aips"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "aips"), 0775); err != nil {
 		return err
 	}
 
 	//create the logs directory
-	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "logs"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "logs"), 0775); err != nil {
 		return err
 	}
 
 	//create the resync output directory
-	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, adocConfig.PartnerCode, "rsync"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "rsync"), 0775); err != nil {
 		return err
 	}
 

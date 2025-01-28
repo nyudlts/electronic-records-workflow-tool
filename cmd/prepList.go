@@ -23,7 +23,9 @@ var listCmd = &cobra.Command{
 	Use:   "prep-aips",
 	Short: "Prepare a list of AIPs for transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
-		processList()
+		if err := processList(); err != nil {
+			panic(err)
+		}
 	},
 }
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -42,23 +41,27 @@ func transferACM() error {
 	writer := bufio.NewWriter(logFile)
 	defer logFile.Close()
 
-	targetDir := filepath.Join(adocConfig.StagingLoc, adocConfig.CollectionCode)
+	targetDir := filepath.Join("sip", adocConfig.CollectionCode)
+	fmt.Println(targetDir)
 
-	cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
-	fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
-	fmt.Println(cmd.String())
+	/*
+		cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
+		fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
+		fmt.Println(cmd.String())
 
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil
-	}
+		b, err := cmd.CombinedOutput()
+		if err != nil {
+			return nil
+		}
 
-	if _, err := writer.Write(b); err != nil {
-		return err
-	}
+		if _, err := writer.Write(b); err != nil {
+			return err
+		}
 
-	if err := writer.Flush(); err != nil {
-		return err
-	}
+		if err := writer.Flush(); err != nil {
+			return err
+		}
+	*/
+	writer.Flush()
 	return nil
 }

@@ -93,6 +93,11 @@ func mkProjectDir() error {
 		return err
 	}
 
+	//create the sip output directory
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "sip"), 0775); err != nil {
+		return err
+	}
+
 	//marshall the updated config
 	b, err := yaml.Marshal(adocConfig)
 	if err != nil {

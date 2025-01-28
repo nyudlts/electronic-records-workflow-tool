@@ -13,8 +13,6 @@ import (
 )
 
 func init() {
-	validateCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "location of sip to validate (required)")
-	validateCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(validateCmd)
 }
 
@@ -22,8 +20,14 @@ var validateCmd = &cobra.Command{
 	Use:   "validate-sip",
 	Short: "validate sips prior to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		//load the project configuration
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
 		//create a logger
-		logFile, err := os.Create(fmt.Sprintf("%s-adoc-validate-sip.log", collectionCode))
+		logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-validate-sip.log", adocConfig.CollectionCode)))
 		if err != nil {
 			panic(err)
 		}
@@ -32,8 +36,8 @@ var validateCmd = &cobra.Command{
 
 		fmt.Printf("adoc validate-sip %s\n", version)
 		log.Printf("[INFO] adoc-process validate-sip %s\n", version)
-		fmt.Printf("* validating transfer package at %s\n", stagingLoc)
-		log.Printf("[INFO] validating transfer package at %s\n", stagingLoc)
+		fmt.Printf("* validating transfer package at %s\n", adocConfig.StagingLoc)
+		log.Printf("[INFO] validating transfer package at %s\n", adocConfig.StagingLoc)
 
 		if err := validate(); err != nil {
 			panic(err)
@@ -45,22 +49,22 @@ var validateCmd = &cobra.Command{
 func validate() error {
 	//check that the source directory exists
 	fmt.Print("  1. checking that source location exists and is a directory: ")
-	fileInfo, err := os.Stat(stagingLoc)
+	fileInfo, err := os.Stat(adocConfig.StagingLoc)
 	if err != nil {
 		log.Printf("[ERROR] %s\n", err.Error())
 		return err
 	}
 
 	if !fileInfo.IsDir() {
-		log.Printf("[ERROR] %s is not a directory\n", stagingLoc)
+		log.Printf("[ERROR] %s is not a directory\n", adocConfig.StagingLoc)
 		return fmt.Errorf("source location is not a directory")
 	}
 	fmt.Println("OK")
-	log.Printf("[INFO] check 1. %s exists and is a directory\n", stagingLoc)
+	log.Printf("[INFO] check 1. %s exists and is a directory\n", adocConfig.StagingLoc)
 
 	//check that there is a metadata directory
 	fmt.Print("  2. checking that source directory contains a metadata directory: ")
-	mdDirLocation := filepath.Join(stagingLoc, "metadata")
+	mdDirLocation := filepath.Join(adocConfig.StagingLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
 		return err
@@ -70,7 +74,7 @@ func validate() error {
 		return fmt.Errorf("source metadata location is not a directory")
 	}
 
-	log.Printf("[INFO] check 2. %s contains a metadata directory\n", stagingLoc)
+	log.Printf("[INFO] check 2. %s contains a metadata directory\n", adocConfig.StagingLoc)
 	fmt.Println("OK")
 
 	//check that a workOrder exists
@@ -169,7 +173,7 @@ func validate() error {
 		}
 	}
 
-	log.Printf("[INFO] check 7. %s contained %d extra objects\n", stagingLoc, extraDirs)
+	log.Printf("[INFO] check 7. %s contained %d extra objects\n", adocConfig.StagingLoc, extraDirs)
 	if extraDirs > 0 {
 		fmt.Println("ERROR")
 	} else {
@@ -201,7 +205,7 @@ func validate() error {
 		}
 	}
 
-	log.Printf("[INFO] check 8. %s contained %d failed clamscan scans", stagingLoc, failedClamScans)
+	log.Printf("[INFO] check 8. %s contained %d failed clamscan scans", adocConfig.StagingLoc, failedClamScans)
 
 	if failedClamScans > 0 {
 		fmt.Println("ERROR")

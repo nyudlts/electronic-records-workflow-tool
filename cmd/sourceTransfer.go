@@ -34,7 +34,7 @@ var sourceXferCmd = &cobra.Command{
 func transferACM() error {
 
 	//create the logfile
-	logFileName := filepath.Join("rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", collectionCode))
+	logFileName := filepath.Join("rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", adocConfig.CollectionCode))
 	logFile, err := os.Create(logFileName)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func transferACM() error {
 	writer := bufio.NewWriter(logFile)
 	defer logFile.Close()
 
-	targetDir := filepath.Join(stagingLoc, collectionCode)
+	targetDir := filepath.Join(adocConfig.StagingLoc, adocConfig.CollectionCode)
 
 	cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
 	fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)

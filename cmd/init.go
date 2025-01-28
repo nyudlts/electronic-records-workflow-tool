@@ -65,7 +65,7 @@ func loadConfig() (*AdocConfig, error) {
 
 	//update members
 	config.PartnerCode = partnerCode
-	config.StagingLoc = filepath.Join(config.StagingLoc, partnerCode, collectionCode)
+	config.StagingLoc = filepath.Join("sip", collectionCode)
 	config.CollectionCode = collectionCode
 	config.ProjectLoc = filepath.Join(config.ProjectLoc, config.CollectionCode)
 

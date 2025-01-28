@@ -158,7 +158,7 @@ func validate() error {
 
 	//check there are no extra directories in source location
 	fmt.Print("  7. checking that there no extra directories or files in source location: ")
-	sourceDirs, err := os.ReadDir(stagingLoc)
+	sourceDirs, err := os.ReadDir(adocConfig.StagingLoc)
 	if err != nil {
 		panic(err)
 	}

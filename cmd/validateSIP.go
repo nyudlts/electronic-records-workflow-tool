@@ -141,7 +141,7 @@ func validate() error {
 	fmt.Print("  6. checking all ER directories in workorder exist: ")
 	missingDirs := 0
 	for _, componentID := range componentIDs {
-		erLocation := filepath.Join(stagingLoc, componentID)
+		erLocation := filepath.Join(adocConfig.StagingLoc, componentID)
 		if _, err := os.Stat(erLocation); err != nil {
 			missingDirs++
 			log.Printf("[ERROR] componentID, %s is missing in transfered directories\n", componentID)

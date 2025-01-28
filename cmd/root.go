@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 //go:embed adoc-config.yml
@@ -32,6 +33,7 @@ var (
 	collectionCode   string
 	xferLoc          string
 	partnerCode      string
+	adocConfig       *AdocConfig
 )
 
 func Execute() {
@@ -39,4 +41,24 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func loadProjectConfig() error {
+	//read the adoc-config
+	b, err := os.ReadFile("config.yml")
+	if err != nil {
+		return err
+	}
+
+	//unmarshal to config options
+
+	if err := yaml.Unmarshal(b, &adocConfig); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func printConfig() {
+	fmt.Println(adocConfig)
 }

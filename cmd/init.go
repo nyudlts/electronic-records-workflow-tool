@@ -9,8 +9,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var adocConfig *AdocConfig
-
 type AdocConfig struct {
 	StagingLoc     string `yaml:"staging-location"`
 	XferLoc        string `yaml:"xfer-location"`

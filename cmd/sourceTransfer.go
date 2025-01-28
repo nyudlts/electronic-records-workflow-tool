@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -28,36 +32,33 @@ var sourceXferCmd = &cobra.Command{
 }
 
 func transferACM() error {
-	printConfig()
-	/*
-		//create the logfile
-		logFileName := fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", collectionCode)
-		logFile, err := os.Create(logFileName)
-		if err != nil {
-			return err
-		}
-		writer := bufio.NewWriter(logFile)
-		defer logFile.Close()
 
-		targetDir := filepath.Join(stagingLoc, collectionCode)
+	//create the logfile
+	logFileName := filepath.Join("rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", collectionCode))
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		return err
+	}
+	writer := bufio.NewWriter(logFile)
+	defer logFile.Close()
 
-		cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
-		fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
-		fmt.Println(cmd.String())
+	targetDir := filepath.Join(stagingLoc, collectionCode)
 
-		b, err := cmd.CombinedOutput()
-		if err != nil {
-			return nil
-		}
+	cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
+	fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
+	fmt.Println(cmd.String())
 
-		if _, err := writer.Write(b); err != nil {
-			return err
-		}
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil
+	}
 
-		if err := writer.Flush(); err != nil {
-			return err
-		}
+	if _, err := writer.Write(b); err != nil {
+		return err
+	}
 
-	*/
+	if err := writer.Flush(); err != nil {
+		return err
+	}
 	return nil
 }

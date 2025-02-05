@@ -65,7 +65,7 @@ func stage() error {
 
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
-	mdDir := filepath.Join(stagingLoc, "metadata")
+	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		return err
 	}

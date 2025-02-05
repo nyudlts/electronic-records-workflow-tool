@@ -11,7 +11,6 @@ import (
 )
 
 func init() {
-	sourceXferCmd.Flags().StringVar(&sourceLoc, "source-location", "", "Source location")
 	rootCmd.AddCommand(sourceXferCmd)
 }
 
@@ -34,7 +33,7 @@ var sourceXferCmd = &cobra.Command{
 func transferACM() error {
 
 	//create the logfile
-	logFileName := filepath.Join("rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", adocConfig.CollectionCode))
+	logFileName := filepath.Join(adocConfig.LogLoc, "rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", adocConfig.CollectionCode))
 	logFile, err := os.Create(logFileName)
 	if err != nil {
 		return err
@@ -45,9 +44,8 @@ func transferACM() error {
 	targetDir := filepath.Join("sip", adocConfig.CollectionCode)
 	fmt.Println(targetDir)
 
-	cmd := exec.Command("rsync", "-rav", sourceLoc, targetDir)
+	cmd := exec.Command("rsync", "-rav", adocConfig.SourceLoc, targetDir)
 	fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
-	fmt.Println(cmd.String())
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -61,5 +59,6 @@ func transferACM() error {
 	if err := writer.Flush(); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -195,6 +195,14 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		return err
 	}
 
+	//move the ER directory to Archivmatica staging Location
+	log.Printf("[INFO] WORKER %d moving %s to %s", workerId, ERLoc, adocConfig.XferLoc)
+	originalLocation := ERLoc
+	targetLocation := filepath.Join(adocConfig.XferLoc, ERDirName)
+	if err := os.Rename(originalLocation, targetLocation); err != nil {
+		return err
+	}
+
 	/*
 		//copy the ER Directory to Archivematica staging location
 

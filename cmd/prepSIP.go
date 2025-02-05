@@ -15,16 +15,19 @@ import (
 var numWorkers int
 
 func init() {
-	stageCmd.Flags().StringVar(&stagingLoc, "staging-location", "", "the location of the package to be transferred to r*")
-	stageCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "the location to copy packages to")
 	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
 	rootCmd.AddCommand(stageCmd)
 }
 
 var stageCmd = &cobra.Command{
-	Use:   "stage",
+	Use:   "prep-sip",
 	Short: "generate SIPs to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
 		if err := stage(); err != nil {
 			panic(err)
 		}
@@ -47,18 +50,18 @@ func stage() error {
 
 	msgs = append(msgs, "[INFO] checking staging directory exists")
 	//check that source exists and is a Directory
-	if err := isDirectory(stagingLoc); err != nil {
+	if err := isDirectory(adocConfig.StagingLoc); err != nil {
 		return err
 	}
-	params.Source = stagingLoc
+	params.Source = adocConfig.StagingLoc
 
 	msgs = append(msgs, "[INFO] checking the xfer directory exists")
 	//check that source exists and is a Directory
-	if err := isDirectory(xferLoc); err != nil {
+	if err := isDirectory(adocConfig.XferLoc); err != nil {
 		return err
 	}
 
-	params.Staging = xferLoc
+	params.Staging = adocConfig.XferLoc
 
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
@@ -76,11 +79,12 @@ func stage() error {
 
 	//getting partner and resource code
 	msgs = append(msgs, "[INFO] getting partner and resource code")
-	params.PartnerCode, params.ResourceCode = getPartnerAndResource(workorderName)
+	params.PartnerCode = adocConfig.PartnerCode
+	params.ResourceCode = adocConfig.CollectionCode
 
 	//create the logfile
-	logFileName := fmt.Sprintf("%s_%s-adoc-stage.log", params.PartnerCode, params.ResourceCode)
-	logFile, err := os.Create(logFileName)
+	logFileName := fmt.Sprintf("%s_%s-prep-sip.log", params.PartnerCode, params.ResourceCode)
+	logFile, err := os.Create(filepath.Join(adocConfig.LogLoc, logFileName))
 	if err != nil {
 		return err
 	}

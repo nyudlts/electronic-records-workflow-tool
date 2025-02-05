@@ -16,6 +16,8 @@ type AdocConfig struct {
 	PartnerCode    string `yaml:"partner-code"`
 	CollectionCode string `yaml:"collection-code"`
 	ProjectLoc     string `yaml:"project-location"`
+	LogLoc         string `yaml:"log-location"`
+	AIPLoc         string `yaml:"aip-location"`
 }
 
 func init() {
@@ -73,7 +75,10 @@ func loadConfig() (*AdocConfig, error) {
 
 	//update members
 	config.PartnerCode = partnerCode
-	config.StagingLoc = fmt.Sprintf("sip/%s/", collectionCode)
+	config.StagingLoc = "sip"
+	config.XferLoc = "xfer"
+	config.AIPLoc = "aips"
+	config.LogLoc = "logs"
 	config.CollectionCode = collectionCode
 	config.ProjectLoc = filepath.Join(config.ProjectLoc, config.CollectionCode)
 	config.SourceLoc = sourceLoc

@@ -134,7 +134,8 @@ func stage() error {
 
 	//create an output file
 	log.Println("[INFO] creating output report")
-	outputFile, err := os.Create(fmt.Sprintf("%s_%s-adoc-prep-sip.tsv", params.PartnerCode, params.ResourceCode))
+	outputTSVfilename := fmt.Sprintf("%s-adoc-prep-sip.tsv", params.ResourceCode)
+	outputFile, err := os.Create(filepath.Join(adocConfig.LogLoc, outputTSVfilename))
 	if err != nil {
 		return err
 	}

@@ -188,12 +188,17 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		}
 	}
 
+	log.Printf("[INFO] WORKER %d moving payload to xfer dir", workerId, erID)
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
 	payloadTarget := ERLoc
-	if err := os.Rename(payloadSource, payloadTarget); err != nil {
-		return err
-	}
+	fmt.Printf("source: %s target: %s\n", payloadSource, payloadTarget)
+
+	/*
+		if err := os.Rename(payloadSource, payloadTarget); err != nil {
+			return err
+		}
+	*/
 
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)

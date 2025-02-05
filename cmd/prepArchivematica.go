@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -197,43 +195,25 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		return err
 	}
 
-	//copy the ER Directory to Archivematica staging location
-
-	log.Println("er-source:", ERLoc)
-	log.Println("staging-target:", params.Staging)
-	log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
-	cmd := exec.Command("rsync", "-rav", "--perms", "--chmod=u+rwx,g+rx,o+rx", ERLoc, params.Staging)
-
-	rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
-	defer rof.Close()
-	writer := bufio.NewWriter(rof)
-	cmd.Stdout = writer
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	writer.Flush()
-	log.Printf("worker %d copy complete", workerId)
-
 	/*
-		//create the ER Directory
+		//copy the ER Directory to Archivematica staging location
 
-		log.Printf("[INFO] WORKER %d creating data directory %s", workerId, erID)
-		dataDir := filepath.Join(ERLoc, erID)
-		if err := os.Mkdir(dataDir, 0755); err != nil {
+		log.Println("er-source:", ERLoc)
+		log.Println("staging-target:", params.Staging)
+		log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
+		cmd := exec.Command("rsync", "-rav", "--perms", "--chmod=u+rwx,g+rx,o+rx", ERLoc, params.Staging)
+
+		rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
+		defer rof.Close()
+		writer := bufio.NewWriter(rof)
+		cmd.Stdout = writer
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
 			return err
 		}
-
-		//copy files from source to target
-		payloadSource := filepath.Join(params.Source, erID)
-		payloadTarget := (filepath.Join(dataDir))
-		log.Printf("[INFO] WORKER %d copying %s to payload", workerId, erID)
-
-		if err := cp.Copy(payloadSource, payloadTarget, options); err != nil {
-			return err
-		}
+		writer.Flush()
+		log.Printf("worker %d copy complete", workerId)
 	*/
-
 	//complete
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)

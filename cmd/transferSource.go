@@ -41,11 +41,8 @@ func transferACM() error {
 	writer := bufio.NewWriter(logFile)
 	defer logFile.Close()
 
-	targetDir := filepath.Join("sip", adocConfig.CollectionCode)
-	fmt.Println(targetDir)
-
-	cmd := exec.Command("rsync", "-rav", adocConfig.SourceLoc, targetDir)
-	fmt.Printf("copying %s to %s\n", sourceLoc, targetDir)
+	cmd := exec.Command("rsync", "-rav", fmt.Sprintf("%s/*", adocConfig.SourceLoc), adocConfig.StagingLoc)
+	fmt.Printf("copying %s to %s\n", adocConfig.SourceLoc, adocConfig.StagingLoc)
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

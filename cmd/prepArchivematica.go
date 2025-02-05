@@ -131,7 +131,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	//create the workorder for ER
 	log.Printf("[INFO] WORKER %d creating workorder in metadata directory in %s", workerId, erID)
 
-	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_%s_aspace_wo.tsv", params.PartnerCode, params.ResourceCode, erID))
+	woLocation := filepath.Join(ERMDDirLoc, fmt.Sprintf("%s_%s_aspace_wo.tsv", params.ResourceCode, erID))
 	woFile, err := os.Create(woLocation)
 	if err != nil {
 		return err
@@ -189,17 +189,9 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	}
 
 	// move the payload directory to to er directory
-	payloadSource := filepath.Join(params.Source, erID)
+	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
 	payloadTarget := ERLoc
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
-		return err
-	}
-
-	//move the ER directory to Archivmatica staging Location
-	log.Printf("[INFO] WORKER %d moving %s to %s", workerId, ERLoc, adocConfig.XferLoc)
-	originalLocation := ERLoc
-	targetLocation := filepath.Join(adocConfig.XferLoc, ERDirName)
-	if err := os.Rename(originalLocation, targetLocation); err != nil {
 		return err
 	}
 

@@ -104,10 +104,10 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	log.Printf("[INFO] WORKER %d processing %s", workerId, erID)
 	fmt.Printf("* WORKER %d processing %s\n", workerId, erID)
 
-	//create the staging directory
-	log.Printf("[INFO] WORKER %d creating directory in staging location %s", workerId, erID)
+	//create the directory in the xfer to amatica location
+	log.Printf("[INFO] WORKER %d creating directory in xfer location %s", workerId, erID)
 	ERDirName := fmt.Sprintf("%s_%s", params.ResourceCode, erID)
-	ERLoc := filepath.Join(params.Source, ERDirName)
+	ERLoc := filepath.Join(adocConfig.XferLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(params.Source, erID)
-	payloadTarget := filepath.Join(ERLoc, erID)
+	payloadTarget := ERLoc
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err
 	}
@@ -203,26 +203,6 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		return err
 	}
 
-	/*
-		//copy the ER Directory to Archivematica staging location
-
-		log.Println("er-source:", ERLoc)
-		log.Println("staging-target:", params.Staging)
-		log.Printf("[INFO] WORKER %d copying %s to %s", workerId, ERLoc, params.Staging)
-		cmd := exec.Command("rsync", "-rav", "--perms", "--chmod=u+rwx,g+rx,o+rx", ERLoc, params.Staging)
-
-		rof, _ := os.Create(fmt.Sprintf("%s-rsync-output.txt", erID))
-		defer rof.Close()
-		writer := bufio.NewWriter(rof)
-		cmd.Stdout = writer
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-		writer.Flush()
-		log.Printf("worker %d copy complete", workerId)
-	*/
-	//complete
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)
 	return nil

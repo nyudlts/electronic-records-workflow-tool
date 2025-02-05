@@ -61,8 +61,6 @@ func stage() error {
 		return err
 	}
 
-	params.Staging = adocConfig.XferLoc
-
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
 	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
@@ -83,7 +81,7 @@ func stage() error {
 	params.ResourceCode = adocConfig.CollectionCode
 
 	//create the logfile
-	logFileName := fmt.Sprintf("%s_%s-prep-sip.log", params.PartnerCode, params.ResourceCode)
+	logFileName := fmt.Sprintf("%s-adoc-prep-sip.log", params.ResourceCode)
 	logFile, err := os.Create(filepath.Join(adocConfig.LogLoc, logFileName))
 	if err != nil {
 		return err

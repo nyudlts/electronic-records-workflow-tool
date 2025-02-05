@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -73,7 +72,7 @@ func loadConfig() (*AdocConfig, error) {
 
 	//update members
 	config.PartnerCode = partnerCode
-	config.StagingLoc = fmt.Sprintf("sip/%s", collectionCode)
+	config.StagingLoc = "sip"
 	config.XferLoc = "xfer"
 	config.AIPLoc = "aips"
 	config.LogLoc = "logs"

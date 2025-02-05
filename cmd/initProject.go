@@ -11,6 +11,7 @@ import (
 
 type AdocConfig struct {
 	StagingLoc     string `yaml:"staging-location"`
+	SourceLoc      string `yaml:"source-location"`
 	XferLoc        string `yaml:"xfer-location"`
 	PartnerCode    string `yaml:"partner-code"`
 	CollectionCode string `yaml:"collection-code"`
@@ -20,6 +21,7 @@ type AdocConfig struct {
 func init() {
 	initCmd.Flags().StringVarP(&partnerCode, "partner-code", "p", "", "the partner code to use adoc")
 	initCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
+	initCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
 	rootCmd.AddCommand(initCmd)
 }
 
@@ -47,6 +49,12 @@ func initAdoc() error {
 	if err := mkProjectDir(); err != nil {
 		return err
 	}
+
+	//write the adoc-config to the project directory
+	if err := writeAdocConfig(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -68,6 +76,7 @@ func loadConfig() (*AdocConfig, error) {
 	config.StagingLoc = fmt.Sprintf("sip/%s/", collectionCode)
 	config.CollectionCode = collectionCode
 	config.ProjectLoc = filepath.Join(config.ProjectLoc, config.CollectionCode)
+	config.SourceLoc = sourceLoc
 
 	return config, nil
 }
@@ -89,7 +98,7 @@ func mkProjectDir() error {
 	}
 
 	//create the resync output directory
-	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "rsync"), 0775); err != nil {
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "logs", "rsync"), 0775); err != nil {
 		return err
 	}
 
@@ -97,6 +106,11 @@ func mkProjectDir() error {
 	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "sip"), 0775); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func writeAdocConfig() error {
 
 	//marshall the updated config
 	b, err := yaml.Marshal(adocConfig)

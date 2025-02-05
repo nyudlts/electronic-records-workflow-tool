@@ -106,7 +106,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	//create the staging directory
 	log.Printf("[INFO] WORKER %d creating directory in staging location %s", workerId, erID)
-	ERDirName := fmt.Sprintf("%s_%s_%s", params.PartnerCode, params.ResourceCode, erID)
+	ERDirName := fmt.Sprintf("%s_%s", params.ResourceCode, erID)
 	ERLoc := filepath.Join(params.Source, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err

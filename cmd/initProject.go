@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -72,7 +73,7 @@ func loadConfig() (*AdocConfig, error) {
 
 	//update members
 	config.PartnerCode = partnerCode
-	config.StagingLoc = "sip"
+	config.StagingLoc = fmt.Sprintf("sip/%s", collectionCode)
 	config.XferLoc = "xfer"
 	config.AIPLoc = "aips"
 	config.LogLoc = "logs"
@@ -106,6 +107,11 @@ func mkProjectDir() error {
 
 	//create the sip output directory
 	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "sip"), 0775); err != nil {
+		return err
+	}
+
+	//create the xfer directory
+	if err := os.Mkdir(filepath.Join(adocConfig.ProjectLoc, "xfer"), 0775); err != nil {
 		return err
 	}
 

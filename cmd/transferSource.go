@@ -43,6 +43,7 @@ func transferACM() error {
 
 	cmd := exec.Command("rsync", "-rav", fmt.Sprintf("%s", adocConfig.SourceLoc), adocConfig.StagingLoc)
 	fmt.Printf("copying %s to %s\n", adocConfig.SourceLoc, adocConfig.StagingLoc)
+	fmt.Printf("cmd: ", cmd)
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

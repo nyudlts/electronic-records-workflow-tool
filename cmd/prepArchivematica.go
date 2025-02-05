@@ -191,7 +191,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	log.Printf("[INFO] WORKER %d moving payload %s to xfer dir", workerId, erID)
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
-	payloadTarget := filepath.Join(ERLoc, erID)
+	payloadTarget := filepath.Join(adocConfig.XferLoc, ERDirName, erID)
 	fmt.Printf("source: %s target: %s\n", payloadSource, payloadTarget)
 
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
@@ -201,6 +201,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
 	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)
 	return nil
+
 }
 
 func copyFile(src, dst string) (int64, error) {

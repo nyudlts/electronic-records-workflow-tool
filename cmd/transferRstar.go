@@ -10,8 +10,7 @@ import (
 )
 
 func init() {
-	rstarXfrCmd.Flags().StringVar(&ersLoc, "aips-location", "ers/", "location of AIPS to transfer to r*")
-	rstarXfrCmd.Flags().StringVar(&collectionCode, "collection-code", ".*", "")
+	rstarXfrCmd.Flags().StringVar(&ersLoc, "aips-location", "aips/", "location of AIPS to transfer to r*")
 	rootCmd.AddCommand(rstarXfrCmd)
 }
 
@@ -40,7 +39,7 @@ func transferToRstar() error {
 		return err
 	}
 
-	xferLog := fmt.Sprintf("%S-adoc-transfer-rs.txt", collectionCode)
+	xferLog := filepath.Join("logs", fmt.Sprintf("%s-adoc-transfer-rs.txt", adocConfig.CollectionCode))
 	_, err = os.Create(xferLog)
 	if err != nil {
 		return err
@@ -56,7 +55,7 @@ func transferToRstar() error {
 		}
 		cmdOutput = append(cmdOutput, []byte("\n")...)
 
-		f, err := os.OpenFile(xferLog, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
+		f, err := os.OpenFile(xferLog, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0775)
 		if err != nil {
 			panic(err)
 		}

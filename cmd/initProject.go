@@ -9,20 +9,22 @@ import (
 )
 
 type AdocConfig struct {
-	StagingLoc     string `yaml:"staging-location"`
-	SourceLoc      string `yaml:"source-location"`
-	XferLoc        string `yaml:"xfer-location"`
-	PartnerCode    string `yaml:"partner-code"`
-	CollectionCode string `yaml:"collection-code"`
-	ProjectLoc     string `yaml:"project-location"`
-	LogLoc         string `yaml:"log-location"`
-	AIPLoc         string `yaml:"aip-location"`
+	StagingLoc       string `yaml:"staging-location"`
+	SourceLoc        string `yaml:"source-location"`
+	XferLoc          string `yaml:"xfer-location"`
+	PartnerCode      string `yaml:"partner-code"`
+	CollectionCode   string `yaml:"collection-code"`
+	ProjectLoc       string `yaml:"project-location"`
+	LogLoc           string `yaml:"log-location"`
+	AIPLoc           string `yaml:"aip-location"`
+	AMTransferSource string `yaml:"archivematica-transfer-source"`
 }
 
 func init() {
 	initCmd.Flags().StringVarP(&partnerCode, "partner-code", "p", "", "the partner code to use adoc")
 	initCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	initCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
+	initCmd.Flags().StringVarP(&projectLoc, "project-location", "l", "", "the project location for the collection")
 	rootCmd.AddCommand(initCmd)
 }
 
@@ -79,6 +81,7 @@ func loadConfig() (*AdocConfig, error) {
 	config.CollectionCode = collectionCode
 	config.ProjectLoc = filepath.Join(config.ProjectLoc, config.CollectionCode)
 	config.SourceLoc = sourceLoc
+	config.ProjectLoc = projectLoc
 
 	return config, nil
 }

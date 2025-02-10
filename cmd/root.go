@@ -34,6 +34,7 @@ var (
 	xferLoc          string
 	partnerCode      string
 	adocConfig       *AdocConfig
+	projectLoc       string
 )
 
 func Execute() {

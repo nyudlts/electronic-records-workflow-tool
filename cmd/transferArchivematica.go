@@ -33,7 +33,7 @@ var (
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
 	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
 	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
@@ -42,6 +42,11 @@ var xferAmaticaCmd = &cobra.Command{
 	Use:   "transfer-am",
 	Short: "Transfer SIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
 		if runtime.GOOS == "windows" {
 			fmt.Println("setting Windows mode")
 			windows = true
@@ -69,6 +74,7 @@ var xferAmaticaCmd = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
+
 		defer of.Close()
 		aipWriter = bufio.NewWriter(of)
 

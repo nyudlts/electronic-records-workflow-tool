@@ -15,7 +15,7 @@ func init() {
 }
 
 var sourceXferCmd = &cobra.Command{
-	Use: "transfer-source",
+	Use: "transfer-sip",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("adoc %s transfer-acm\n", version)
 		//load the configuration

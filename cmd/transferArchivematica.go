@@ -33,7 +33,6 @@ func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
 	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
-	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -49,7 +48,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode)
+		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode)
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -59,9 +58,9 @@ var xferAmaticaCmd = &cobra.Command{
 		log.SetOutput(logFile)
 
 		//create an output file
-		fmt.Sprintf("creating %s-aip-file.txt\n", collectionCode)
-		log.Printf("[INFO] creating %s-aip-file.txt", collectionCode)
-		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", collectionCode))
+		fmt.Sprintf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
+		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
+		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode))
 		if err != nil {
 			panic(err)
 		}

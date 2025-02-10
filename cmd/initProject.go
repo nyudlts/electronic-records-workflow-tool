@@ -83,7 +83,7 @@ func loadConfig() (*AdocConfig, error) {
 	config.AIPLoc = "aips"
 	config.LogLoc = "logs"
 	config.CollectionCode = collectionCode
-	config.ProjectLoc = filepath.Join(projectLoc, config.CollectionCode)
+	config.ProjectLoc = filepath.Join(projectLoc, collectionCode)
 	config.SourceLoc = sourceLoc
 	config.ProjectLoc = projectLoc
 

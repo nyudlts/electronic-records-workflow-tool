@@ -79,7 +79,6 @@ func loadConfig() (*AdocConfig, error) {
 	//update members
 	config.PartnerCode = partnerCode
 	config.StagingLoc = "sip"
-	config.XferLoc = "xfer"
 	config.AIPLoc = "aips"
 	config.LogLoc = "logs"
 	config.CollectionCode = collectionCode

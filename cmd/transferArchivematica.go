@@ -41,13 +41,19 @@ var xferAmaticaCmd = &cobra.Command{
 	Short: "Transfer SIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 
+		//load the project config
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
+		//check program flags
 		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {
 			panic(err)
 		}
 
+		//create a log file
 		fmt.Println("creating log File")
-
 		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode)
 
 		logFile, err := os.Create(logFilename)
@@ -57,8 +63,8 @@ var xferAmaticaCmd = &cobra.Command{
 		defer logFile.Close()
 		log.SetOutput(logFile)
 
-		//create an output file
-		fmt.Sprintf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
+		//create the aip-file
+		fmt.Printf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
 		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
 		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode))
 		if err != nil {

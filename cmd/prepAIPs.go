@@ -16,7 +16,6 @@ func init() {
 	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "", "the location of the aip-file containing aips to process")
 	listCmd.Flags().StringVar(&stagingLoc, "aip-location", "aips/", "location to stage aips")
 	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", "logs", "location to store tmp bag-info.txt")
-	listCmd.Flags().StringVar(&collectionCode, "collection-code", "", "the collection code for the aips")
 	rootCmd.AddCommand(listCmd)
 }
 
@@ -31,6 +30,9 @@ var listCmd = &cobra.Command{
 		}
 
 		//locate the aip file
+		if err := locateAIPFile(); err != nil {
+			panic(err)
+		}
 
 		if err := processList(); err != nil {
 			panic(err)
@@ -60,7 +62,7 @@ func locateAIPFile() error {
 
 func processList() error {
 	if aipFileLoc == "" {
-		aipFileLoc = fmt.Sprintf("%s-aip-file.txt", collectionCode)
+		aipFileLoc = fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode)
 	}
 	aipFile, err := os.Open(aipFileLoc)
 	if err != nil {
@@ -69,7 +71,7 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
-	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.log", collectionCode))
+	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.log", adocConfig.CollectionCode))
 	if err != nil {
 		return err
 	}

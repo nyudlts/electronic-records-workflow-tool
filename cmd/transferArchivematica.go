@@ -9,7 +9,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 
@@ -17,7 +16,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const timeFormat = "2006-01-02 15:04:05"
+const (
+	locationName = "Default transfer source"
+	timeFormat   = "2006-01-02 15:04:05"
+)
 
 var (
 	poll       time.Duration
@@ -29,7 +31,9 @@ var (
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
+	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
+	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -38,15 +42,6 @@ var xferAmaticaCmd = &cobra.Command{
 	Short: "Transfer SIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if err := loadProjectConfig(); err != nil {
-			panic(err)
-		}
-
-		if runtime.GOOS == "windows" {
-			fmt.Println("setting Windows mode")
-			windows = true
-		}
-
 		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {
 			panic(err)
@@ -54,7 +49,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		logFilename := filepath.Join(fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode))
+		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode)
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -64,13 +59,12 @@ var xferAmaticaCmd = &cobra.Command{
 		log.SetOutput(logFile)
 
 		//create an output file
-		fmt.Printf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
-		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
-		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode))
+		fmt.Sprintf("creating %s-aip-file.txt\n", collectionCode)
+		log.Printf("[INFO] creating %s-aip-file.txt", collectionCode)
+		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", collectionCode))
 		if err != nil {
 			panic(err)
 		}
-
 		defer of.Close()
 		aipWriter = bufio.NewWriter(of)
 
@@ -115,13 +109,13 @@ func checkFlags() error {
 	}
 
 	//check transfer directory exists
-	fi, err := os.Stat(adocConfig.XferLoc)
+	fi, err := os.Stat(xferLoc)
 	if err != nil {
 		return err
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", adocConfig.XferLoc)
+		return fmt.Errorf("%s is not a directory", xferLoc)
 	}
 
 	return nil
@@ -143,9 +137,9 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", adocConfig.XferLoc)
-	log.Printf("[INFO] reading source directory: %s", adocConfig.XferLoc)
-	xferDirs, err = os.ReadDir(adocConfig.XferLoc)
+	fmt.Printf("reading source directory: %s\n", xferLoc)
+	log.Printf("[INFO] reading source directory: %s", xferLoc)
+	xferDirs, err = os.ReadDir(xferLoc)
 	if err != nil {
 		return err
 	}
@@ -158,17 +152,15 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("transferring packages from %s\n", adocConfig.XferLoc)
-	log.Printf("[INFO] transferring packages from %s", adocConfig.XferLoc)
+	fmt.Printf("transferring packages from %s\n", xferLoc)
+	log.Printf("[INFO] transferring packages from %s", xferLoc)
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
-		fmt.Println("XIP Path: ", xipPath)
-
+		xipPath := filepath.Join(xferLoc, xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
+			//log the err instead
 			return err
 		}
-
 	}
 
 	return nil
@@ -177,9 +169,9 @@ func xferDirectories() error {
 func transferPackage(xipPath string) error {
 
 	//initialize the transfer
-
-	fmt.Printf("\ninitializing transfer for %s\n", xipPath)
-	amXIPPath, err := initTransfer(xipPath)
+	xipName := filepath.Base(xipPath)
+	fmt.Printf("\ninitializing transfer for %s\n", xipName)
+	amXIPPath, err := initTransfer(xipName)
 	if err != nil {
 		return err
 	}
@@ -187,7 +179,7 @@ func transferPackage(xipPath string) error {
 	log.Printf("[INFO] transfer %s initialized\n", amXIPPath)
 
 	//request the transfer through archivematica
-	fmt.Printf("requesting transfer processing for %s\n", amXIPPath)
+	fmt.Printf("requesting transfer processing for %s\n", xipName)
 	transferUUID, err := requestTransfer(amXIPPath)
 	if err != nil {
 		return err
@@ -201,53 +193,46 @@ func transferPackage(xipPath string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(transferStatus)
 
-	/*
+	xferLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferUUID)
+	fmt.Printf("transfer processing approved for %s\n", xferLabel)
+	log.Printf("[INFO] transfer processing archivematica approved for %s", xferLabel)
 
-		xferLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferUUID)
-		fmt.Printf("transfer processing approved for %s\n", xferLabel)
-		log.Printf("[INFO] transfer processing archivematica approved for %s", xferLabel)
+	//transfer processing
+	fmt.Printf("transfer processing started for %s\n", xferLabel)
+	transferStatus, err = transferProcessing(transferStatus.UUID.String())
+	if err != nil {
+		return err
+	}
+	fmt.Printf("transfer processing completed for %s\n", xferLabel)
+	log.Printf("[INFO] transfer processing completed for %s", xferLabel)
 
-		//transfer processing
-		fmt.Printf("transfer processing started for %s\n", xferLabel)
-		transferStatus, err = transferProcessing(transferStatus.UUID.String())
-		if err != nil {
-			return err
-		}
-		fmt.Printf("transfer processing completed for %s\n", xferLabel)
-		log.Printf("[INFO] transfer processing completed for %s", xferLabel)
+	//ingest processing
+	ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
+	fmt.Printf("ingest processing started for %s\n", ingestLabel)
+	//pause for api to update
+	time.Sleep(5 * time.Second)
+	ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ingest processing completed for %s\n", ingestLabel)
+	log.Printf("[INFO] ingest processing completed for %s", ingestLabel)
 
-		//ingest processing
-		ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
-		fmt.Printf("ingest processing started for %s\n", ingestLabel)
-		//pause for api to update
-		time.Sleep(5 * time.Second)
-		ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("ingest processing completed for %s\n", ingestLabel)
-		log.Printf("[INFO] ingest processing completed for %s", ingestLabel)
+	//write path to aip-file
+	aipPath, err := amatica.ConvertUUIDToAMDirectory(ingestStatus.UUID.String())
+	if err != nil {
+		return err
+	}
 
-		//write path to aip-file
-		aipPath, err := amatica.ConvertUUIDToAMDirectory(ingestStatus.UUID.String())
-		if err != nil {
-			return err
-		}
+	aipPath = filepath.Join(aipPath, fmt.Sprintf("%s-%s", filepath.Base(xipPath), ingestStatus.UUID.String()))
 
-		aipPath = filepath.Join(aipPath, fmt.Sprintf("%s-%s", filepath.Base(xipPath), ingestStatus.UUID.String()))
-		if windows {
-			aipPath = strings.Replace(aipPath, "\\", "/", -1)
-		}
-
-		aipPath = fmt.Sprintf("%s%s", "/mnt/amatica/AIPsStore/", aipPath)
-		fmt.Printf("writing %s to aip-file\n", aipPath)
-		aipWriter.WriteString(fmt.Sprintf("%s\n", aipPath))
-		aipWriter.Flush()
-		log.Printf("[INFO] %s written to aip-file", aipPath)
-		fmt.Printf("%s written to aip-file\n", aipPath)
-	*/
+	aipPath = fmt.Sprintf("%s%s", "/mnt/amatica/AIPsStore/", aipPath)
+	fmt.Printf("writing %s to aip-file\n", aipPath)
+	aipWriter.WriteString(fmt.Sprintf("%s\n", aipPath))
+	aipWriter.Flush()
+	log.Printf("[INFO] %s written to aip-file", aipPath)
+	fmt.Printf("%s written to aip-file\n", aipPath)
 
 	//done
 	return nil
@@ -255,7 +240,7 @@ func transferPackage(xipPath string) error {
 
 func initTransfer(xipName string) (string, error) {
 	var err error
-	amLocation, err = client.GetLocationByName(adocConfig.AMTransferSource)
+	amLocation, err = client.GetLocationByName(locationName)
 	if err != nil {
 		return "", err
 	}
@@ -269,8 +254,6 @@ func initTransfer(xipName string) (string, error) {
 }
 
 func requestTransfer(xipPath string) (string, error) {
-	xipPath = strings.Replace(xipPath, "/mnt/amatica/adoc/", "", -1)
-	fmt.Println("XIP Path: ", xipPath)
 	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
 	if err != nil {
 		return "", err

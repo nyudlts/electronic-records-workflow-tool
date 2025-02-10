@@ -46,6 +46,10 @@ func initAdoc() error {
 		return err
 	}
 
+	if err := printConfig(); err != nil {
+		return err
+	}
+
 	//create default project directories
 	if err := mkProjectDir(); err != nil {
 		return err

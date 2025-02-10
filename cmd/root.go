@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -60,6 +61,11 @@ func loadProjectConfig() error {
 	return nil
 }
 
-func printConfig() {
-	fmt.Println(adocConfig)
+func printConfig() error {
+	b, err := json.MarshalIndent(adocConfig, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(b))
+	return nil
 }

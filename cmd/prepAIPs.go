@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +15,7 @@ import (
 func init() {
 	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "", "the location of the aip-file containing aips to process")
 	listCmd.Flags().StringVar(&stagingLoc, "aip-location", "aips/", "location to stage aips")
-	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location to store tmp bag-info.txt")
+	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", "logs", "location to store tmp bag-info.txt")
 	listCmd.Flags().StringVar(&collectionCode, "collection-code", "", "the collection code for the aips")
 	rootCmd.AddCommand(listCmd)
 }
@@ -23,10 +24,38 @@ var listCmd = &cobra.Command{
 	Use:   "prep-aips",
 	Short: "Prepare a list of AIPs for transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		//load the project configuration
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
+		//locate the aip file
+
 		if err := processList(); err != nil {
 			panic(err)
 		}
 	},
+}
+
+func locateAIPFile() error {
+	if aipFileLoc != "" {
+		return nil
+	}
+
+	logFiles, err := os.ReadDir(adocConfig.LogLoc)
+	if err != nil {
+		return err
+	}
+
+	for _, logFile := range logFiles {
+		if strings.Contains(logFile.Name(), "aip-file.txt") {
+			aipFileLoc = filepath.Join(adocConfig.LogLoc, logFile.Name())
+			return nil
+		}
+	}
+
+	return fmt.Errorf("aip-file.txt not found in %s", adocConfig.LogLoc)
 }
 
 func processList() error {

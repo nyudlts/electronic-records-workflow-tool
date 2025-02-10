@@ -27,6 +27,13 @@ var (
 	locationName string
 )
 
+func init() {
+	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
+	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
+	rootCmd.AddCommand(xferAmaticaCmd)
+}
+
 var xferAmaticaCmd = &cobra.Command{
 	Use:   "transfer-am",
 	Short: "Transfer SIPS to R*",

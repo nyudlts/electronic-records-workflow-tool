@@ -20,18 +20,16 @@ import (
 const timeFormat = "2006-01-02 15:04:05"
 
 var (
-	locationName = adocConfig.AMTransferSource
-	poll         time.Duration
-	client       *amatica.AMClient
-	xferDirs     []fs.DirEntry
-	aipWriter    *bufio.Writer
-	amLocation   amatica.Location
+	poll       time.Duration
+	client     *amatica.AMClient
+	xferDirs   []fs.DirEntry
+	aipWriter  *bufio.Writer
+	amLocation amatica.Location
 )
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
-	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -56,7 +54,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		logFilename := filepath.Join(fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode))
+		logFilename := filepath.Join(fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode))
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -66,9 +64,9 @@ var xferAmaticaCmd = &cobra.Command{
 		log.SetOutput(logFile)
 
 		//create an output file
-		fmt.Sprintf("creating %s-aip-file.txt\n", collectionCode)
-		log.Printf("[INFO] creating %s-aip-file.txt", collectionCode)
-		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", collectionCode))
+		fmt.Printf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
+		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
+		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode))
 		if err != nil {
 			panic(err)
 		}
@@ -251,7 +249,7 @@ func transferPackage(xipPath string) error {
 
 func initTransfer(xipName string) (string, error) {
 	var err error
-	amLocation, err = client.GetLocationByName(locationName)
+	amLocation, err = client.GetLocationByName(adocConfig.AMTransferSource)
 	if err != nil {
 		return "", err
 	}

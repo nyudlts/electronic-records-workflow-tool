@@ -164,12 +164,11 @@ func xferDirectories() error {
 	for _, xferDir := range xferDirs {
 		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
 		fmt.Println("XIP Path: ", xipPath)
-		/*
-			if err := transferPackage(xipPath); err != nil {
-				//log the err instead
-				return err
-			}
-		*/
+
+		if err := transferPackage(xipPath); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -178,9 +177,9 @@ func xferDirectories() error {
 func transferPackage(xipPath string) error {
 
 	//initialize the transfer
-	xipName := filepath.Base(xipPath)
-	fmt.Printf("\ninitializing transfer for %s\n", xipName)
-	amXIPPath, err := initTransfer(xipName)
+
+	fmt.Printf("\ninitializing transfer for %s\n", xipPath)
+	amXIPPath, err := initTransfer(xipPath)
 	if err != nil {
 		return err
 	}
@@ -188,7 +187,7 @@ func transferPackage(xipPath string) error {
 	log.Printf("[INFO] transfer %s initialized\n", amXIPPath)
 
 	//request the transfer through archivematica
-	fmt.Printf("requesting transfer processing for %s\n", xipName)
+	fmt.Printf("requesting transfer processing for %s\n", xipPath)
 	transferUUID, err := requestTransfer(amXIPPath)
 	if err != nil {
 		return err

@@ -16,25 +16,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	locationName = "Default transfer source"
-	timeFormat   = "2006-01-02 15:04:05"
-)
+const timeFormat = "2006-01-02 15:04:05"
 
 var (
-	poll       time.Duration
-	client     *amatica.AMClient
-	xferDirs   []fs.DirEntry
-	aipWriter  *bufio.Writer
-	amLocation amatica.Location
+	poll         time.Duration
+	client       *amatica.AMClient
+	xferDirs     []fs.DirEntry
+	aipWriter    *bufio.Writer
+	amLocation   amatica.Location
+	locationName string
 )
-
-func init() {
-	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
-	rootCmd.AddCommand(xferAmaticaCmd)
-}
 
 var xferAmaticaCmd = &cobra.Command{
 	Use:   "transfer-am",
@@ -127,6 +118,8 @@ func checkFlags() error {
 }
 
 func setup() error {
+	// set the transfer location
+	locationName = adocConfig.AMTransferSource
 
 	//set the poll time
 	fmt.Printf("setting polling time to %d seconds\n", pollTime)

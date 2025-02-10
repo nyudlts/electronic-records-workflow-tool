@@ -187,7 +187,7 @@ func transferPackage(xipPath string) error {
 	log.Printf("[INFO] transfer %s initialized\n", amXIPPath)
 
 	//request the transfer through archivematica
-	fmt.Printf("requesting transfer processing for %s\n", xipPath)
+	fmt.Printf("requesting transfer processing for %s\n", amXIPPath)
 	transferUUID, err := requestTransfer(amXIPPath)
 	if err != nil {
 		return err
@@ -201,49 +201,53 @@ func transferPackage(xipPath string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(transferStatus)
 
-	xferLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferUUID)
-	fmt.Printf("transfer processing approved for %s\n", xferLabel)
-	log.Printf("[INFO] transfer processing archivematica approved for %s", xferLabel)
+	/*
 
-	//transfer processing
-	fmt.Printf("transfer processing started for %s\n", xferLabel)
-	transferStatus, err = transferProcessing(transferStatus.UUID.String())
-	if err != nil {
-		return err
-	}
-	fmt.Printf("transfer processing completed for %s\n", xferLabel)
-	log.Printf("[INFO] transfer processing completed for %s", xferLabel)
+		xferLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferUUID)
+		fmt.Printf("transfer processing approved for %s\n", xferLabel)
+		log.Printf("[INFO] transfer processing archivematica approved for %s", xferLabel)
 
-	//ingest processing
-	ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
-	fmt.Printf("ingest processing started for %s\n", ingestLabel)
-	//pause for api to update
-	time.Sleep(5 * time.Second)
-	ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("ingest processing completed for %s\n", ingestLabel)
-	log.Printf("[INFO] ingest processing completed for %s", ingestLabel)
+		//transfer processing
+		fmt.Printf("transfer processing started for %s\n", xferLabel)
+		transferStatus, err = transferProcessing(transferStatus.UUID.String())
+		if err != nil {
+			return err
+		}
+		fmt.Printf("transfer processing completed for %s\n", xferLabel)
+		log.Printf("[INFO] transfer processing completed for %s", xferLabel)
 
-	//write path to aip-file
-	aipPath, err := amatica.ConvertUUIDToAMDirectory(ingestStatus.UUID.String())
-	if err != nil {
-		return err
-	}
+		//ingest processing
+		ingestLabel := fmt.Sprintf("%s-%s", filepath.Base(amXIPPath), transferStatus.SIPUUID)
+		fmt.Printf("ingest processing started for %s\n", ingestLabel)
+		//pause for api to update
+		time.Sleep(5 * time.Second)
+		ingestStatus, err := ingestProcessing(transferStatus.SIPUUID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("ingest processing completed for %s\n", ingestLabel)
+		log.Printf("[INFO] ingest processing completed for %s", ingestLabel)
 
-	aipPath = filepath.Join(aipPath, fmt.Sprintf("%s-%s", filepath.Base(xipPath), ingestStatus.UUID.String()))
-	if windows {
-		aipPath = strings.Replace(aipPath, "\\", "/", -1)
-	}
+		//write path to aip-file
+		aipPath, err := amatica.ConvertUUIDToAMDirectory(ingestStatus.UUID.String())
+		if err != nil {
+			return err
+		}
 
-	aipPath = fmt.Sprintf("%s%s", "/mnt/amatica/AIPsStore/", aipPath)
-	fmt.Printf("writing %s to aip-file\n", aipPath)
-	aipWriter.WriteString(fmt.Sprintf("%s\n", aipPath))
-	aipWriter.Flush()
-	log.Printf("[INFO] %s written to aip-file", aipPath)
-	fmt.Printf("%s written to aip-file\n", aipPath)
+		aipPath = filepath.Join(aipPath, fmt.Sprintf("%s-%s", filepath.Base(xipPath), ingestStatus.UUID.String()))
+		if windows {
+			aipPath = strings.Replace(aipPath, "\\", "/", -1)
+		}
+
+		aipPath = fmt.Sprintf("%s%s", "/mnt/amatica/AIPsStore/", aipPath)
+		fmt.Printf("writing %s to aip-file\n", aipPath)
+		aipWriter.WriteString(fmt.Sprintf("%s\n", aipPath))
+		aipWriter.Flush()
+		log.Printf("[INFO] %s written to aip-file", aipPath)
+		fmt.Printf("%s written to aip-file\n", aipPath)
+	*/
 
 	//done
 	return nil
@@ -265,6 +269,8 @@ func initTransfer(xipName string) (string, error) {
 }
 
 func requestTransfer(xipPath string) (string, error) {
+	xipPath = strings.Replace(xipPath, adocConfig.XferLoc, "", -1)
+	fmt.Println("XIP Path: ", xipPath)
 	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
 	if err != nil {
 		return "", err

@@ -71,7 +71,7 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
-	logFile, err := os.Create(fmt.Sprintf("%s-adoc-prep-aips.log", adocConfig.CollectionCode))
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-prep-aips.log", adocConfig.CollectionCode)))
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func processList() error {
 
 		//copy the directory to the staging area
 		aipStageLoc := filepath.Join(stagingLoc, fi.Name())
-		msg = fmt.Sprintf("Copying package from %s to %s", aipLocation, aipLoc)
+		msg = fmt.Sprintf("Copying package from %s to %s", aipLocation, "aips")
 		fmt.Println(msg)
 		log.Printf("[INFO] %s", msg)
 		cmd := exec.Command("rsync", "-rav", aipLocation, stagingLoc)
@@ -101,7 +101,7 @@ func processList() error {
 			return err
 		}
 
-		if err := os.WriteFile(fmt.Sprintf("%s-rsync-output.txt", fi.Name()), b, 0666); err != nil {
+		if err := os.WriteFile(filepath.Join("logs", "rsync", fmt.Sprintf("%s-rsync-output.txt", fi.Name())), b, 0775); err != nil {
 			return err
 		}
 

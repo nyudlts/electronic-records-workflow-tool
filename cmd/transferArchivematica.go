@@ -269,7 +269,7 @@ func initTransfer(xipName string) (string, error) {
 }
 
 func requestTransfer(xipPath string) (string, error) {
-	xipPath = strings.Replace(xipPath, adocConfig.XferLoc, "", -1)
+	xipPath = strings.Replace(xipPath, "/mnt/amatica/adoc/", "", -1)
 	fmt.Println("XIP Path: ", xipPath)
 	startTransferResponse, err := client.StartTransfer(amLocation.UUID, xipPath)
 	if err != nil {

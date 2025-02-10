@@ -7,3 +7,4 @@ staging/*
 *.exe
 aip-file.txt
 Makefile
+cmd/lab.go

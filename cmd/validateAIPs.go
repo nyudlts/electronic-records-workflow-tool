@@ -13,9 +13,8 @@ import (
 var full bool
 
 func init() {
-	validateERsCmd.Flags().StringVar(&ersLoc, "aips-location", "ers", "location of AIPS to validate")
+	validateERsCmd.Flags().StringVar(&ersLoc, "aips-location", "aips", "location of AIPS to validate")
 	validateERsCmd.Flags().BoolVar(&full, "full", false, "do a full validation instead of fast validation")
-	validateERsCmd.Flags().StringVar(&collectionCode, "collection-code", "", "collection code to validate")
 	rootCmd.AddCommand(validateERsCmd)
 }
 
@@ -23,14 +22,21 @@ var validateERsCmd = &cobra.Command{
 	Use:   "validate-aips",
 	Short: "Validate AIPS prior to transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := validateERs(); err != nil {
+
+		//load project config
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
+		//validate the AIPS
+		if err := validateAIPs(); err != nil {
 			panic(err)
 		}
 		fmt.Println("All ER bags are valid")
 	},
 }
 
-func validateERs() error {
+func validateAIPs() error {
 	ers, err := os.Stat(ersLoc)
 	if err != nil {
 		return err
@@ -40,10 +46,11 @@ func validateERs() error {
 		return fmt.Errorf("%s is not a location", ersLoc)
 	}
 
-	logFile, err := os.Create(fmt.Sprintf("%s-adoc-aip-validation.log", collectionCode))
+	logFile, err := os.Create(fmt.Sprintf("%s-adoc-aip-validation.log", adocConfig.CollectionCode))
 	if err != nil {
 		return err
 	}
+
 	defer logFile.Close()
 	log.SetOutput(logFile)
 

@@ -161,6 +161,7 @@ func xferDirectories() error {
 	fmt.Printf("transferring packages from %s\n", adocConfig.XferLoc)
 	log.Printf("[INFO] transferring packages from %s", adocConfig.XferLoc)
 
+	/*
 	for _, xferDir := range xferDirs {
 		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
@@ -168,6 +169,7 @@ func xferDirectories() error {
 			return err
 		}
 	}
+		*
 
 	return nil
 }

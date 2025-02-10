@@ -85,7 +85,6 @@ func loadConfig() (*AdocConfig, error) {
 	config.CollectionCode = collectionCode
 	config.ProjectLoc = filepath.Join(projectLoc, collectionCode)
 	config.SourceLoc = sourceLoc
-	config.ProjectLoc = projectLoc
 
 	return config, nil
 }

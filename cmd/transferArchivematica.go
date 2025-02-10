@@ -29,8 +29,7 @@ var (
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 5, "pause time, in seconds, between calls to Archivematica api to check status")
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
 	rootCmd.AddCommand(xferAmaticaCmd)
 }
 
@@ -112,13 +111,13 @@ func checkFlags() error {
 	}
 
 	//check transfer directory exists
-	fi, err := os.Stat(xferLoc)
+	fi, err := os.Stat(adocConfig.XferLoc)
 	if err != nil {
 		return err
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", xferLoc)
+		return fmt.Errorf("%s is not a directory", adocConfig.XferLoc)
 	}
 
 	return nil
@@ -142,9 +141,9 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", xferLoc)
-	log.Printf("[INFO] reading source directory: %s", xferLoc)
-	xferDirs, err = os.ReadDir(xferLoc)
+	fmt.Printf("reading source directory: %s\n", adocConfig.XferLoc)
+	log.Printf("[INFO] reading source directory: %s", adocConfig.XferLoc)
+	xferDirs, err = os.ReadDir(adocConfig.XferLoc)
 	if err != nil {
 		return err
 	}
@@ -157,11 +156,11 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("transferring packages from %s\n", xferLoc)
-	log.Printf("[INFO] transferring packages from %s", xferLoc)
+	fmt.Printf("transferring packages from %s\n", adocConfig.XferLoc)
+	log.Printf("[INFO] transferring packages from %s", adocConfig.XferLoc)
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join(xferLoc, xferDir.Name())
+		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
 			//log the err instead
 			return err

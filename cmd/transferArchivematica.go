@@ -51,7 +51,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		//create a log file
 		fmt.Println("creating log File")
-		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode)
+		logFilename := filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%s-adoc-archivematica-transfer.log", adocConfig.CollectionCode))
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -63,7 +63,7 @@ var xferAmaticaCmd = &cobra.Command{
 		//create the aip-file
 		fmt.Printf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
 		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
-		of, err := os.Create(fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode))
+		of, err := os.Create(filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode)))
 		if err != nil {
 			panic(err)
 		}

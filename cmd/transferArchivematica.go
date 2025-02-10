@@ -17,22 +17,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	locationName = "Default transfer source"
-	timeFormat   = "2006-01-02 15:04:05"
-)
+const timeFormat = "2006-01-02 15:04:05"
 
 var (
-	poll       time.Duration
-	client     *amatica.AMClient
-	xferDirs   []fs.DirEntry
-	aipWriter  *bufio.Writer
-	amLocation amatica.Location
+	locationName = adocConfig.AMTransferSource
+	poll         time.Duration
+	client       *amatica.AMClient
+	xferDirs     []fs.DirEntry
+	aipWriter    *bufio.Writer
+	amLocation   amatica.Location
 )
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().StringVar(&xferLoc, "xfer-location", "", "Location of directories top transfer to Archivematica (required)")
 	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
 	xferAmaticaCmd.Flags().StringVar(&collectionCode, "collection-code", "", "")
 	rootCmd.AddCommand(xferAmaticaCmd)
@@ -51,6 +48,7 @@ var xferAmaticaCmd = &cobra.Command{
 			fmt.Println("setting Windows mode")
 			windows = true
 		}
+
 		fmt.Println("checking program flags")
 		if err := checkFlags(); err != nil {
 			panic(err)
@@ -58,7 +56,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		fmt.Println("creating log File")
 
-		logFilename := fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode)
+		logFilename := filepath.Join(fmt.Sprintf("%s-adoc-archivematica-transfer.log", collectionCode))
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -119,13 +117,13 @@ func checkFlags() error {
 	}
 
 	//check transfer directory exists
-	fi, err := os.Stat(xferLoc)
+	fi, err := os.Stat(adocConfig.XferLoc)
 	if err != nil {
 		return err
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", xferLoc)
+		return fmt.Errorf("%s is not a directory", adocConfig.XferLoc)
 	}
 
 	return nil
@@ -147,9 +145,9 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", xferLoc)
-	log.Printf("[INFO] reading source directory: %s", xferLoc)
-	xferDirs, err = os.ReadDir(xferLoc)
+	fmt.Printf("reading source directory: %s\n", adocConfig.XferLoc)
+	log.Printf("[INFO] reading source directory: %s", adocConfig.XferLoc)
+	xferDirs, err = os.ReadDir(adocConfig.XferLoc)
 	if err != nil {
 		return err
 	}
@@ -162,11 +160,11 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("transferring packages from %s\n", xferLoc)
-	log.Printf("[INFO] transferring packages from %s", xferLoc)
+	fmt.Printf("transferring packages from %s\n", adocConfig.XferLoc)
+	log.Printf("[INFO] transferring packages from %s", adocConfig.XferLoc)
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join(xferLoc, xferDir.Name())
+		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
 			//log the err instead
 			return err

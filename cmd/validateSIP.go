@@ -14,21 +14,23 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(validateCmd)
+	sipCmd.AddCommand(validateCmd)
 }
 
 var workOrder aspace.WorkOrder
 var row aspace.WorkOrderRow
 
 var validateCmd = &cobra.Command{
-	Use:   "validate-sip",
-	Short: "validate sips prior to transfer to archivematica",
+	Use:   "validate",
+	Short: "validate sips package",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project configuration
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
 		}
+
+		fmt.Println("ADOC SIP Validate")
 
 		//create a logger
 		logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-validate-sip.log", adocConfig.CollectionCode)))

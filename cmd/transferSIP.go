@@ -17,7 +17,7 @@ func init() {
 var sipXferCmd = &cobra.Command{
 	Use: "transfer",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("adoc %s transfer-sip\n", version)
+		fmt.Printf("adoc %s sip transfer\n", version)
 		//load the configuration
 		if err := loadProjectConfig(); err != nil {
 			panic(err)

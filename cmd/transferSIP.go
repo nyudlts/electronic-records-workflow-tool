@@ -42,7 +42,7 @@ func transferACM() error {
 	defer logFile.Close()
 
 	fmt.Printf("Transferring %s to sip directory\n", adocConfig.SourceLoc)
-	cmd := exec.Command("rsync", "-rav", fmt.Sprintf("%s", adocConfig.SourceLoc), "sip")
+	cmd := exec.Command("rsync", "-rav", adocConfig.SourceLoc, "sip")
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

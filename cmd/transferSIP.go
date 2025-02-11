@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(sourceXferCmd)
+	sipCmd.AddCommand(sipXferCmd)
 }
 
-var sourceXferCmd = &cobra.Command{
-	Use: "transfer-sip",
+var sipXferCmd = &cobra.Command{
+	Use: "transfer",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("adoc %s transfer-sip\n", version)
 		//load the configuration
@@ -24,13 +24,13 @@ var sourceXferCmd = &cobra.Command{
 		}
 
 		//run
-		if err := transferACM(); err != nil {
+		if err := transferSIP(); err != nil {
 			panic(err)
 		}
 	},
 }
 
-func transferACM() error {
+func transferSIP() error {
 
 	//create the logfile
 	logFileName := filepath.Join(adocConfig.LogLoc, "rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", adocConfig.CollectionCode))

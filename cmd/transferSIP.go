@@ -17,7 +17,7 @@ func init() {
 var sourceXferCmd = &cobra.Command{
 	Use: "transfer-sip",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("adoc %s transfer-acm\n", version)
+		fmt.Printf("adoc %s transfer-sip\n", version)
 		//load the configuration
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
@@ -41,6 +41,7 @@ func transferACM() error {
 	writer := bufio.NewWriter(logFile)
 	defer logFile.Close()
 
+	fmt.Printf("Transferring %s to sip directory\n", adocConfig.SourceLoc)
 	cmd := exec.Command("rsync", "-rav", fmt.Sprintf("%s", adocConfig.SourceLoc), "sip")
 
 	b, err := cmd.CombinedOutput()
@@ -55,6 +56,8 @@ func transferACM() error {
 	if err := writer.Flush(); err != nil {
 		return err
 	}
+
+	fmt.Printf("Transfer complete\n")
 
 	return nil
 }

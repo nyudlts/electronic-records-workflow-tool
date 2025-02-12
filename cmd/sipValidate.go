@@ -22,7 +22,7 @@ var row aspace.WorkOrderRow
 
 var validateCmd = &cobra.Command{
 	Use:   "validate",
-	Short: "validate sips package",
+	Short: "validate sip package",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project configuration
@@ -40,15 +40,14 @@ var validateCmd = &cobra.Command{
 		defer logFile.Close()
 		log.SetOutput(logFile)
 
-		fmt.Printf("adoc validate-sip %s\n", version)
 		log.Printf("[INFO] adoc-process validate-sip %s\n", version)
-		fmt.Printf("* validating transfer package at %s\n", adocConfig.StagingLoc)
-		log.Printf("[INFO] validating transfer package at %s\n", adocConfig.StagingLoc)
+		fmt.Printf("* validating SIP transfer package at %s\n", adocConfig.StagingLoc)
+		log.Printf("[INFO] validating SIP transfer package at %s\n", adocConfig.StagingLoc)
 
 		if err := validate(); err != nil {
 			panic(err)
 		}
-		fmt.Printf("* Report file written to %s", logFile.Name())
+		fmt.Printf("* Validation report written to %s\n", logFile.Name())
 	},
 }
 
@@ -111,7 +110,7 @@ func validate() error {
 	xferInfoLocation := filepath.Join(mdDirLocation, "transfer-info.txt")
 	_, err = os.Stat(xferInfoLocation)
 	if err != nil {
-		fmt.Println("transfer-info.txt does not exist in metadata directory\n")
+		fmt.Println("transfer-info.txt does not exist in metadata directory")
 		log.Println("[ERROR] transfer-info,txt does not exist in metadata directory")
 	} else {
 		xferBytes, err := os.ReadFile(xferInfoLocation)

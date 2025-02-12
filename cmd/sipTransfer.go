@@ -48,7 +48,7 @@ func transferSIP() error {
 	writer := bufio.NewWriter(logFile)
 	defer logFile.Close()
 
-	fmt.Printf("Transferring %s to sip directory\n", adocConfig.SourceLoc)
+	fmt.Printf("  * Transferring %s to sip directory\n", adocConfig.SourceLoc)
 	cmd := exec.Command("rsync", "-rav", adocConfig.SourceLoc, "sip")
 
 	b, err := cmd.CombinedOutput()
@@ -64,7 +64,7 @@ func transferSIP() error {
 		return err
 	}
 
-	fmt.Printf("Transfer complete\n")
+	fmt.Printf("  * Transfer complete\n")
 
 	return nil
 }
@@ -72,7 +72,7 @@ func transferSIP() error {
 func checkMDDir() error {
 	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
 	if _, err := os.Stat(mdDir); os.IsNotExist(err) {
-		fmt.Printf("Creating metadata directory for SIP\n")
+		fmt.Printf("  * Creating metadata directory for SIP\n")
 		if err := os.Mkdir(mdDir, 0755); err != nil {
 			return err
 		}

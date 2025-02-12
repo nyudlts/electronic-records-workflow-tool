@@ -11,7 +11,8 @@ func init() {
 }
 
 var sipCmd = &cobra.Command{
-	Use: "sip",
+	Use:   "sip",
+	Short: "ADOC SIP commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("adoc sip tools")
 	},

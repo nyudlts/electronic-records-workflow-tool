@@ -16,13 +16,15 @@ var numWorkers int
 
 func init() {
 	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
-	rootCmd.AddCommand(stageCmd)
+	sipCmd.AddCommand(stageCmd)
 }
 
 var stageCmd = &cobra.Command{
-	Use:   "prep-sip",
+	Use:   "prep",
 	Short: "generate SIPs to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		fmt.Println("ADOC SIP Prepare")
 
 		if err := loadProjectConfig(); err != nil {
 			panic(err)

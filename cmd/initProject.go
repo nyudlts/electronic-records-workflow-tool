@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -21,16 +23,15 @@ type AdocConfig struct {
 }
 
 func init() {
-	initCmd.Flags().StringVarP(&partnerCode, "partner-code", "p", "", "the partner code to use adoc")
 	initCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	initCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
-	initCmd.Flags().StringVarP(&projectLoc, "project-location", "l", "", "the project location for the collection")
 	rootCmd.AddCommand(initCmd)
 }
 
 var initCmd = &cobra.Command{
 	Use: "init",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ADOC INIT")
 
 		if err := initAdoc(); err != nil {
 			panic(err)
@@ -46,6 +47,8 @@ func initAdoc() error {
 		return err
 	}
 
+	//print the configuration
+	fmt.Println("Configuration:")
 	if err := printConfig(); err != nil {
 		return err
 	}
@@ -77,10 +80,7 @@ func loadConfig() (*AdocConfig, error) {
 	}
 
 	//update members
-	config.PartnerCode = partnerCode
-	config.StagingLoc = "sip"
-	config.AIPLoc = "aips"
-	config.LogLoc = "logs"
+	config.PartnerCode = strings.Split(collectionCode, "_")[0]
 	config.CollectionCode = collectionCode
 	if projectLoc != "" {
 		config.ProjectLoc = filepath.Join(projectLoc, collectionCode)
@@ -91,6 +91,9 @@ func loadConfig() (*AdocConfig, error) {
 		}
 		config.ProjectLoc = filepath.Join(wd, collectionCode)
 	}
+	config.StagingLoc = filepath.Join(config.ProjectLoc, "sip")
+	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
+	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
 	config.SourceLoc = sourceLoc
 
 	return config, nil

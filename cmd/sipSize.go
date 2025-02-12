@@ -65,6 +65,7 @@ func printDirectoryStats() error {
 		}); err != nil {
 			return err
 		}
+		directoryStats = append(directoryStats, ds)
 	}
 
 	for _, ds := range directoryStats {

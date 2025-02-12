@@ -15,7 +15,7 @@ var sipSizeCmd = &cobra.Command{
 	Use:   "size",
 	Short: "Get the size  and number of files in a SIP",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err != loadProjectConfig(); err != nil {
+		if err := loadProjectConfig(); err != nil {
 			panic(err)
 		}
 

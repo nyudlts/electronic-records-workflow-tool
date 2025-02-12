@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -42,5 +43,6 @@ func getSipSize() error {
 		return err
 	}
 
+	fmt.Printf("%d files in %d directories (%d bytes)\n", numFiles, numDirectories, sizeFiles)
 	return nil
 }

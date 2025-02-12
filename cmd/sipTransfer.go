@@ -28,6 +28,12 @@ var sipXferCmd = &cobra.Command{
 		if err := transferSIP(); err != nil {
 			panic(err)
 		}
+
+		//check if there is a metadata directory in SIP, if not create it
+		if err := checkMDDir(); err != nil {
+			panic(err)
+		}
+
 	},
 }
 
@@ -60,5 +66,16 @@ func transferSIP() error {
 
 	fmt.Printf("Transfer complete\n")
 
+	return nil
+}
+
+func checkMDDir() error {
+	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
+	if _, err := os.Stat(mdDir); os.IsNotExist(err) {
+		fmt.Printf("Creating metadata directory for SIP\n")
+		if err := os.Mkdir(mdDir, 0755); err != nil {
+			return err
+		}
+	}
 	return nil
 }

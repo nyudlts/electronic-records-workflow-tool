@@ -39,6 +39,7 @@ var sipSizeCmd = &cobra.Command{
 }
 
 type DirectoryStats struct {
+	Name           string
 	Size           int64
 	NumFiles       int
 	NumDirectories int
@@ -52,7 +53,7 @@ func printDirectoryStats() error {
 	}
 
 	for _, dir := range dirs {
-		ds := DirectoryStats{0, 0, 0}
+		ds := DirectoryStats{dir.Name(), 0, 0, 0}
 		if err := filepath.Walk(filepath.Join(adocConfig.StagingLoc, dir.Name()), func(path string, info os.FileInfo, err error) error {
 			if info.IsDir() {
 				ds.NumDirectories++
@@ -67,7 +68,7 @@ func printDirectoryStats() error {
 	}
 
 	for _, ds := range directoryStats {
-		fmt.Printf("%s: %d files in %d directories (%d bytes)\n", path, ds.NumFiles, ds.NumDirectories, ds.Size)
+		fmt.Printf("%s: %d files in %d directories (%d bytes)\n", ds.Name, ds.NumFiles, ds.NumDirectories, ds.Size)
 	}
 
 	return nil

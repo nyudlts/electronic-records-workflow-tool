@@ -15,11 +15,11 @@ var full bool
 func init() {
 	validateERsCmd.Flags().StringVar(&ersLoc, "aips-location", "aips", "location of AIPS to validate")
 	validateERsCmd.Flags().BoolVar(&full, "full", false, "do a full validation instead of fast validation")
-	rootCmd.AddCommand(validateERsCmd)
+	aipCmd.AddCommand(validateERsCmd)
 }
 
 var validateERsCmd = &cobra.Command{
-	Use:   "validate-aips",
+	Use:   "validate",
 	Short: "Validate AIPS prior to transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 

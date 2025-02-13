@@ -11,11 +11,11 @@ import (
 
 func init() {
 	rstarXfrCmd.Flags().StringVar(&ersLoc, "aips-location", "aips/", "location of AIPS to transfer to r*")
-	rootCmd.AddCommand(rstarXfrCmd)
+	aipCmd.AddCommand(rstarXfrCmd)
 }
 
 var rstarXfrCmd = &cobra.Command{
-	Use:   "transfer-rs",
+	Use:   "transfer",
 	Short: "Transfer processed AIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := transferToRstar(); err != nil {

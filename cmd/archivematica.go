@@ -8,7 +8,7 @@ import (
 
 func init() {
 	// Add your commands here
-	RootCmd.AddCommand(amaticaCmd)
+	rootCmd.AddCommand(amaticaCmd)
 }
 
 var amaticaCmd = &cobra.Command{

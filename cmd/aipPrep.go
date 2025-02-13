@@ -16,11 +16,11 @@ func init() {
 	listCmd.Flags().StringVar(&aipFileLoc, "aip-file", "", "the location of the aip-file containing aips to process")
 	listCmd.Flags().StringVar(&stagingLoc, "aip-location", "aips/", "location to stage aips")
 	listCmd.Flags().StringVar(&tmpLoc, "tmp-location", "logs", "location to store tmp bag-info.txt")
-	rootCmd.AddCommand(listCmd)
+	aipCmd.AddCommand(listCmd)
 }
 
 var listCmd = &cobra.Command{
-	Use:   "prep-aips",
+	Use:   "prep",
 	Short: "Prepare a list of AIPs for transfer to R*",
 	Run: func(cmd *cobra.Command, args []string) {
 

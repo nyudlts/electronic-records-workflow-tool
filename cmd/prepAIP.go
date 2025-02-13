@@ -10,7 +10,7 @@ import (
 func init() {
 	prepSingleCmd.Flags().StringVar(&aipLoc, "aip-location", "", "location of aip to be prepped (required)")
 	prepSingleCmd.Flags().StringVar(&tmpLoc, "tmp-location", ".", "location for temp processing")
-	rootCmd.AddCommand(prepSingleCmd)
+	aipCmd.AddCommand(prepSingleCmd)
 }
 
 var prepSingleCmd = &cobra.Command{

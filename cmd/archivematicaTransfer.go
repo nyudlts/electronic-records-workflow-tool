@@ -29,13 +29,13 @@ var (
 
 func init() {
 	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "pause time, in seconds, between calls to Archivematica api to check status")
-	rootCmd.AddCommand(xferAmaticaCmd)
+	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "polling time, in seconds, between calls to Archivematica api to check status")
+	amaticaCmd.AddCommand(xferAmaticaCmd)
 }
 
 var xferAmaticaCmd = &cobra.Command{
-	Use:   "transfer-am",
-	Short: "Transfer SIPS to R*",
+	Use:   "transfer",
+	Short: "Transfer SIPS to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project config

@@ -18,6 +18,12 @@ var rstarXfrCmd = &cobra.Command{
 	Use:   "transfer",
 	Short: "Transfer processed AIPS to R*",
 	Run: func(cmd *cobra.Command, args []string) {
+		//load the project configuration
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
+		//transfer the AIPS
 		if err := transferToRstar(); err != nil {
 			panic(err)
 		}

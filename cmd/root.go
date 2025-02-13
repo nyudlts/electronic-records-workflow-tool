@@ -32,8 +32,6 @@ var (
 	pollTime         int
 	windows          bool
 	collectionCode   string
-	xferLoc          string
-	partnerCode      string
 	adocConfig       *AdocConfig
 	projectLoc       string
 )

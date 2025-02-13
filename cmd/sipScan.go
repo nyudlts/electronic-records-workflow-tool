@@ -45,7 +45,7 @@ func clamscan() error {
 
 	for _, entry := range directoryEntries {
 		if entry.IsDir() && entry.Name() != "metadata" {
-			fmt.Printf("Scanning %s for viruses\n", entry.Name())
+			fmt.Printf("  * Scanning %s for viruses\n", entry.Name())
 			xfer := filepath.Join(adocConfig.StagingLoc, entry.Name())
 			logName := filepath.Join(adocConfig.StagingLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
 			if _, err := os.Create(logName); err != nil {

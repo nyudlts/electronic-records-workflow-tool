@@ -110,13 +110,13 @@ func checkFlags() error {
 	}
 
 	//check transfer directory exists
-	fi, err := os.Stat(adocConfig.XferLoc)
+	fi, err := os.Stat("xfer")
 	if err != nil {
 		return err
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", adocConfig.XferLoc)
+		return fmt.Errorf("%s is not a directory", filepath.Join(adocConfig.ProjectLoc, "xfer"))
 	}
 
 	return nil

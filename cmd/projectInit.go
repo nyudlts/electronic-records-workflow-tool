@@ -13,7 +13,6 @@ import (
 type AdocConfig struct {
 	StagingLoc       string `yaml:"staging-location"`
 	SourceLoc        string `yaml:"source-location"`
-	XferLoc          string `yaml:"xfer-location"`
 	PartnerCode      string `yaml:"partner-code"`
 	CollectionCode   string `yaml:"collection-code"`
 	ProjectLoc       string `yaml:"project-location"`

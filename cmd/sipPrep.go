@@ -24,7 +24,7 @@ var stageCmd = &cobra.Command{
 	Short: "generate SIPs to transfer to archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("ADOC SIP Prepare")
+		fmt.Println("ADOC SIP Prep")
 
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
@@ -43,6 +43,7 @@ type Params struct {
 	Staging      string
 	TransferInfo TransferInfo
 	WorkOrder    aspace.WorkOrder
+	XferLoc      string
 }
 
 func stage() error {
@@ -58,10 +59,12 @@ func stage() error {
 	params.Source = adocConfig.StagingLoc
 
 	msgs = append(msgs, "[INFO] checking the xfer directory exists")
+	xferLoc := filepath.Join(adocConfig.ProjectLoc, adocConfig.XferLoc)
 	//check that source exists and is a Directory
-	if err := isDirectory(adocConfig.XferLoc); err != nil {
+	if err := isDirectory(xferLoc); err != nil {
 		return err
 	}
+	params.XferLoc = xferLoc
 
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory

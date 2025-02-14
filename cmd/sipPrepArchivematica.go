@@ -107,7 +107,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	//create the directory in the xfer to amatica location
 	log.Printf("[INFO] WORKER %d creating directory in xfer location %s", workerId, erID)
 	ERDirName := fmt.Sprintf("%s_%s", params.ResourceCode, erID)
-	ERLoc := filepath.Join(adocConfig.XferLoc, ERDirName)
+	ERLoc := filepath.Join(params.XferLoc, ERDirName)
 	if err := os.Mkdir(ERLoc, 0755); err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	//create the metadata directory
 	log.Printf("[INFO] WORKER %d creating metadata directory in %s", workerId, erID)
 	ERMDDirLoc := filepath.Join(ERLoc, "metadata")
-	if err := os.Mkdir(ERMDDirLoc, 0755); err != nil {
+	if err := os.Mkdir(ERMDDirLoc, 0775); err != nil {
 		return err
 	}
 

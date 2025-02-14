@@ -94,7 +94,6 @@ func loadConfig() (*AdocConfig, error) {
 	config.StagingLoc = filepath.Join(config.ProjectLoc, "sip")
 	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
-	config.XferLoc = filepath.Join(collectionCode, "xfer")
 	config.SourceLoc = sourceLoc
 
 	return config, nil

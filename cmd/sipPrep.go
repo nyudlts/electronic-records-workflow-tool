@@ -59,7 +59,7 @@ func stage() error {
 	params.Source = adocConfig.StagingLoc
 
 	msgs = append(msgs, "[INFO] checking the xfer directory exists")
-	xferLoc := filepath.Join(adocConfig.ProjectLoc, adocConfig.XferLoc)
+	xferLoc := filepath.Join(adocConfig.ProjectLoc, "xfer")
 	//check that source exists and is a Directory
 	if err := isDirectory(xferLoc); err != nil {
 		return err

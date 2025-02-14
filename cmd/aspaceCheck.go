@@ -70,6 +70,7 @@ func getConfig() error {
 func findWorkOrder() error {
 	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
 	var err error
+
 	workOrderLocation, err = getWorkOrderFile(mdDir)
 	if err != nil {
 		return err
@@ -83,6 +84,7 @@ func aspaceCheck() error {
 		panic(err)
 	}
 
+	fmt.Println("Workorder Location:", workOrderLocation)
 	workOrder, _ := os.Open(workOrderLocation)
 	defer workOrder.Close()
 	wo := aspace.WorkOrder{}

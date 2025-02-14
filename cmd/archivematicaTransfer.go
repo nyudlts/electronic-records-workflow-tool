@@ -9,7 +9,6 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 
 	amatica "github.com/nyudlts/go-archivematica"
@@ -175,7 +174,7 @@ func transferPackage(xipPath string) error {
 	//initialize the transfer
 	xipName := filepath.Base(xipPath)
 	fmt.Printf("\ninitializing transfer for %s\n", xipName)
-	amXIPPath, err := initTransfer(xipName)
+	amXIPPath, err := initTransfer(xipPath)
 	if err != nil {
 		return err
 	}
@@ -242,18 +241,15 @@ func transferPackage(xipPath string) error {
 	return nil
 }
 
-func initTransfer(xipName string) (string, error) {
+func initTransfer(xipPath string) (string, error) {
 	var err error
 	amLocation, err = client.GetLocationByName(locationName)
 	if err != nil {
 		return "", err
 	}
 
-	//convert windows path separators
-	amXIPPath := filepath.Join(amLocation.Path, xipName)
-	if windows {
-		amXIPPath = strings.Replace(amXIPPath, "\\", "/", -1)
-	}
+	amXIPPath := filepath.Join(amLocation.Path, xipPath)
+
 	return amXIPPath, nil
 }
 

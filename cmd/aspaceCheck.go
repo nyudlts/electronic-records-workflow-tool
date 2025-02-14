@@ -132,8 +132,9 @@ func aspaceCheck() error {
 				}
 
 				if do.DigitalObjectID != row.GetComponentID() {
-					fmt.Printf("DO: `%s` WO: `%s`", do.DigitalObjectID, row.GetComponentID())
+
 					out.Write([]string{row.GetURI(), do.URI, do.DigitalObjectID, "ERROR: component IDs do not match"})
+					fmt.Printf("Component IDs do not match: %s, %s, %s\n", row.GetURI(), do.URI, do.DigitalObjectID)
 					out.Flush()
 					continue
 				} else {

@@ -25,7 +25,7 @@ type AdocConfig struct {
 func init() {
 	initCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	initCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
-	rootCmd.AddCommand(initCmd)
+	projectCmd.AddCommand(initCmd)
 }
 
 var initCmd = &cobra.Command{
@@ -94,6 +94,7 @@ func loadConfig() (*AdocConfig, error) {
 	config.StagingLoc = filepath.Join(config.ProjectLoc, "sip")
 	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
+	config.XferLoc = filepath.Join(collectionCode, "xfer")
 	config.SourceLoc = sourceLoc
 
 	return config, nil

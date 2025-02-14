@@ -71,7 +71,7 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
-	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-prep-aips.log", adocConfig.CollectionCode)))
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-aip.log", adocConfig.CollectionCode)))
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func processList() error {
 			return err
 		}
 
-		msg := fmt.Sprintf("updating %s\n", fi.Name())
+		msg := fmt.Sprintf("updating %s", fi.Name())
 		fmt.Println(msg)
 		log.Println("INFO", msg)
 

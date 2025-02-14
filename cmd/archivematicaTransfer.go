@@ -140,9 +140,9 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", adocConfig.XferLoc)
-	log.Printf("[INFO] reading source directory: %s", adocConfig.XferLoc)
-	xferDirs, err = os.ReadDir(adocConfig.XferLoc)
+	fmt.Printf("reading source directory: %s\n", "xfer/")
+	log.Printf("[INFO] reading source directory: %s", "xfer/")
+	xferDirs, err = os.ReadDir("xfer")
 	if err != nil {
 		return err
 	}
@@ -155,11 +155,11 @@ func setup() error {
 }
 
 func xferDirectories() error {
-	fmt.Printf("transferring packages from %s\n", adocConfig.XferLoc)
-	log.Printf("[INFO] transferring packages from %s", adocConfig.XferLoc)
+	fmt.Printf("transferring packages from %s\n", "xfer/")
+	log.Printf("[INFO] transferring packages from %s", "xfer")
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join(adocConfig.XferLoc, xferDir.Name())
+		xipPath := filepath.Join("xfer", xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
 			//log the err instead
 			return err

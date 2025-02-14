@@ -51,7 +51,7 @@ var checkCmd = &cobra.Command{
 }
 
 func getConfig() error {
-	if aspaceEnv == "" {
+	if aspaceConfigLoc == "" {
 		currentUser, err := user.Current()
 		if err != nil {
 			return (err)
@@ -59,7 +59,7 @@ func getConfig() error {
 		aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
 	}
 
-	fmt.Println(aspaceConfigLoc)
+	fmt.Println("as config loc:", aspaceConfigLoc)
 	_, err := os.Stat(aspaceConfigLoc)
 	if err != nil {
 		return err

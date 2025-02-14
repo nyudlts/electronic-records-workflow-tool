@@ -26,7 +26,7 @@ var checkCmd = &cobra.Command{
 	Short: "Check that DOs exist in Archivesspace",
 	Run: func(cmd *cobra.Command, args []string) {
 		//print bin vers and cmd
-		fmt.Printf("ADOC %s ASPACE CHECK", version)
+		fmt.Printf("ADOC %s ASPACE CHECK\n", version)
 
 		//load project config
 		if err := loadProjectConfig(); err != nil {
@@ -59,7 +59,6 @@ func getConfig() error {
 		aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
 	}
 
-	fmt.Println("as config loc:", aspaceConfigLoc)
 	_, err := os.Stat(aspaceConfigLoc)
 	if err != nil {
 		return err
@@ -84,7 +83,6 @@ func aspaceCheck() error {
 		panic(err)
 	}
 
-	fmt.Println("Workorder Location:", workOrderLocation)
 	workOrder, _ := os.Open(workOrderLocation)
 	defer workOrder.Close()
 	wo := aspace.WorkOrder{}
@@ -100,12 +98,12 @@ func aspaceCheck() error {
 	for _, row := range wo.Rows {
 		repoId, aoURI, err := aspace.URISplit(row.GetURI())
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		ao, err := client.GetArchivalObject(repoId, aoURI)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		instances := ao.Instances
@@ -153,6 +151,8 @@ func aspaceCheck() error {
 	if err := os.WriteFile(checkFilename, b.Bytes(), 0775); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Checkfile written to:", checkFilename)
 
 	return nil
 

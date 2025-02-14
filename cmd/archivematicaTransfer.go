@@ -159,7 +159,7 @@ func xferDirectories() error {
 	log.Printf("[INFO] transferring packages from %s", "xfer")
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join("xfer", xferDir.Name())
+		xipPath := filepath.Join(adocConfig.CollectionCode, "xfer", xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
 			//log the err instead
 			return err

@@ -6,33 +6,83 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 
 	"github.com/nyudlts/go-aspace"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	checkCmd.Flags().StringVar(&aspaceConfigLoc, "aspace-config", "", "")
-	checkCmd.Flags().StringVar(&aspaceWOLoc, "aspace-workorder", "", "")
-	checkCmd.Flags().StringVar(&aspaceEnv, "aspace-environment", "", "")
-	rootCmd.AddCommand(checkCmd)
+	checkCmd.Flags().StringVar(&aspaceConfigLoc, "aspace-config", "", "if not set will default to `/home/'username'/.config/go-aspace.yml")
+	checkCmd.Flags().StringVar(&aspaceEnv, "aspace-environment", "prod", "the environment to to lookup in config")
+	aspaceCmd.AddCommand(checkCmd)
 }
+
+var workOrderLocation string
 
 var checkCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Check that DOs exist in Archivesspace",
 	Run: func(cmd *cobra.Command, args []string) {
-		aspaceCheck()
+		//print bin vers and cmd
+		fmt.Printf("ADOC %s ASPACE CHECK", version)
+
+		//load project config
+		if err := loadProjectConfig(); err != nil {
+			panic(err)
+		}
+
+		//get aspaceConfig
+		if err := getConfig(); err != nil {
+			panic(err)
+		}
+
+		//get workorder
+		if err := findWorkOrder(); err != nil {
+			panic(err)
+		}
+
+		//run the check
+		if err := aspaceCheck(); err != nil {
+			panic(err)
+		}
 	},
 }
 
-func aspaceCheck() {
+func getConfig() error {
+	if aspaceEnv == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return (err)
+		}
+		aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
+	}
+
+	_, err := os.Stat(aspaceConfigLoc)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func findWorkOrder() error {
+	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
+	var err error
+	workOrderLocation, err = getWorkOrderFile(mdDir)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func aspaceCheck() error {
 	client, err := aspace.NewClient(aspaceConfigLoc, aspaceEnv, 20)
 	if err != nil {
 		panic(err)
 	}
 
-	workOrder, _ := os.Open(aspaceWOLoc)
+	workOrder, _ := os.Open(workOrderLocation)
 	defer workOrder.Close()
 	wo := aspace.WorkOrder{}
 	if err := wo.Load(workOrder); err != nil {
@@ -95,8 +145,12 @@ func aspaceCheck() {
 		}
 	}
 
-	if err := os.WriteFile("adoc-check.tsv", b.Bytes(), 0777); err != nil {
+	checkFilename := filepath.Join("logs", fmt.Sprintf("%s-adoc-check.tsv", adocConfig.CollectionCode))
+
+	if err := os.WriteFile(checkFilename, b.Bytes(), 0775); err != nil {
 		panic(err)
 	}
+
+	return nil
 
 }

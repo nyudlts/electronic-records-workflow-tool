@@ -59,6 +59,7 @@ func getConfig() error {
 		aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
 	}
 
+	fmt.Println(aspaceConfigLoc)
 	_, err := os.Stat(aspaceConfigLoc)
 	if err != nil {
 		return err

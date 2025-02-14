@@ -70,11 +70,11 @@ func getConfig() error {
 func findWorkOrder() error {
 	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
 	var err error
-
-	workOrderLocation, err = getWorkOrderFile(mdDir)
+	workOrderFilename, err := getWorkOrderFile(mdDir)
 	if err != nil {
 		return err
 	}
+	workOrderLocation = filepath.Join(mdDir, workOrderFilename)
 	return nil
 }
 

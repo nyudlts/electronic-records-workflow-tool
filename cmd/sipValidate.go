@@ -120,7 +120,7 @@ func validate() error {
 		} else {
 			transferInfo := TransferInfo{}
 			if err := yaml.Unmarshal(xferBytes, &transferInfo); err != nil {
-				fmt.Println("could unmarshal transfer-info.txt")
+				fmt.Println("could not unmarshal transfer-info.txt")
 				log.Println("[ERROR] could not unmarshal transfer-info.txt")
 			} else {
 				if err := transferInfo.Validate(); err != nil {

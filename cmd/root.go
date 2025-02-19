@@ -15,7 +15,7 @@ var vfs embed.FS
 
 var rootCmd = &cobra.Command{}
 
-const version = "v1.0.0"
+const version = "v1.0.0b"
 
 // common flags
 var (
@@ -25,9 +25,6 @@ var (
 	stagingLoc       string
 	tmpLoc           string
 	amaticaConfigLoc string
-	aspaceConfigLoc  string
-	aspaceWOLoc      string
-	aspaceEnv        string
 	ersLoc           string
 	pollTime         int
 	windows          bool

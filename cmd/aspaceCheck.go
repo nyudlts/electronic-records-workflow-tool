@@ -13,6 +13,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var aspaceEnv string
+var aspaceConfigLoc string
+
 func init() {
 	checkCmd.Flags().StringVar(&aspaceConfigLoc, "aspace-config", "", "if not set will default to `/home/'username'/.config/go-aspace.yml")
 	checkCmd.Flags().StringVar(&aspaceEnv, "aspace-environment", "prod", "the environment to to lookup in config")

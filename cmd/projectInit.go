@@ -19,6 +19,7 @@ type AdocConfig struct {
 	LogLoc           string `yaml:"log-location"`
 	AIPLoc           string `yaml:"aip-location"`
 	AMTransferSource string `yaml:"archivematica-transfer-source"`
+	XferLoc          string `yaml:"xfer-location"`
 }
 
 func init() {
@@ -93,6 +94,7 @@ func loadConfig() (*AdocConfig, error) {
 	config.StagingLoc = filepath.Join(config.ProjectLoc, "sip")
 	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
+	config.XferLoc = filepath.Join(config.ProjectLoc, "xfer")
 	config.SourceLoc = sourceLoc
 
 	return config, nil

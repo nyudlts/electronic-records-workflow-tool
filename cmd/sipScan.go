@@ -21,7 +21,7 @@ var clamCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Println("ADOC SIP Scan")
+		fmt.Printf("ADOC SIP Scan %s\n", version)
 		if err := clamscan(); err != nil {
 			panic(err)
 		}

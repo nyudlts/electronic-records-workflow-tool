@@ -17,6 +17,8 @@ var clamCmd = &cobra.Command{
 	Use:   "scan",
 	Short: "Run clamav against a package",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		//load the project configuration
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
 		}

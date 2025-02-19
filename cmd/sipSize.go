@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +21,8 @@ var sipSizeCmd = &cobra.Command{
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
 		}
+
+		fmt.Printf("ADOC SIP Size %s\n", version)
 
 		//print the total size of SIP
 		if err := getPackageSize(adocConfig.StagingLoc); err != nil {

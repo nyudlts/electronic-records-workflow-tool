@@ -18,11 +18,13 @@ var sipXferCmd = &cobra.Command{
 	Use:   "transfer",
 	Short: "Transfer source files to the SIP directory",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ADOC SIP Transfer")
+
 		//load the configuration
 		if err := loadProjectConfig(); err != nil {
 			panic(err)
 		}
+
+		fmt.Printf("ADOC SIP Transfer %s\n", version)
 
 		//run
 		if err := transferSIP(); err != nil {

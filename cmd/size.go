@@ -39,7 +39,7 @@ func printDirectoryStats(pkgPath string) error {
 	}
 
 	for _, ds := range directoryStats {
-		fmt.Printf("  %s: %d files in %d directories, %s\n", ds.Name, ds.NumFiles, ds.NumDirectories, bytemath.ConvertBytesToHumanReadable(ds.Size))
+		fmt.Printf("  * %s: %d files in %d directories, %s\n", ds.Name, ds.NumFiles, ds.NumDirectories, bytemath.ConvertBytesToHumanReadable(ds.Size))
 	}
 
 	return nil

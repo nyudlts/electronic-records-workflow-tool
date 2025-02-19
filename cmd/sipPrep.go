@@ -21,7 +21,7 @@ func init() {
 
 var stageCmd = &cobra.Command{
 	Use:   "prep",
-	Short: "generate SIPs to transfer to archivematica",
+	Short: "Prepare SIP package for transfer to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Load the project configuration
@@ -29,7 +29,7 @@ var stageCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC SIP PREP %s\n", version)
+		fmt.Printf("ADOC SIP Prepare %s\n", version)
 
 		if err := stage(); err != nil {
 			panic(err)

@@ -53,16 +53,16 @@ var validateCmd = &cobra.Command{
 
 func validate() error {
 	//check that the source directory exists
-	fmt.Print("  1. checking that source location exists: ")
+	fmt.Print("  1. checking that SIP location exists: ")
 	fileInfo, err := os.Stat(adocConfig.StagingLoc)
 	if err != nil {
 		log.Printf("[ERROR] %s\n", err.Error())
-		fmt.Printf("source location %s does not exist", adocConfig.StagingLoc)
+		fmt.Printf("SIP location %s does not exist", adocConfig.StagingLoc)
 	} else {
 
 		if !fileInfo.IsDir() {
 			log.Printf("[ERROR] %s is not a directory\n", adocConfig.StagingLoc)
-			fmt.Printf("source location %s is not a directory", adocConfig.StagingLoc)
+			fmt.Printf("SIP location %s is not a directory", adocConfig.StagingLoc)
 		} else {
 			log.Printf("[INFO] check 1. %s exists and is a directory\n", adocConfig.StagingLoc)
 			fmt.Println("OK")
@@ -70,11 +70,11 @@ func validate() error {
 	}
 
 	//check that there is a metadata directory
-	fmt.Print("  2. checking that source directory contains a metadata directory: ")
+	fmt.Print("  2. checking that SIP directory contains a metadata directory: ")
 	mdDirLocation := filepath.Join(adocConfig.StagingLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
-		fmt.Printf("source location %s does not contain a metadata directory", mdDirLocation)
+		fmt.Printf("SIP location %s does not contain a metadata directory", adocConfig.StagingLoc)
 		log.Printf("[ERROR] %s does not contain a metadata directory\n", adocConfig.StagingLoc)
 	} else {
 
@@ -174,7 +174,7 @@ func validate() error {
 	}
 
 	//check there are no extra directories in source location
-	fmt.Print("  7. checking that there no extra directories or files in source location: ")
+	fmt.Print("  7. checking that there no extra directories or files in SIP directory: ")
 	sourceDirs, err := os.ReadDir(adocConfig.StagingLoc)
 	if err != nil {
 		log.Printf("[ERROR] duplicate componentID, %s, found in workorder", row.GetComponentID())

@@ -3,7 +3,6 @@ package cmd
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -40,7 +39,7 @@ var archiveCmd = &cobra.Command{
 		}
 
 		// Move the gzip to the archive directory
-		if err := os.Rename(projectLocation+".tar.gz", filepath.Join("completed", projectLocation+".tar.gz")); err != nil {
+		if err := os.Rename(projectLocation+".tar.gz", filepath.Join("completed", projectLocation+".tgz")); err != nil {
 			panic(err)
 		}
 
@@ -54,10 +53,10 @@ var archiveCmd = &cobra.Command{
 // Derived from: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func createGzip() error {
 	if _, err := os.Stat(projectLocation); err != nil {
-		return fmt.Errorf("Unable to tar files - %v", err.Error())
+		return err
 	}
 
-	gzipFile, err := os.Create(projectLocation + ".tar.gz")
+	gzipFile, err := os.Create(projectLocation + ".tgz")
 	if err != nil {
 		return err
 	}

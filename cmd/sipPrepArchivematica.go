@@ -192,7 +192,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
 	payloadTarget := filepath.Join("xfer", ERDirName, erID)
-	fmt.Printf("source: %s target: %s\n", payloadSource, payloadTarget)
+	fmt.Printf("  source: %s\n  target: %s\n", payloadSource, payloadTarget)
 
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err
@@ -268,12 +268,7 @@ func getWorkOrderFile(path string) (string, error) {
 	return "", fmt.Errorf("%s does not contain a work order", path)
 }
 
-func getPartnerAndResource(workOrderName string) (string, string) {
-	split := strings.Split(workOrderName, "_")
-	return split[0], strings.Join(split[1:len(split)-2], "_")
-}
-
-// regexp definitions for validation
+// regexp definitions for validation -- this should be moved to a config file
 var (
 	aspaceResourceURLPtn     = regexp.MustCompile(`^/repositories/[2|3|6|99]/resources/\d*$`)
 	partnerPtn               = regexp.MustCompile(`^[tamwag|fales|nyuarchives|dlts]`)

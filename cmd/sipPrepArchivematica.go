@@ -102,7 +102,7 @@ func processChunk(rows []aspace.WorkOrderRow, resultChan chan [][]string, worker
 func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	erID := row.GetComponentID()
 	log.Printf("[INFO] WORKER %d processing %s", workerId, erID)
-	fmt.Printf("* WORKER %d processing %s\n", workerId, erID)
+	fmt.Printf("  * WORKER %d processing %s\n", workerId, erID)
 
 	//create the directory in the xfer to amatica location
 	log.Printf("[INFO] WORKER %d creating directory in xfer location %s", workerId, erID)
@@ -192,14 +192,14 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
 	payloadTarget := filepath.Join("xfer", ERDirName, erID)
-	fmt.Printf("  source: %s\n  target: %s\n", payloadSource, payloadTarget)
+	fmt.Printf("    source: %s\n  target: %s\n", payloadSource, payloadTarget)
 
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err
 	}
 
 	log.Printf("[INFO] WORKER %d %s complete", workerId, erID)
-	fmt.Printf("* WORKER %d completed %s\n", workerId, erID)
+	fmt.Printf("  * WORKER %d completed %s\n", workerId, erID)
 	return nil
 
 }

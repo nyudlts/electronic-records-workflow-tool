@@ -3,6 +3,7 @@ package cmd
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -54,11 +55,13 @@ var archiveCmd = &cobra.Command{
 // Derived from: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func createGzip() error {
 	if _, err := os.Stat(projectLocation); err != nil {
+		fmt.Println("DEBUG project location invalid")
 		return err
 	}
 
 	gzipFile, err := os.Create(projectLocation + ".tgz")
 	if err != nil {
+		fmt.Println("DEBUG cannot create gzip")
 		return err
 	}
 	defer gzipFile.Close()
@@ -71,6 +74,7 @@ func createGzip() error {
 
 	return filepath.Walk(projectLocation, func(file string, fi os.FileInfo, err error) error {
 		if err != nil {
+			fmt.Println("DEBUG cannot walk project location")
 			return err
 		}
 
@@ -80,21 +84,25 @@ func createGzip() error {
 
 		header, err := tar.FileInfoHeader(fi, fi.Name())
 		if err != nil {
+			fmt.Println("DEBUG cannot create header")
 			return err
 		}
 
 		header.Name = strings.TrimPrefix(strings.Replace(file, projectLocation, "", -1), string(filepath.Separator))
 
 		if err := tarWriter.WriteHeader(header); err != nil {
+			fmt.Println("DEBUG cannot write header")
 			return err
 		}
 
 		f, err := os.Open(file)
 		if err != nil {
+			fmt.Println("DEBUG cannot open file", fi.Name())
 			return err
 		}
 
 		if _, err := io.Copy(tarWriter, f); err != nil {
+			fmt.Println("DEBUG cannot copy file to tar", fi.Name())
 			return err
 		}
 

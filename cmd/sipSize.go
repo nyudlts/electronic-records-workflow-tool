@@ -94,6 +94,6 @@ func getSipSize() error {
 		return err
 	}
 
-	fmt.Printf("%d files in %d directories %s\n", numFiles, numDirectories, bytemath.ConvertBytesToHumanReadable(sizeFiles))
+	fmt.Printf("%s, %d files in %d directories, %s\n", filepath.Join(adocConfig.CollectionCode, "sip"), numFiles, numDirectories, bytemath.ConvertBytesToHumanReadable(sizeFiles))
 	return nil
 }

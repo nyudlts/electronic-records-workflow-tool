@@ -9,7 +9,7 @@ func init() {
 
 var amaticaSizeCmd = &cobra.Command{
 	Use:   "size",
-	Short: "get the file count and size of an xfer package",
+	Short: "Get the file count and size of an XFER package",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project config

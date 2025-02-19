@@ -19,7 +19,8 @@ func init() {
 }
 
 var archiveCmd = &cobra.Command{
-	Use: "archive",
+	Use:   "archive",
+	Short: "Archive a project",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Remove AIP Directory
 		aipsDir := filepath.Join(projectLocation, "aips")

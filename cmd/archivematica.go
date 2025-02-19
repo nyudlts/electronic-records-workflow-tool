@@ -13,8 +13,8 @@ func init() {
 
 var amaticaCmd = &cobra.Command{
 	Use:   "amatica",
-	Short: "Archivematica commands",
+	Short: "ADOC Archivematica commands",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Archivematica commands")
+		fmt.Println("ADOC Archivematica commands")
 	},
 }

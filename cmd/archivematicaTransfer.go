@@ -34,7 +34,7 @@ func init() {
 
 var xferAmaticaCmd = &cobra.Command{
 	Use:   "transfer",
-	Short: "Transfer SIPS to Archivematica",
+	Short: "Transfer SIPs in XFER directory to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project config

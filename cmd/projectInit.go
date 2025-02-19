@@ -29,7 +29,8 @@ func init() {
 }
 
 var initCmd = &cobra.Command{
-	Use: "init",
+	Use:   "init",
+	Short: "Initialize a ADOC transfer",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("ADOC INIT")
 

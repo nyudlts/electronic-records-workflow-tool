@@ -9,7 +9,7 @@ func init() {
 
 var aipSizeCmd = &cobra.Command{
 	Use:   "size",
-	Short: "get the file count and size of an aip package",
+	Short: "Get the file count and size of an AIP package",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//load the project config

@@ -28,11 +28,13 @@ var validateERsCmd = &cobra.Command{
 			panic(err)
 		}
 
+		fmt.Printf("ADOC AIP VALIDATE %s\n", version)
+
 		//validate the AIPS
 		if err := validateAIPs(); err != nil {
 			panic(err)
 		}
-		fmt.Println("All ER bags are valid")
+		fmt.Println("All AIPs are valid")
 	},
 }
 
@@ -69,12 +71,12 @@ func validateAIPs() error {
 			}
 
 			if full {
-				fmt.Printf("validating %s\n", entry.Name())
+				fmt.Printf("  * validating %s\n", entry.Name())
 				if err := bag.ValidateBag(false, false); err != nil {
 					return err
 				}
 			} else {
-				fmt.Printf("fast validating %s\n", entry.Name())
+				fmt.Printf("  * fast validating %s\n", entry.Name())
 				if err := bag.ValidateBag(true, false); err != nil {
 					return err
 				}

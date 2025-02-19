@@ -39,7 +39,7 @@ var archiveCmd = &cobra.Command{
 		}
 
 		// Move the gzip to the archive directory
-		if err := os.Rename(projectLocation+".tar.gz", filepath.Join("completed", projectLocation+".tgz")); err != nil {
+		if err := os.Rename(projectLocation+".tgz", filepath.Join("completed", projectLocation+".tgz")); err != nil {
 			panic(err)
 		}
 

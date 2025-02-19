@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nyudlts/bytemath"
 	"github.com/spf13/cobra"
 )
 
@@ -69,7 +70,7 @@ func printDirectoryStats() error {
 	}
 
 	for _, ds := range directoryStats {
-		fmt.Printf("%s: %d files in %d directories (%d bytes)\n", ds.Name, ds.NumFiles, ds.NumDirectories, ds.Size)
+		fmt.Printf("%s: %d files in %d directories, %s\n", ds.Name, ds.NumFiles, ds.NumDirectories, bytemath.ConvertBytesToHumanReadable(ds.Size))
 	}
 
 	return nil
@@ -93,6 +94,6 @@ func getSipSize() error {
 		return err
 	}
 
-	fmt.Printf("%d files in %d directories (%d bytes)\n", numFiles, numDirectories, sizeFiles)
+	fmt.Printf("%d files in %d directories %s\n", numFiles, numDirectories, bytemath.ConvertBytesToHumanReadable(sizeFiles))
 	return nil
 }

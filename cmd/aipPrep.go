@@ -29,6 +29,8 @@ var listCmd = &cobra.Command{
 			panic(err)
 		}
 
+		fmt.Printf("ADOC AIP PREP %s\n", version)
+
 		//locate the aip file
 		if err := locateAIPFile(); err != nil {
 			panic(err)
@@ -107,7 +109,7 @@ func processList() error {
 
 		fmt.Println("OK")
 
-		msg = fmt.Sprintf("Updating package at %s", aipLoc)
+		msg = fmt.Sprintf("Updating package at %s\n", aipLocation)
 		fmt.Print(msg + ": ")
 		log.Printf("[INFO] %s", msg)
 		if err := prepPackage(aipStageLoc, tmpLoc); err != nil {

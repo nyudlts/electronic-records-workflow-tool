@@ -47,7 +47,7 @@ type Params struct {
 }
 
 func stage() error {
-	fmt.Printf("adoc stage %s\n", version)
+	fmt.Printf("ADOC SIP PREP %s\n", version)
 	params := Params{}
 	msgs := []string{}
 

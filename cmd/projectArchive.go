@@ -23,6 +23,8 @@ var archiveCmd = &cobra.Command{
 	Use:   "archive",
 	Short: "Archive a project",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("ADOC Project Archive: %s\n", version)
+		
 		// Add a warning message
 
 		// Remove AIP Directory

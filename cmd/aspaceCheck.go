@@ -103,11 +103,13 @@ func aspaceCheck() error {
 		if err != nil {
 			return err
 		}
+		fmt.Printf("Checking: %s\n", row.GetURI())
 
 		ao, err := client.GetArchivalObject(repoId, aoURI)
 		if err != nil {
 			return err
 		}
+		fmt.Println("Found AO:", ao.URI)
 
 		instances := ao.Instances
 

@@ -108,7 +108,9 @@ func aspaceCheck() error {
 
 		ao, err := client.GetArchivalObject(repoId, aoURI)
 		if err != nil {
-			return err
+			out.Write([]string{row.GetURI(), "", "", "ERROR: AO does not exist: " + row.GetURI()})
+			out.Flush()
+			continue
 		}
 		fmt.Println("Found AO:", ao.URI)
 

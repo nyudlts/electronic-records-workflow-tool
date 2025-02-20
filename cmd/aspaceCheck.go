@@ -97,6 +97,7 @@ func aspaceCheck() error {
 	out := csv.NewWriter(bufio.NewWriter(&b))
 	out.Comma = '\t'
 	out.Write([]string{"ao_uri", "title", "do_uri", "do_id", "msg"})
+	out.Flush()
 
 	for _, row := range wo.Rows {
 		repoId, aoURI, err := aspace.URISplit(row.GetURI())

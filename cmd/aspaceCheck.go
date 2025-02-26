@@ -112,7 +112,6 @@ func aspaceCheck() error {
 			out.Flush()
 			continue
 		}
-		fmt.Println("Found AO:", ao.URI)
 
 		instances := ao.Instances
 

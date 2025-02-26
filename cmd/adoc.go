@@ -48,7 +48,6 @@ func loadProjectConfig() error {
 	}
 
 	//unmarshal to config options
-
 	if err := yaml.Unmarshal(b, &adocConfig); err != nil {
 		return err
 	}

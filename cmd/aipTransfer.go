@@ -23,10 +23,14 @@ var rstarXfrCmd = &cobra.Command{
 			panic(err)
 		}
 
+		fmt.Printf("ADOC AIP Transfer %s\n", version)
+
 		//transfer the AIPS
 		if err := transferToRstar(); err != nil {
 			panic(err)
 		}
+
+		fmt.Println("All transfers to R* complete")
 	},
 }
 
@@ -52,7 +56,7 @@ func transferToRstar() error {
 	}
 
 	for _, entry := range directoryEntries {
-		fmt.Println("transferring", entry.Name())
+		fmt.Printf("  * transferring %s\n", entry.Name())
 		xferBag := filepath.Join(ersLoc, entry.Name())
 		xferCmd := exec.Command("rstar-scp.exp", xferBag)
 		cmdOutput, err := xferCmd.CombinedOutput()

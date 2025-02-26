@@ -192,7 +192,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(adocConfig.StagingLoc, erID)
 	payloadTarget := filepath.Join("xfer", ERDirName, erID)
-	fmt.Printf("    source: %s\n  target: %s\n", payloadSource, payloadTarget)
+	fmt.Printf("    source: %s\n    target: %s\n", payloadSource, payloadTarget)
 
 	if err := os.Rename(payloadSource, payloadTarget); err != nil {
 		return err

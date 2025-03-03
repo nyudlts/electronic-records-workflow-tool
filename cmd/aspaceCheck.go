@@ -8,13 +8,16 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 
 	"github.com/nyudlts/go-aspace"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var aspaceEnv string
 var aspaceConfigLoc string
+var transferInfo TransferInfo
 
 func init() {
 	checkCmd.Flags().StringVar(&aspaceConfigLoc, "aspace-config", "", "if not set will default to `/home/'username'/.config/go-aspace.yml")
@@ -46,11 +49,30 @@ var checkCmd = &cobra.Command{
 			panic(err)
 		}
 
+		//get transfer info
+		if err := getTransferInfo(); err != nil {
+			panic(err)
+		}
+
 		//run the check
 		if err := aspaceCheck(); err != nil {
 			panic(err)
 		}
 	},
+}
+
+func getTransferInfo() error {
+	transferInfoLoc := filepath.Join(adocConfig.StagingLoc, "metadata", "transfer-info.txt")
+	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func getConfig() error {
@@ -148,8 +170,13 @@ func aspaceCheck() error {
 					out.Flush()
 					continue
 				} else {
+					aoURI := row.GetURI()
 					fmt.Printf("%s OK", row.GetURI())
-					out.Write([]string{row.GetURI(), do.Title, do.URI, do.DigitalObjectID, "OK"})
+					resourceID := transferInfo.GetResourceID()
+					aspaceURI := fmt.Sprintf("https://archivesspace.library.nyu.edu/resources/%s#tree::archival_object_%s", resourceID, getAspaceID(aoURI))
+					doIdentifier := getAspaceID(doURI)
+					aspaceDOURI := fmt.Sprintf("https://archivesspace.library.nyu.edu/digital_objects/%s#tree::digital_object_%s", doIdentifier, doIdentifier)
+					out.Write([]string{aspaceURI, do.Title, aspaceDOURI, do.DigitalObjectID, "OK"})
 					out.Flush()
 					continue
 				}
@@ -167,4 +194,9 @@ func aspaceCheck() error {
 
 	return nil
 
+}
+
+func getAspaceID(aoURI string) string {
+	split := strings.Split(aoURI, "/")
+	return split[len(split)-1]
 }

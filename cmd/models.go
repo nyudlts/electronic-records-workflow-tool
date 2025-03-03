@@ -1,5 +1,7 @@
 package cmd
 
+import "strings"
+
 type DC struct {
 	Title    string `json:"title"`
 	IsPartOf string `json:"is_part_of"`
@@ -22,4 +24,9 @@ type TransferInfo struct {
 	PackageFormat            string `yaml:"nyu-dl-package-format"`
 	UseStatement             string `yaml:"nyu-dl-use-statement"`
 	TransferType             string `yaml:"nyu-dl-transfer-type"`
+}
+
+func (t *TransferInfo) GetResourceID() string {
+	split := strings.Split(t.ArchivesSpaceResourceURL, "/")
+	return split[len(split)-1]
 }

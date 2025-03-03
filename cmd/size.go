@@ -40,7 +40,7 @@ func printDirectoryStats(pkgPath string) error {
 	}
 
 	sort.Slice(directoryStats, func(i, j int) bool {
-		return directoryStats[i].Size < directoryStats[j].Size
+		return directoryStats[i].Size > directoryStats[j].Size
 	})
 
 	for _, ds := range directoryStats {

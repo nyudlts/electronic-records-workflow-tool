@@ -6,10 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var directoryStats bool
-
 func init() {
-	sipSizeCmd.Flags().BoolVarP(&directoryStats, "directory", "d", false, "Print size info for each directory")
+	sipSizeCmd.Flags().BoolVarP(&directories, "directory", "d", false, "Print size info for each directory")
 	sipCmd.AddCommand(sipSizeCmd)
 }
 
@@ -30,7 +28,7 @@ var sipSizeCmd = &cobra.Command{
 		}
 
 		//print the stats of each directory if flag set
-		if directoryStats {
+		if directories {
 			if err := printDirectoryStats(adocConfig.SIPLoc); err != nil {
 				panic(err)
 			}

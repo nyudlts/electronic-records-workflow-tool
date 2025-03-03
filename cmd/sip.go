@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +11,5 @@ func init() {
 var sipCmd = &cobra.Command{
 	Use:   "sip",
 	Short: "ADOC SIP commands",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("adoc sip tools")
-	},
+	Run:   func(cmd *cobra.Command, args []string) {},
 }

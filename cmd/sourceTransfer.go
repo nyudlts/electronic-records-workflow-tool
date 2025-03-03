@@ -11,10 +11,10 @@ import (
 )
 
 func init() {
-	sipCmd.AddCommand(sipXferCmd)
+	sourceCmd.AddCommand(sourceXferCmd)
 }
 
-var sipXferCmd = &cobra.Command{
+var sourceXferCmd = &cobra.Command{
 	Use:   "transfer",
 	Short: "Transfer source files to the SIP directory",
 	Run: func(cmd *cobra.Command, args []string) {

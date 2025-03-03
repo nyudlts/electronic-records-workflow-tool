@@ -3,7 +3,7 @@ package cmd
 import "github.com/spf13/cobra"
 
 func init() {
-	amaticaSizeCmd.Flags().BoolVarP(&directoryStats, "directory", "d", false, "Print size info for each directory")
+	amaticaSizeCmd.Flags().BoolVarP(&directories, "directory", "d", false, "Print size info for each directory")
 	amaticaCmd.AddCommand(aipSizeCmd)
 }
 
@@ -23,7 +23,7 @@ var amaticaSizeCmd = &cobra.Command{
 		}
 
 		//print the stats of each directory if flag set
-		if directoryStats {
+		if directories {
 			if err := printDirectoryStats(adocConfig.XferLoc); err != nil {
 				panic(err)
 			}

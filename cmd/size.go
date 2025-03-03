@@ -9,6 +9,8 @@ import (
 	"github.com/nyudlts/bytemath"
 )
 
+var directories bool
+
 type DirectoryStats struct {
 	Name           string
 	Size           int64

@@ -3,7 +3,7 @@ package cmd
 import "github.com/spf13/cobra"
 
 func init() {
-	aipSizeCmd.Flags().BoolVarP(&directoryStats, "directory", "d", false, "Print size info for each directory")
+	aipSizeCmd.Flags().BoolVarP(&directories, "directory", "d", false, "Print size info for each directory")
 	aipCmd.AddCommand(aipSizeCmd)
 }
 
@@ -23,7 +23,7 @@ var aipSizeCmd = &cobra.Command{
 		}
 
 		//print the stats of each directory if flag set
-		if directoryStats {
+		if directories {
 			if err := printDirectoryStats(adocConfig.AIPLoc); err != nil {
 				panic(err)
 			}

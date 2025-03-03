@@ -27,7 +27,6 @@ var (
 	amaticaConfigLoc string
 	ersLoc           string
 	pollTime         int
-	windows          bool
 	collectionCode   string
 	adocConfig       *AdocConfig
 	projectLoc       string

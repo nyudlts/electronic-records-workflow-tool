@@ -50,7 +50,7 @@ var xferAmaticaCmd = &cobra.Command{
 
 		//create a log file
 		fmt.Println("creating log File")
-		logFilename := filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%-amatica-transfer.log", adocConfig.CollectionCode))
+		logFilename := filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%s-amatica-transfer.log", adocConfig.CollectionCode))
 
 		logFile, err := os.Create(logFilename)
 		if err != nil {
@@ -320,7 +320,7 @@ func findUnapprovedTransfer(uuid string) (bool, error) {
 	}
 
 	//find the unapproved transfer
-	for k, _ := range unapprovedTransfersMap {
+	for k := range unapprovedTransfersMap {
 		if k == uuid {
 			return true, nil
 		}

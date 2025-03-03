@@ -41,8 +41,8 @@ var validateCmd = &cobra.Command{
 		log.SetOutput(logFile)
 
 		log.Printf("[INFO] adoc-process validate-sip %s\n", version)
-		fmt.Printf("* validating SIP transfer package at %s\n", adocConfig.StagingLoc)
-		log.Printf("[INFO] validating SIP transfer package at %s\n", adocConfig.StagingLoc)
+		fmt.Printf("* validating SIP transfer package at %s\n", adocConfig.SIPLoc)
+		log.Printf("[INFO] validating SIP transfer package at %s\n", adocConfig.SIPLoc)
 
 		if err := validate(); err != nil {
 			panic(err)
@@ -54,35 +54,35 @@ var validateCmd = &cobra.Command{
 func validate() error {
 	//check that the source directory exists
 	fmt.Print("  1. checking that SIP location exists: ")
-	fileInfo, err := os.Stat(adocConfig.StagingLoc)
+	fileInfo, err := os.Stat(adocConfig.SIPLoc)
 	if err != nil {
 		log.Printf("[ERROR] %s\n", err.Error())
-		fmt.Printf("SIP location %s does not exist", adocConfig.StagingLoc)
+		fmt.Printf("SIP location %s does not exist", adocConfig.SIPLoc)
 	} else {
 
 		if !fileInfo.IsDir() {
-			log.Printf("[ERROR] %s is not a directory\n", adocConfig.StagingLoc)
-			fmt.Printf("SIP location %s is not a directory", adocConfig.StagingLoc)
+			log.Printf("[ERROR] %s is not a directory\n", adocConfig.SIPLoc)
+			fmt.Printf("SIP location %s is not a directory", adocConfig.SIPLoc)
 		} else {
-			log.Printf("[INFO] check 1. %s exists and is a directory\n", adocConfig.StagingLoc)
+			log.Printf("[INFO] check 1. %s exists and is a directory\n", adocConfig.SIPLoc)
 			fmt.Println("OK")
 		}
 	}
 
 	//check that there is a metadata directory
 	fmt.Print("  2. checking that SIP directory contains a metadata directory: ")
-	mdDirLocation := filepath.Join(adocConfig.StagingLoc, "metadata")
+	mdDirLocation := filepath.Join(adocConfig.SIPLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
-		fmt.Printf("SIP location %s does not contain a metadata directory", adocConfig.StagingLoc)
-		log.Printf("[ERROR] %s does not contain a metadata directory\n", adocConfig.StagingLoc)
+		fmt.Printf("SIP location %s does not contain a metadata directory", adocConfig.SIPLoc)
+		log.Printf("[ERROR] %s does not contain a metadata directory\n", adocConfig.SIPLoc)
 	} else {
 
 		if !mdDir.IsDir() {
 			fmt.Printf("%s metadata directory is not a directory\n", mdDirLocation)
 			log.Printf("[ERROR] %s is not a direcotry\n", mdDirLocation)
 		} else {
-			log.Printf("[INFO] check 2. %s contains a metadata directory\n", adocConfig.StagingLoc)
+			log.Printf("[INFO] check 2. %s contains a metadata directory\n", adocConfig.SIPLoc)
 			fmt.Println("OK")
 		}
 	}
@@ -158,7 +158,7 @@ func validate() error {
 	fmt.Print("  6. checking all ER directories in workorder exist: ")
 	missingDirs := 0
 	for _, componentID := range componentIDs {
-		erLocation := filepath.Join(adocConfig.StagingLoc, componentID)
+		erLocation := filepath.Join(adocConfig.SIPLoc, componentID)
 		if _, err := os.Stat(erLocation); err != nil {
 			missingDirs++
 			log.Printf("[ERROR] componentID, %s is missing in transfered directories\n", componentID)
@@ -175,7 +175,7 @@ func validate() error {
 
 	//check there are no extra directories in source location
 	fmt.Print("  7. checking that there no extra directories or files in SIP directory: ")
-	sourceDirs, err := os.ReadDir(adocConfig.StagingLoc)
+	sourceDirs, err := os.ReadDir(adocConfig.SIPLoc)
 	if err != nil {
 		log.Printf("[ERROR] duplicate componentID, %s, found in workorder", row.GetComponentID())
 		fmt.Printf("[ERROR] duplicate componentID, %s, found in workorder\n", row.GetComponentID())
@@ -191,7 +191,7 @@ func validate() error {
 			}
 		}
 
-		log.Printf("[INFO] check 7. %s contained %d extra objects\n", adocConfig.StagingLoc, extraDirs)
+		log.Printf("[INFO] check 7. %s contained %d extra objects\n", adocConfig.SIPLoc, extraDirs)
 		if extraDirs > 0 {
 			fmt.Println("ERROR")
 		} else {
@@ -227,7 +227,7 @@ func validate() error {
 			}
 		}
 
-		log.Printf("[INFO] check 8. %s contained %d failed clamscan scans", adocConfig.StagingLoc, failedClamScans)
+		log.Printf("[INFO] check 8. %s contained %d failed clamscan scans", adocConfig.SIPLoc, failedClamScans)
 
 		if failedClamScans > 0 {
 			fmt.Println("ERROR")

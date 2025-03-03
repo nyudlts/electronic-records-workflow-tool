@@ -10,18 +10,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type AdocConfig struct {
-	StagingLoc       string `yaml:"staging-location"`
-	SourceLoc        string `yaml:"source-location"`
-	PartnerCode      string `yaml:"partner-code"`
-	CollectionCode   string `yaml:"collection-code"`
-	ProjectLoc       string `yaml:"project-location"`
-	LogLoc           string `yaml:"log-location"`
-	AIPLoc           string `yaml:"aip-location"`
-	AMTransferSource string `yaml:"archivematica-transfer-source"`
-	XferLoc          string `yaml:"xfer-location"`
-}
-
 func init() {
 	initCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	initCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
@@ -92,7 +80,7 @@ func loadConfig() (*AdocConfig, error) {
 		}
 		config.ProjectLoc = filepath.Join(wd, collectionCode)
 	}
-	config.StagingLoc = filepath.Join(config.ProjectLoc, "sip")
+	config.SIPLoc = filepath.Join(config.ProjectLoc, "sip")
 	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
 	config.XferLoc = filepath.Join(config.ProjectLoc, "xfer")

@@ -62,7 +62,7 @@ var checkCmd = &cobra.Command{
 }
 
 func getTransferInfo() error {
-	transferInfoLoc := filepath.Join(adocConfig.StagingLoc, "metadata", "transfer-info.txt")
+	transferInfoLoc := filepath.Join(adocConfig.SIPLoc, "metadata", "transfer-info.txt")
 	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func getConfig() error {
 }
 
 func findWorkOrder() error {
-	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
+	mdDir := filepath.Join(adocConfig.SIPLoc, "metadata")
 	var err error
 	workOrderFilename, err := getWorkOrderFile(mdDir)
 	if err != nil {

@@ -54,10 +54,10 @@ func stage() error {
 
 	msgs = append(msgs, "[INFO] checking staging directory exists")
 	//check that source exists and is a Directory
-	if err := isDirectory(adocConfig.StagingLoc); err != nil {
+	if err := isDirectory(adocConfig.SIPLoc); err != nil {
 		return err
 	}
-	params.Source = adocConfig.StagingLoc
+	params.Source = adocConfig.SIPLoc
 
 	msgs = append(msgs, "[INFO] checking the xfer directory exists")
 	xferLoc := filepath.Join(adocConfig.ProjectLoc, "xfer")
@@ -69,7 +69,7 @@ func stage() error {
 
 	msgs = append(msgs, "[INFO] checking metadata directory exists")
 	//check that metadata directory exists and is a directory
-	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
+	mdDir := filepath.Join(adocConfig.SIPLoc, "metadata")
 	if err := isDirectory(mdDir); err != nil {
 		return err
 	}

@@ -72,7 +72,7 @@ func transferSIP() error {
 }
 
 func checkMDDir() error {
-	mdDir := filepath.Join(adocConfig.StagingLoc, "metadata")
+	mdDir := filepath.Join(adocConfig.SIPLoc, "metadata")
 	if _, err := os.Stat(mdDir); os.IsNotExist(err) {
 		fmt.Printf("  * Creating metadata directory for SIP\n")
 		if err := os.Mkdir(mdDir, 0755); err != nil {

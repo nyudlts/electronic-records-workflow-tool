@@ -25,13 +25,13 @@ var sipSizeCmd = &cobra.Command{
 		fmt.Printf("ADOC SIP Size %s\n", version)
 
 		//print the total size of SIP
-		if err := getPackageSize(adocConfig.StagingLoc); err != nil {
+		if err := getPackageSize(adocConfig.SIPLoc); err != nil {
 			panic(err)
 		}
 
 		//print the stats of each directory if flag set
 		if directoryStats {
-			if err := printDirectoryStats(adocConfig.StagingLoc); err != nil {
+			if err := printDirectoryStats(adocConfig.SIPLoc); err != nil {
 				panic(err)
 			}
 		}

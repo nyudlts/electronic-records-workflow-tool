@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/nyudlts/bytemath"
 )
@@ -37,6 +38,10 @@ func printDirectoryStats(pkgPath string) error {
 		}
 		directoryStats = append(directoryStats, ds)
 	}
+
+	sort.Slice(directoryStats, func(i, j int) bool {
+		return directoryStats[i].Size < directoryStats[j].Size
+	})
 
 	for _, ds := range directoryStats {
 		fmt.Printf("  * %s: %d files in %d directories, %s\n", ds.Name, ds.NumFiles, ds.NumDirectories, bytemath.ConvertBytesToHumanReadable(ds.Size))

@@ -108,6 +108,7 @@ func aspaceCheck() error {
 
 		ao, err := client.GetArchivalObject(repoId, aoURI)
 		if err != nil {
+			fmt.Printf("ERROR: AO does not exist: %s\n", row.GetURI())
 			out.Write([]string{row.GetURI(), "", "", "ERROR: AO does not exist: " + row.GetURI()})
 			out.Flush()
 			continue
@@ -116,6 +117,7 @@ func aspaceCheck() error {
 		instances := ao.Instances
 
 		if len(instances) < 1 {
+			fmt.Printf("ERROR: AO has no instances: %s\n", row.GetURI())
 			out.Write([]string{ao.URI, ao.Title, "ERROR: AO has no instances", ao.ComponentId, "KO"})
 			out.Flush()
 			continue
@@ -126,6 +128,7 @@ func aspaceCheck() error {
 				doURI := instance.DigitalObject["ref"]
 				_, doID, err := aspace.URISplit(doURI)
 				if err != nil {
+					fmt.Printf("ERROR: Not able to split: %s\n", doURI)
 					out.Write([]string{row.GetURI(), "", "", "ERROR: Not able to split: " + doURI})
 					out.Flush()
 					continue
@@ -133,28 +136,28 @@ func aspaceCheck() error {
 
 				do, err := client.GetDigitalObject(repoId, doID)
 				if err != nil {
+					fmt.Printf("ERROR: not able to request: %s\n", doURI)
 					out.Write([]string{row.GetURI(), "", "", "ERROR: not able to request: " + doURI})
 					out.Flush()
 					continue
 				}
 
 				if do.DigitalObjectID != row.GetComponentID() {
-
+					fmt.Printf("ERROR: Component IDs do not match: %s, %s, %s\n", row.GetURI(), do.URI, do.DigitalObjectID)
 					out.Write([]string{row.GetURI(), do.URI, do.DigitalObjectID, "ERROR: component IDs do not match"})
-					fmt.Printf("Component IDs do not match: %s, %s, %s\n", row.GetURI(), do.URI, do.DigitalObjectID)
 					out.Flush()
 					continue
 				} else {
+					fmt.Printf("%s OK", row.GetURI())
 					out.Write([]string{row.GetURI(), do.Title, do.URI, do.DigitalObjectID, "OK"})
 					out.Flush()
 					continue
 				}
-
 			}
 		}
 	}
 
-	checkFilename := filepath.Join("logs", fmt.Sprintf("%s-adoc-check.tsv", adocConfig.CollectionCode))
+	checkFilename := filepath.Join("logs", fmt.Sprintf("%s-aspace-check.tsv", adocConfig.CollectionCode))
 
 	if err := os.WriteFile(checkFilename, b.Bytes(), 0775); err != nil {
 		panic(err)

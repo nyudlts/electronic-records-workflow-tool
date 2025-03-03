@@ -48,7 +48,7 @@ func validateAIPs() error {
 		return fmt.Errorf("%s is not a location", ersLoc)
 	}
 
-	logFile, err := os.Create(fmt.Sprintf("logs/%s-adoc-aip-validation.log", adocConfig.CollectionCode))
+	logFile, err := os.Create(fmt.Sprintf("logs/%s-aip-validation.log", adocConfig.CollectionCode))
 	if err != nil {
 		return err
 	}

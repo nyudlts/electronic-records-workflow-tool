@@ -49,7 +49,7 @@ func transferToRstar() error {
 		return err
 	}
 
-	xferLog := filepath.Join("logs", fmt.Sprintf("%s-adoc-transfer-rs.txt", adocConfig.CollectionCode))
+	xferLog := filepath.Join("logs", fmt.Sprintf("%s-aip-transfer.txt", adocConfig.CollectionCode))
 	_, err = os.Create(xferLog)
 	if err != nil {
 		return err

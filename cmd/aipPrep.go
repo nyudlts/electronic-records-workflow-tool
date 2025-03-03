@@ -73,7 +73,7 @@ func processList() error {
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
 
-	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-aip.log", adocConfig.CollectionCode)))
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-aip-prep.log", adocConfig.CollectionCode)))
 	if err != nil {
 		return err
 	}

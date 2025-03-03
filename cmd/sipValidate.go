@@ -33,7 +33,7 @@ var validateCmd = &cobra.Command{
 		fmt.Printf("ADOC SIP Validate %s\n", version)
 
 		//create a logger
-		logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-adoc-validate-sip.log", adocConfig.CollectionCode)))
+		logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-validate.log", adocConfig.CollectionCode)))
 		if err != nil {
 			panic(err)
 		}

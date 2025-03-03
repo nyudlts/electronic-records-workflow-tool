@@ -42,7 +42,7 @@ var sourceXferCmd = &cobra.Command{
 func transferSIP() error {
 
 	//create the logfile
-	logFileName := filepath.Join(adocConfig.LogLoc, "rsync", fmt.Sprintf("%s-adoc-acm-transfer-rsync.txt", adocConfig.CollectionCode))
+	logFileName := filepath.Join(adocConfig.LogLoc, "rsync", fmt.Sprintf("%s-source-transfer-rsync.txt", adocConfig.CollectionCode))
 	logFile, err := os.Create(logFileName)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func transferSIP() error {
 func checkMDDir() error {
 	mdDir := filepath.Join(adocConfig.SIPLoc, "metadata")
 	if _, err := os.Stat(mdDir); os.IsNotExist(err) {
-		fmt.Printf("  * Creating metadata directory for SIP\n")
+		fmt.Printf("  * Creating metadata directory in SIP\n")
 		if err := os.Mkdir(mdDir, 0755); err != nil {
 			return err
 		}

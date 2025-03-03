@@ -87,7 +87,7 @@ func stage() error {
 	params.ResourceCode = adocConfig.CollectionCode
 
 	//create the logfile
-	logFileName := fmt.Sprintf("%s-adoc-prep-sip.log", params.ResourceCode)
+	logFileName := fmt.Sprintf("%s-sip-prep.log", params.ResourceCode)
 	logFile, err := os.Create(filepath.Join(adocConfig.LogLoc, logFileName))
 	if err != nil {
 		return err

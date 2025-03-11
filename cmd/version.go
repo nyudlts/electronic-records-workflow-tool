@@ -12,7 +12,7 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "print the version of adoc",
+	Short: "print the version of erwt",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("adoc %s\n", version)
 	},

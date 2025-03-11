@@ -1,71 +1,44 @@
-# adoc-preprocess
-Prep Tool for Electronic Records being transferred to R* through Archivematica
+# electronic-records-workflow-tool
+
+## build
+<pre>go build -o erwt main.go</pre>
 
 ## commands
 <pre>
 Available Commands:
-  check         Check that DOs exist in ArchivesSpace
-  scan-sip      Run clamav against a package
-  completion    Generate the autocompletion script for the specified shell
-  help          Help about any command
-  prep-list     Prepare a list of AIPs for transfer to R*
-  prep-single   Prepare a single AIP for transfer to R*
-  prep-sip      Prep SIPs for transfer to Archivematica
-  transfer-am   Transfer SIPS to R*
-  transfer-rs   Transfer processed AIPS to R*
-  validate-aips Validate AIPS prior to transfer to R*
-  validate-sip  validate sips prior to transfer to Archivematica
-  version       print the version of adoc
+  aip         erwt aip commands
+  amatica     erwt archivematica commands
+  aspace      erwt archivesSpace commands
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  project     erwt project commands
+  sip         erwt sip commands
+  source      erwt source commands
+  version     print the version of erwt
 </pre>
-### check
-Check that DOs exist in Archivesspace
+
+### AIP
 <pre>
-Usage:
-   check [flags]
-Flags:
-      --aspace-config string
-      --aspace-environment string
-      --aspace-workorder string
-  -h, --help                        help for check
+  prep        Prepare a list of AIPs for transfer to R*
+  size        Get the file count and size of an AIP package
+  transfer    Transfer processed AIPS to R*
+  validate    Validate AIPS prior to transfer to R*
 </pre>
-### clamscan
-Run clamav against a package
+#### prep 
 <pre>
+Prepare a list of AIPs for transfer to R*
+
 Usage:
-   clamscan [flags]
+   ewwt aip prep [flags]
+
 Flags:
-  -h, --help                      help for clamscan
-      --regexp string
-      --staging-location string
+      --aip-file string       the location of the aip-file containing aips to process (default finds aipfile in /logs directory)
+      --aip-location string   location to stage aips (default "aips/")
+  -h, --help                  help for prep
+      --tmp-location string   location to store tmp bag-info.txt (default "logs")
 </pre>
+
 ### help
 print the help message
-### prep-list
-Prepare a list of AIPs for transfer to R*
-<pre>
-Usage:
-   prep-list [flags]
-Flags:
-      --aip-file string
-  -h, --help                      help for prep-list
-      --staging-location string
-      --tmp-location string
-</pre>
-### prep-single
-### stage 
-### transfer-am
-Transfer SIPS to R*
-<pre>
-Usage:
-   transfer-am [flags]
-Flags:
-      --config string           if not set will default to `/home/'username'/.config/go-archivematica.yml
-  -h, --help                    help for transfer-am
-      --poll int                pause time, in seconds, between calls to Archivematica api to check status (default 5)
-      --regexp string           regular expression to filter directory names to transfer to Archivmatica (default ".*")
-      --xfer-directory string   Location of directories top transfer to Archivematica (required)
-</pre>
-### transfer-rs
-### validate-aips
-### validate-sips
 ### version
+print the version of erwt

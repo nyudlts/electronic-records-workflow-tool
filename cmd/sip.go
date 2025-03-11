@@ -10,6 +10,6 @@ func init() {
 
 var sipCmd = &cobra.Command{
 	Use:   "sip",
-	Short: "ADOC SIP commands",
+	Short: "erwt sip commands",
 	Run:   func(cmd *cobra.Command, args []string) {},
 }

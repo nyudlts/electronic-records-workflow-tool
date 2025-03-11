@@ -8,5 +8,5 @@ func init() {
 
 var sourceCmd = &cobra.Command{
 	Use:   "source",
-	Short: "ADOC source commands",
+	Short: "erwt source commands",
 }

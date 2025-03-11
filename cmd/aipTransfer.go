@@ -23,7 +23,7 @@ var rstarXfrCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC AIP Transfer %s\n", version)
+		fmt.Printf("ADOC AIP transfer %s\n", version)
 
 		//transfer the AIPS
 		if err := transferToRstar(); err != nil {

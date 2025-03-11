@@ -24,7 +24,7 @@ var sourceXferCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC SIP Transfer %s\n", version)
+		fmt.Printf("ADOC source transfer %s\n", version)
 
 		//run
 		if err := transferSIP(); err != nil {

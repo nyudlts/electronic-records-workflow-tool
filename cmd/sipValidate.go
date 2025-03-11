@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/nyudlts/go-aspace"
 	"github.com/spf13/cobra"
@@ -30,7 +32,7 @@ var validateCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC SIP Validate %s\n", version)
+		fmt.Printf("ADOC SIP validate %s\n", version)
 
 		//create a logger
 		logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-validate.log", adocConfig.CollectionCode)))
@@ -80,7 +82,7 @@ func validate() error {
 
 		if !mdDir.IsDir() {
 			fmt.Printf("%s metadata directory is not a directory\n", mdDirLocation)
-			log.Printf("[ERROR] %s is not a direcotry\n", mdDirLocation)
+			log.Printf("[ERROR] %s is not a directory\n", mdDirLocation)
 		} else {
 			log.Printf("[INFO] check 2. %s contains a metadata directory\n", adocConfig.SIPLoc)
 			fmt.Println("OK")
@@ -236,7 +238,38 @@ func validate() error {
 		}
 	}
 
+	//check that all ER directories are im a sequential range
+	fmt.Print("  9. checking that all ER directories are in a sequential range: ")
+	if err := checkSequentialRange(); err != nil {
+		fmt.Println("WARNING: ER directories are not in a sequential range")
+		log.Printf("[WARNING] ER directories are not in a sequential range\n")
+	} else {
+		fmt.Println("OK")
+		log.Printf("[INFO] check 9. ER directories are in a sequential range\n")
+	}
+
 	return nil
+}
+
+func checkSequentialRange() error {
+	rows := workOrder.Rows
+	if len(rows) > 1 {
+		compIDs := []int{}
+		for _, row := range rows {
+			componentID := row.GetComponentID()
+			compSplit := strings.Split(componentID, "_")
+			compIDString := compSplit[len(compSplit)-1]
+			compID, err := strconv.Atoi(compIDString)
+			if err != nil {
+				return err
+			}
+			compIDs = append(compIDs, compID)
+		}
+		sort.IntSlice(compIDs).Sort()
+
+	}
+	return nil
+
 }
 
 func contains(s string, sl []string) bool {

@@ -29,7 +29,7 @@ var listCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC AIP PREP %s\n", version)
+		fmt.Printf("ADOC AIP prep %s\n", version)
 
 		//locate the aip file
 		if err := locateAIPFile(); err != nil {

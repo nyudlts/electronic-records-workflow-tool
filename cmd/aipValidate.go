@@ -28,7 +28,7 @@ var validateERsCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC AIP VALIDATE %s\n", version)
+		fmt.Printf("ADOC AIP validate %s\n", version)
 
 		//validate the AIPS
 		if err := validateAIPs(); err != nil {

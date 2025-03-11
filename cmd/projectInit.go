@@ -20,7 +20,7 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a ADOC transfer",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ADOC INIT")
+		fmt.Printf("ADOC project init %s\n", version)
 
 		if err := initAdoc(); err != nil {
 			panic(err)

@@ -15,11 +15,11 @@ import (
 var numWorkers int
 
 func init() {
-	stageCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
-	sipCmd.AddCommand(stageCmd)
+	amPrepCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
+	amaticaCmd.AddCommand(amPrepCmd)
 }
 
-var stageCmd = &cobra.Command{
+var amPrepCmd = &cobra.Command{
 	Use:   "prep",
 	Short: "Prepare SIP package for transfer to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -29,7 +29,7 @@ var stageCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC SIP Prepare %s\n", version)
+		fmt.Printf("ADOC amatica prep %s\n", version)
 
 		if err := stage(); err != nil {
 			panic(err)

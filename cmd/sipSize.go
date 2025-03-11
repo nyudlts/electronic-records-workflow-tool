@@ -20,7 +20,7 @@ var sipSizeCmd = &cobra.Command{
 			panic(err)
 		}
 
-		fmt.Printf("ADOC SIP Size %s\n", version)
+		fmt.Printf("ADOC SIP size %s\n", version)
 
 		//print the total size of SIP
 		if err := getPackageSize(adocConfig.SIPLoc); err != nil {

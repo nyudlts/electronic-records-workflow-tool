@@ -19,7 +19,7 @@ Available Commands:
 
 ## Sub Commands
 
-### AIP
+### aip
 <pre>
 Usage:
   erwt aip [command] [flags]
@@ -46,7 +46,12 @@ Flags:
 #### aip size
 #### aip transfer
 #### aip validate
+### amatica
+### aspace
 ### help
 print the help message
+### project
+### sip
+### source
 ### version
 print the version of erwt

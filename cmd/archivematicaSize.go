@@ -4,7 +4,7 @@ import "github.com/spf13/cobra"
 
 func init() {
 	amaticaSizeCmd.Flags().BoolVarP(&directories, "directory", "d", false, "Print size info for each directory")
-	amaticaCmd.AddCommand(aipSizeCmd)
+	amaticaCmd.AddCommand(amaticaSizeCmd)
 }
 
 var amaticaSizeCmd = &cobra.Command{

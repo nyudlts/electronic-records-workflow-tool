@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nyudlts/adoc/cmd"
+	"github.com/nyudlts/electronic-records-workflow-tool/cmd"
 )
 
 func main() {

@@ -1,6 +1,6 @@
-module github.com/nyudlts/adoc
+module github.com/nyudlts/electronic-records-workflow-tool
 
-go 1.23.1
+go 1.24.1
 
 require (
 	github.com/google/uuid v1.6.0

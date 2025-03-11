@@ -17,14 +17,20 @@ Available Commands:
   version     print the version of erwt
 </pre>
 
+## Sub Commands
+
 ### AIP
 <pre>
+Usage:
+  erwt aip [command] [flags]
+
+Available Commands:
   prep        Prepare a list of AIPs for transfer to R*
   size        Get the file count and size of an AIP package
   transfer    Transfer processed AIPS to R*
   validate    Validate AIPS prior to transfer to R*
 </pre>
-#### prep 
+#### aip prep 
 <pre>
 Prepare a list of AIPs for transfer to R*
 
@@ -37,7 +43,9 @@ Flags:
   -h, --help                  help for prep
       --tmp-location string   location to store tmp bag-info.txt (default "logs")
 </pre>
-
+#### aip size
+#### aip transfer
+#### aip validate
 ### help
 print the help message
 ### version

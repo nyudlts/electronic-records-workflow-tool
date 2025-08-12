@@ -8,6 +8,6 @@ func init() {
 
 var projectCmd = &cobra.Command{
 	Use:   "project",
-	Short: "erwt project commands",
+	Short: "ewt project commands",
 	Run:   func(cmd *cobra.Command, args []string) {},
 }

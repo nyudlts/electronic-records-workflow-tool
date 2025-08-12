@@ -10,5 +10,5 @@ func init() {
 
 var aspaceCmd = &cobra.Command{
 	Use:   "aspace",
-	Short: "erwt ArchivesSpace commands",
+	Short: "ewt ArchivesSpace commands",
 }

@@ -8,5 +8,5 @@ func init() {
 
 var sourceCmd = &cobra.Command{
 	Use:   "source",
-	Short: "erwt source commands",
+	Short: "ewt source commands",
 }

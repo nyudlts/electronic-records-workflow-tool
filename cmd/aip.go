@@ -10,6 +10,6 @@ func init() {
 
 var aipCmd = &cobra.Command{
 	Use:   "aip",
-	Short: "erwt aip commands",
+	Short: "ewt aip commands",
 	Run:   func(cmd *cobra.Command, args []string) {},
 }

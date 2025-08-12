@@ -1,5 +1,6 @@
 source/*
 staging/*
+bin/*
 .DS_Store
 *.log
 *.tsv
@@ -7,4 +8,3 @@ staging/*
 *.exe
 aip-file.txt
 Makefile
-cmd/lab.go

@@ -340,7 +340,7 @@ func transferProcessing(xferUUID string) (amatica.TransferStatus, error) {
 		}
 
 		if ts.Status == "FAILED" {
-			return amatica.TransferStatus{}, fmt.Errorf(ts.Microservice)
+			return amatica.TransferStatus{}, fmt.Errorf("%s", ts.Microservice)
 		}
 
 		if ts.Status == "" {
@@ -381,7 +381,7 @@ func ingestProcessing(ingestUUID string) (amatica.IngestStatus, error) {
 		}
 
 		if ingestStatus.Status == "FAILED" {
-			return amatica.IngestStatus{}, fmt.Errorf(ingestStatus.Microservice)
+			return amatica.IngestStatus{}, fmt.Errorf("%s", ingestStatus.Microservice)
 		}
 
 		if ingestStatus.Status == "" {

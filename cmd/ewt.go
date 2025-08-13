@@ -30,6 +30,7 @@ var (
 	collectionCode   string
 	adocConfig       *AdocConfig
 	projectLoc       string
+	profile          string
 )
 
 func Execute() {

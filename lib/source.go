@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 func TransferSource() error {
@@ -26,7 +27,13 @@ func TransferSource() error {
 	defer logFile.Close()
 
 	fmt.Printf("  * Transferring %s to sip directory\n", config.SourceLoc)
-	cmd := exec.Command("rsync", "-rav", config.SourceLoc, "sip")
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		fmt.Println("transferring via robocopy")
+		cmd = exec.Command("robocopy", config.SourceLoc, config.SIPLoc, "/E", "/DCOPY:DAT")
+	} else {
+		cmd = exec.Command("rsync", "-rav", config.SourceLoc, config.SIPLoc)
+	}
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

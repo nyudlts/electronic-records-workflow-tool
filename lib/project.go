@@ -74,7 +74,10 @@ func generateConfig() error {
 	config.AIPLoc = filepath.Join(config.ProjectLoc, "aips")
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
 	config.XferLoc = filepath.Join(config.ProjectLoc, "xfer")
-	config.SourceLoc = sourceLoc
+	config.SourceLoc, err = filepath.Abs(sourceLoc)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

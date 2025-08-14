@@ -134,26 +134,31 @@ func writeEWTConfig() error {
 }
 
 func ArchiveProject(pl string) error {
+	fmt.Println("ewt project archive, version", VERSION)
 	projectLoc = pl
 
 	// Remove AIP Directory
+	fmt.Println("  * removing aips directory")
 	aipsDir := filepath.Join(projectLoc, "aips")
 	if err := os.RemoveAll(aipsDir); err != nil {
 		panic(err)
 	}
 
 	// Remove XferDIrectory
+	fmt.Println("  * removing xfer directory")
 	xferDir := filepath.Join(projectLoc, "xfer")
 	if err := os.RemoveAll(xferDir); err != nil {
 		panic(err)
 	}
 
 	// Create a gzip of the project
+	fmt.Println("  * compressing project directory")
 	if err := createGzip(); err != nil {
 		panic(err)
 	}
 
 	// Remove the project directory
+	fmt.Println("  * removing project directory")
 	if err := os.RemoveAll(projectLoc); err != nil {
 		panic(err)
 	}

@@ -9,7 +9,7 @@ func init() {
 	projectInitCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	projectInitCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
 	projectCmd.AddCommand(projectInitCmd)
-	projectArchiveCmd.Flags().StringVarP(&projectLocation, "project-location", "p", "", "Project name")
+	projectArchiveCmd.Flags().StringVarP(&projectLoc, "project-location", "p", "", "Project name")
 	projectCmd.AddCommand(projectArchiveCmd)
 	rootCmd.AddCommand(projectCmd)
 }
@@ -34,7 +34,7 @@ var projectArchiveCmd = &cobra.Command{
 	Use:   "archive",
 	Short: "Archive a EWT Project",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.ArchiveProject(projectLocation); err != nil {
+		if err := lib.ArchiveProject(projectLoc); err != nil {
 			panic(err)
 		}
 	},

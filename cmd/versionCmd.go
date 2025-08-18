@@ -14,6 +14,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "print the version of ewt",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("adoc %s\n", version)
+		fmt.Printf("ewt %s\n", VERSION)
 	},
 }

@@ -4,10 +4,31 @@ import (
 	"bufio"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+func PrintSIPPackageSize(directories bool) error {
+	fmt.Println("ewt sip size, version", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	if err := getPackageSize(config.SIPLoc); err != nil {
+		return err
+	}
+
+	if directories {
+		if err := printDirectoryStats(config.SIPLoc); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func CleanSip() error {
 	fmt.Println("ewt sip clean, version", VERSION)
@@ -88,5 +109,99 @@ func GenerateTransferInfo(profile string) error {
 		return err
 	}
 
+	return nil
+}
+
+func ValidateSIP() error {
+	fmt.Println("ewt sip validate,", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//create a logger
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-validate.log", config.CollectionCode)))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	log.Printf("[INFO] ewt validate sip %s\n", VERSION)
+	fmt.Printf("  * validating SIP at %s\n", config.SIPLoc)
+	log.Printf("[INFO] validating SIP transfer package at %s\n", config.SIPLoc)
+
+	//check that the source directory exists
+	fmt.Print("  1. checking that SIP location exists and is a directory: ")
+	fileInfo, err := os.Stat(config.SIPLoc)
+	if err != nil {
+		log.Printf("[ERROR] %s\n", err.Error())
+		fmt.Printf("SIP location %s does not exist, exiting", config.SIPLoc)
+		return err
+	}
+
+	if !fileInfo.IsDir() {
+		log.Printf("[ERROR] %s is not a directory\n", config.SIPLoc)
+		fmt.Printf("  * SIP location %s is not a directory, exiting", config.SIPLoc)
+		return fmt.Errorf("%s is not a directory", config.SIPLoc)
+	}
+	log.Printf("[INFO] %s exists and is a directory", config.SIPLoc)
+	fmt.Println(" OK")
+
+	//check that there is a metadata directory
+	fmt.Print("  2. checking that SIP directory contains a metadata directory: ")
+	mdDirLocation := filepath.Join(config.SIPLoc, "metadata")
+	mdDir, err := os.Stat(mdDirLocation)
+	if err != nil {
+		fmt.Printf("SIP location %s does not contain a metadata directory", config.SIPLoc)
+		log.Printf("[ERROR] %s does not contain a metadata directory\n", config.SIPLoc)
+		return (err)
+	}
+
+	if !mdDir.IsDir() {
+		fmt.Printf("  * %s metadata directory is not a directory\n", mdDirLocation)
+		log.Printf("[ERROR] %s is not a directory\n", mdDirLocation)
+		return fmt.Errorf("[ERROR] %s is not a directory\n", mdDirLocation)
+
+	}
+	log.Printf("[INFO] %s contains a metadata directory\n", config.SIPLoc)
+	fmt.Println("OK")
+
+	//finish up
+	fmt.Printf("  * Validation report written to %s\n", logFile.Name())
+	return nil
+}
+
+func ScanAV() error {
+	fmt.Println("ewt sip scan av, ", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	directoryEntries, err := os.ReadDir(config.SIPLoc)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range directoryEntries {
+		if entry.IsDir() && entry.Name() != "metadata" {
+			fmt.Printf("  * Scanning %s for viruses\n", entry.Name())
+			xfer := filepath.Join(config.SIPLoc, entry.Name())
+			logName := filepath.Join(config.SIPLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
+			if _, err := os.Create(logName); err != nil {
+				return err
+			}
+
+			clamscanCmd := exec.Command("clamscan", "-r", xfer)
+			cmdOut, err := clamscanCmd.CombinedOutput()
+			if err != nil {
+				return err
+			}
+
+			if err := os.WriteFile(logName, cmdOut, 0644); err != nil {
+				return err
+			}
+
+		}
+	}
 	return nil
 }

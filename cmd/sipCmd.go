@@ -12,6 +12,7 @@ func init() {
 	sipGenXferCmd.Flags().StringVarP(&profile, "profile", "p", "", "profile initials")
 	sipGenCmd.AddCommand(sipGenXferCmd)
 	sipCmd.AddCommand(sipGenCmd)
+	sipCmd.AddCommand(sipValidateCmd)
 	rootCmd.AddCommand(sipCmd)
 
 }
@@ -32,6 +33,21 @@ var sipCleanCmd = &cobra.Command{
 			panic(err)
 		}
 	},
+}
+
+var sipValidateCmd = &cobra.Command{
+	Use:   "validate",
+	Short: "validate a sip is ready for transfer to Archivematica",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ValidateSIP(); err != nil {
+			panic(err)
+		}
+	},
+}
+
+var sipScanCmd = &cobra.Command{
+	Use: "scan",
+	Run: func(cmd *cobra.Command, args []string) {},
 }
 
 var sipGenCmd = &cobra.Command{

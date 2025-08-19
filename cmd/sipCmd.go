@@ -13,6 +13,10 @@ func init() {
 	sipGenCmd.AddCommand(sipGenXferCmd)
 	sipCmd.AddCommand(sipGenCmd)
 	sipCmd.AddCommand(sipValidateCmd)
+	sipScanCmd.AddCommand(sipScanAVCmd)
+	sipCmd.AddCommand(sipScanCmd)
+	sipSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
+	sipCmd.AddCommand(sipSizeCmd)
 	rootCmd.AddCommand(sipCmd)
 
 }
@@ -22,6 +26,18 @@ var sipCmd = &cobra.Command{
 	Short: "ewt sip commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("sip subcommand executed")
+	},
+}
+
+var sipSizeCmd = &cobra.Command{
+	Use:   "size",
+	Short: "Get size of sip directory",
+	Run: func(cmd *cobra.Command, args []string) {
+
+		//print the total size of source directory
+		if err := lib.PrintSIPPackageSize(directories); err != nil {
+			panic(err)
+		}
 	},
 }
 
@@ -45,11 +61,22 @@ var sipValidateCmd = &cobra.Command{
 	},
 }
 
+// sip scan commands
 var sipScanCmd = &cobra.Command{
 	Use: "scan",
 	Run: func(cmd *cobra.Command, args []string) {},
 }
 
+var sipScanAVCmd = &cobra.Command{
+	Use: "av",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ScanAV(); err != nil {
+			panic(err)
+		}
+	},
+}
+
+// sip generator
 var sipGenCmd = &cobra.Command{
 	Use:   "gen",
 	Short: "sub command for generate commands",

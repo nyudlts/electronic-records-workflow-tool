@@ -16,11 +16,21 @@ import (
 )
 
 func init() {
-	sipCmd.AddCommand(validateCmd)
+	//sipCmd.AddCommand(validateCmd)
 }
 
 var workOrder aspace.WorkOrder
 var row aspace.WorkOrderRow
+
+var (
+	aspaceResourceURLPtn     = regexp.MustCompile(`^/repositories/[2|3|6|99]/resources/\d*$`)
+	partnerPtn               = regexp.MustCompile(`^[tamwag|fales|nyuarchives|dlts]`)
+	contentClassificationPtn = regexp.MustCompile(`[open|closed|restricted]`)
+	packageFormatPtn         = regexp.MustCompile(`["1.0.0"|"1.0.1"]`)
+	contentTypePtn           = regexp.MustCompile(`electronic_records|electronic_records-do-not-create-DOs`)
+	transferTypePtn          = regexp.MustCompile(`[AIP|XIP]`)
+	useStatementPtn          = regexp.MustCompile(`electronic-records-reading-room`)
+)
 
 var validateCmd = &cobra.Command{
 	Use:   "validate",
@@ -279,4 +289,34 @@ func contains(s string, sl []string) bool {
 		}
 	}
 	return false
+}
+
+func getWorkOrderFile(path string) (string, error) {
+	mdFiles, err := os.ReadDir(path)
+	if err != nil {
+		return "", err
+	}
+
+	for _, mdFile := range mdFiles {
+		name := mdFile.Name()
+		if strings.Contains(name, "_aspace_wo.tsv") {
+			return name, nil
+		}
+	}
+	return "", fmt.Errorf("%s does not contain a work order", path)
+}
+
+func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
+	workOrderLoc := filepath.Join(mdDir, workorderName)
+
+	wof, err := os.Open(workOrderLoc)
+	if err != nil {
+		panic(err)
+	}
+	defer wof.Close()
+	var workOrder aspace.WorkOrder
+	if err := workOrder.Load(wof); err != nil {
+		return workOrder, err
+	}
+	return workOrder, nil
 }

@@ -3,12 +3,17 @@ package lib
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
 )
 
-var config = Config{}
+var (
+	config            = Config{}
+	workOrderLocation string
+)
 
 const VERSION = "v1.1.0"
 
@@ -27,6 +32,17 @@ func loadConfig() error {
 	return nil
 }
 
+func findWorkOrder() error {
+	mdDir := filepath.Join(config.SIPLoc, "metadata")
+	var err error
+	workOrderFilename, err := getWorkOrderFile(mdDir)
+	if err != nil {
+		return err
+	}
+	workOrderLocation = filepath.Join(mdDir, workOrderFilename)
+	return nil
+}
+
 func getWorkOrderFile(path string) (string, error) {
 	mdFiles, err := os.ReadDir(path)
 	if err != nil {
@@ -40,6 +56,21 @@ func getWorkOrderFile(path string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("%s does not contain a work order", path)
+}
+
+func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
+	workOrderLoc := filepath.Join(mdDir, workorderName)
+
+	wof, err := os.Open(workOrderLoc)
+	if err != nil {
+		panic(err)
+	}
+	defer wof.Close()
+	var workOrder aspace.WorkOrder
+	if err := workOrder.Load(wof); err != nil {
+		return workOrder, err
+	}
+	return workOrder, nil
 }
 
 // model definitions
@@ -77,4 +108,19 @@ type TransferInfo struct {
 func (t *TransferInfo) GetResourceID() string {
 	split := strings.Split(t.ArchivesSpaceResourceURL, "/")
 	return split[len(split)-1]
+}
+
+type Params struct {
+	PartnerCode  string
+	ResourceCode string
+	Source       string
+	Staging      string
+	TransferInfo TransferInfo
+	WorkOrder    aspace.WorkOrder
+	XferLoc      string
+}
+
+type DC struct {
+	Title    string `json:"title"`
+	IsPartOf string `json:"is_part_of"`
 }

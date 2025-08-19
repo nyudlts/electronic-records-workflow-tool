@@ -1,4 +1,4 @@
-package cmd
+package lib
 
 import (
 	"encoding/csv"
@@ -11,21 +11,109 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/nyudlts/go-aspace"
+	"gopkg.in/yaml.v2"
 )
 
 var (
+	numWorkers       int
 	params           Params
 	infectedFilesPtn = regexp.MustCompile("\nInfected files: 0\n")
 )
 
-func ProcessWorkOrderRows(p Params, numWorkers int) ([][]string, error) {
-	params = p
+func PrintXferPackageSize(directories bool) error {
+	fmt.Println("ewt amatica size, version", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	if err := getPackageSize(config.XferLoc); err != nil {
+		return err
+	}
+
+	if directories {
+		if err := printDirectoryStats(config.XferLoc); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func PrepAmatica(nWorkers int) error {
+
+	fmt.Println("ewt amatica prep,", VERSION)
+
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	numWorkers = nWorkers
+
+	params = Params{}
+	params.Source = config.SIPLoc
+	params.XferLoc = config.XferLoc
+	params.PartnerCode = config.PartnerCode
+	params.ResourceCode = config.CollectionCode
+
+	//locate the work order
+	if err := findWorkOrder(); err != nil {
+		return err
+	}
+
+	mdDir := filepath.Join(config.SIPLoc, "metadata")
+	var err error
+	params.WorkOrder, err = parseWorkOrder(mdDir, filepath.Base(workOrderLocation))
+	if err != nil {
+		return err
+	}
+
+	//create the transfer-info struct
+	transferInfoLoc := filepath.Join(mdDir, "transfer-info.txt")
+	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
+		return err
+	}
+
+	params.TransferInfo = transferInfo
+
+	log.Println("[INFO] creating Transfer packages")
+	results, err := processWorkOrderRows()
+	if err != nil {
+		return err
+	}
+
+	//create an output log
+	log.Println("[INFO] creating output report")
+	outputTSVfilename := fmt.Sprintf("%s-xip-prep.tsv", params.ResourceCode)
+	outputFile, err := os.Create(filepath.Join(config.LogLoc, outputTSVfilename))
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+	writer := csv.NewWriter(outputFile)
+	writer.Comma = '\t'
+	writer.Write([]string{"worker_id", "component_id", "result", "error"})
+	for _, result := range results {
+		writer.Write(result)
+	}
+	writer.Flush()
+
+	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
+
+	return nil
+
+}
+
+func processWorkOrderRows() ([][]string, error) {
 
 	//chunk the workorder rows
 	log.Println("[INFO] chunking work order rows")
-	chunks := chunkRows(p.WorkOrder.Rows, numWorkers)
+	chunks := chunkRows(params.WorkOrder.Rows)
 
 	resultChan := make(chan [][]string)
 
@@ -43,7 +131,7 @@ func ProcessWorkOrderRows(p Params, numWorkers int) ([][]string, error) {
 
 }
 
-func chunkRows(rows []aspace.WorkOrderRow, numWorkers int) [][]aspace.WorkOrderRow {
+func chunkRows(rows []aspace.WorkOrderRow) [][]aspace.WorkOrderRow {
 
 	var divided [][]aspace.WorkOrderRow
 
@@ -116,12 +204,12 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	csvWriter := csv.NewWriter(woFile)
 	csvWriter.Comma = '\t'
 	csvWriter.Write(aspace.HEADER_ROW)
-	csvWriter.Write(GetStringArray(row))
+	csvWriter.Write(getStringArray(row))
 	csvWriter.Flush()
 
 	//create the DC json
 	log.Printf("[INFO] WORKER %d creating dc.json in metadata directory in %s", workerId, erID)
-	dc := CreateDC(params.TransferInfo, row)
+	dc := createDC(params.TransferInfo, row)
 	dcBytes, err := json.Marshal(dc)
 	if err != nil {
 		return err
@@ -166,7 +254,7 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 
 	log.Printf("[INFO] WORKER %d moving payload %s to xfer dir", workerId, erID)
 	// move the payload directory to to er directory
-	payloadSource := filepath.Join(adocConfig.SIPLoc, erID)
+	payloadSource := filepath.Join(config.SIPLoc, erID)
 	payloadTarget := filepath.Join("xfer", ERDirName, erID)
 	fmt.Printf("    source: %s\n    target: %s\n", payloadSource, payloadTarget)
 
@@ -205,163 +293,15 @@ func copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
-func CreateDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
+func getStringArray(row aspace.WorkOrderRow) []string {
+	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
+}
+
+func createDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc := DC{}
 	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
 	dc.Title = row.GetTitle()
 	return dc
-}
-
-func GetStringArray(row aspace.WorkOrderRow) []string {
-	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
-}
-
-func isDirectory(path string) error {
-	fi, err := os.Stat(path)
-	if err == nil {
-		if fi.IsDir() {
-			return nil
-		} else {
-			return fmt.Errorf("%s is not a directory", path)
-		}
-	} else {
-		return err
-	}
-}
-
-func getWorkOrderFile(path string) (string, error) {
-	mdFiles, err := os.ReadDir(path)
-	if err != nil {
-		return "", err
-	}
-
-	for _, mdFile := range mdFiles {
-		name := mdFile.Name()
-		if strings.Contains(name, "_aspace_wo.tsv") {
-			return name, nil
-		}
-	}
-	return "", fmt.Errorf("%s does not contain a work order", path)
-}
-
-// regexp definitions for validation -- this should be moved to a config file
-var (
-	aspaceResourceURLPtn     = regexp.MustCompile(`^/repositories/[2|3|6|99]/resources/\d*$`)
-	partnerPtn               = regexp.MustCompile(`^[tamwag|fales|nyuarchives|dlts]`)
-	contentClassificationPtn = regexp.MustCompile(`[open|closed|restricted]`)
-	packageFormatPtn         = regexp.MustCompile(`["1.0.0"|"1.0.1"]`)
-	contentTypePtn           = regexp.MustCompile(`electronic_records|electronic_records-do-not-create-DOs`)
-	transferTypePtn          = regexp.MustCompile(`[AIP|XIP]`)
-	useStatementPtn          = regexp.MustCompile(`electronic-records-reading-room`)
-)
-
-func (ti TransferInfo) Validate() error {
-	//ensure contact-name is not blank
-	if ti.ContactName == "" {
-		return fmt.Errorf("field `Contact-Name` is blank in transfer-info.txt")
-	}
-
-	//ensure contact-email is not blank
-	if ti.ContactEmail == "" {
-		return fmt.Errorf("`Contact-Email` is blank in transfer-info.txt")
-	}
-
-	//ensure contact-phone is not blank
-	if ti.ContactPhone == "" {
-		return fmt.Errorf("`Contact-Phone` is blank in transfer-info.txt")
-	}
-
-	//ensure that Internal Sender Identifier is valid
-	split := strings.Split(ti.InternalSenderIdentifier, "/")
-	if len(split) != 2 {
-		return fmt.Errorf("`Internal-Sender-Identifier` is malformed in transfer-info.txt, must contains a single `/`")
-	}
-
-	if !partnerPtn.MatchString(split[0]) {
-		return fmt.Errorf("`Internal-Sender-Identifier` is malformed in transfer-info.txt, partner code must be one of: `fales`, `tamwag`, or `nyuarchive`")
-	}
-
-	//Ensure Source Organization is not blank
-	if ti.OrganizationAddress == "" {
-		return fmt.Errorf("`Organization-Address` is blank in transfer-info.txt")
-	}
-
-	//Ensure Source Organization is not blank
-	if ti.SourceOrganization == "" {
-		return fmt.Errorf("`Source-Organization` is blank in transfer-info.txt")
-	}
-
-	//Ensure there is A ArchivesSpace Resource URL is present and valid
-	if !aspaceResourceURLPtn.MatchString(ti.ArchivesSpaceResourceURL) {
-		return fmt.Errorf("`nyu-dl-archivesspace-resource-url` malformed in transfer-info.txt, must be in the form `/repositories/X/resources/Y`")
-	}
-
-	//Ensure Resource-ID is not blank
-	if ti.ResourceID == "" {
-		return fmt.Errorf("`nyu-dl-resource-id` is blank in transfer-info.txt")
-	}
-
-	//Ensure Resource-Title is not blank
-	if ti.ResourceTitle == "" {
-		return fmt.Errorf("`nyu-dl-resource-title` is blank in transfer-info.txt")
-	}
-
-	//ensure the Content-Type is valid
-	if !contentTypePtn.MatchString(ti.ContentType) {
-		return fmt.Errorf("`nyu-dl-content-type` must have a value of `electronic_records`, or `electronic_records-do-not-create-DOs`, values was %s", ti.ContentType)
-	}
-
-	//ensure the Content-Classification is valid
-	if !contentClassificationPtn.MatchString(ti.ContentClassification) {
-		return fmt.Errorf("`nyu-dl-content-classification` must have a value of `open`, `closed`, or `restricted`")
-	}
-
-	//ensure that the project name is valid
-	split = strings.Split(ti.ProjectName, "/")
-	if len(split) != 2 {
-		return fmt.Errorf("`nyu-dl-project-name` is malformed in transfer-info.txt, must contains a single `/`")
-	}
-
-	if !partnerPtn.MatchString(split[0]) {
-		return fmt.Errorf("`nyu-dl-project-name` is malformed in transfer-info.txt, partner code must be one of: `fales`, `tamwag`, or `nyuarchive`")
-	}
-
-	//ensure rstar uuid is present and valid
-	if _, err := uuid.Parse(ti.RStarCollectionID); err != nil {
-		return err
-	}
-
-	//ensure the package-format is valid
-	if !packageFormatPtn.MatchString(ti.PackageFormat) {
-		return fmt.Errorf("`nyu-dl-package-format` is malformed in transfer-info.txt, partner code must be one of: `1.0.0`, or 	`1.0.1`")
-	}
-
-	//ensure the use-statement is valid
-	if !useStatementPtn.MatchString(ti.UseStatement) {
-		return fmt.Errorf("`nyu-dl-use-statement` is malformed in transfer-info.txt, use statement must be `electronic-records-reading-room`")
-	}
-
-	//ensure the transfer-type is valid
-	if !transferTypePtn.MatchString(ti.TransferType) {
-		return fmt.Errorf("`nyu-dl-transfer-type` is malformed in transfer-info.txt, transfer type must be one of: `AIP`, `DIP`, or `SIP`")
-	}
-
-	return nil
-}
-
-func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error) {
-	workOrderLoc := filepath.Join(mdDir, workorderName)
-
-	wof, err := os.Open(workOrderLoc)
-	if err != nil {
-		panic(err)
-	}
-	defer wof.Close()
-	var workOrder aspace.WorkOrder
-	if err := workOrder.Load(wof); err != nil {
-		return workOrder, err
-	}
-	return workOrder, nil
 }
 
 func checkClamscanLog(logPath string) bool {

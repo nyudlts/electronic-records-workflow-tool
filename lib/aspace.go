@@ -15,10 +15,9 @@ import (
 )
 
 var (
-	aspaceConfigLoc   string
-	workOrderLocation string
-	transferInfo      TransferInfo
-	aspaceEnv         string
+	aspaceConfigLoc string
+	transferInfo    TransferInfo
+	aspaceEnv       string
 )
 
 func AspaceCheck() error {
@@ -67,17 +66,6 @@ func getAspaceConfig() error {
 	}
 
 	aspaceEnv = "prod"
-	return nil
-}
-
-func findWorkOrder() error {
-	mdDir := filepath.Join(config.SIPLoc, "metadata")
-	var err error
-	workOrderFilename, err := getWorkOrderFile(mdDir)
-	if err != nil {
-		return err
-	}
-	workOrderLocation = filepath.Join(mdDir, workOrderFilename)
 	return nil
 }
 

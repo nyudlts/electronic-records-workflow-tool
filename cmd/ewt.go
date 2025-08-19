@@ -32,6 +32,7 @@ var (
 	adocConfig       *AdocConfig
 	projectLoc       string
 	profile          string
+	numWorkers       int
 )
 
 func Execute() {

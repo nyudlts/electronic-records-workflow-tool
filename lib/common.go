@@ -73,6 +73,21 @@ func parseWorkOrder(mdDir string, workorderName string) (aspace.WorkOrder, error
 	return workOrder, nil
 }
 
+func getTransferInfo() (TransferInfo, error) {
+	transferInfo = TransferInfo{}
+	transferInfoLoc := filepath.Join(config.SIPLoc, "metadata", "transfer-info.txt")
+	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
+	if err != nil {
+		return transferInfo, err
+	}
+
+	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
+		return transferInfo, err
+	}
+
+	return transferInfo, nil
+}
+
 // model definitions
 type Config struct {
 	SIPLoc           string `yaml:"sip-location"`

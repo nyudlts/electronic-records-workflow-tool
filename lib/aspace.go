@@ -8,10 +8,10 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/nyudlts/go-aspace"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -20,7 +20,33 @@ var (
 	aspaceEnv       string
 )
 
-func AspaceCheck() error {
+func AspaceHealth(aEnv *string) error {
+	fmt.Printf("ewt space health, %s\n", VERSION)
+
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	if err := getAspaceConfig(aEnv); err != nil {
+		return err
+	}
+
+	client, err := aspace.NewClient(aspaceConfigLoc, aspaceEnv, 20)
+	if err != nil {
+		return err
+	}
+
+	aspaceInfo, err := client.GetAspaceInfo()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", aspaceInfo)
+
+	return nil
+}
+
+func AspaceCheck(aEnv *string) error {
 
 	fmt.Printf("ewt aspace check, %s\n", VERSION)
 
@@ -29,7 +55,7 @@ func AspaceCheck() error {
 	}
 
 	//get aspaceConfig
-	if err := getAspaceConfig(); err != nil {
+	if err := getAspaceConfig(aEnv); err != nil {
 		return err
 	}
 
@@ -39,7 +65,9 @@ func AspaceCheck() error {
 	}
 
 	//get transfer info
-	if err := getTransferInfo(); err != nil {
+	var err error
+	transferInfo, err = getTransferInfo()
+	if err != nil {
 		return err
 	}
 
@@ -51,13 +79,18 @@ func AspaceCheck() error {
 	return nil
 }
 
-func getAspaceConfig() error {
+func getAspaceConfig(aEnv *string) error {
 	if aspaceConfigLoc == "" {
 		currentUser, err := user.Current()
 		if err != nil {
 			return (err)
 		}
-		aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
+		if runtime.GOOS == "windows" {
+			cu := strings.Split(currentUser.Username, "\\")[1]
+			aspaceConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-aspace.yml", cu)
+		} else {
+			aspaceConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
+		}
 	}
 
 	_, err := os.Stat(aspaceConfigLoc)
@@ -65,20 +98,10 @@ func getAspaceConfig() error {
 		return err
 	}
 
-	aspaceEnv = "prod"
-	return nil
-}
-
-func getTransferInfo() error {
-	transferInfo = TransferInfo{}
-	transferInfoLoc := filepath.Join(config.SIPLoc, "metadata", "transfer-info.txt")
-	transferInfoBytes, err := os.ReadFile(transferInfoLoc)
-	if err != nil {
-		return err
-	}
-
-	if err := yaml.Unmarshal(transferInfoBytes, &transferInfo); err != nil {
-		return err
+	if aEnv != nil {
+		aspaceEnv = *aEnv
+	} else {
+		aspaceEnv = "prod"
 	}
 
 	return nil

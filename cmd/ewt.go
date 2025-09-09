@@ -22,6 +22,7 @@ const VERSION = "v1.1.0"
 var (
 	aipLoc           string
 	aipFileLoc       string
+	aspaceEnv        string
 	sourceLoc        string
 	stagingLoc       string
 	tmpLoc           string

@@ -28,53 +28,6 @@ var (
 	amLocation       amatica.Location
 )
 
-func TransferToArchivematica(p int, configLoc string) error {
-	polltime = p
-	amaticaConfigLoc = configLoc
-	fmt.Println("ewt amatica transfer, version", VERSION)
-	//load configuration file
-	if err := loadConfig(); err != nil {
-		return err
-	}
-
-	//move this to a func
-	//create a log file
-	logFilename := filepath.Join(config.LogLoc, fmt.Sprintf("%s-amatica-transfer.log", config.CollectionCode))
-
-	logFile, err := os.Create(logFilename)
-	if err != nil {
-		panic(err)
-	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
-
-	//create the aip-file and writer
-	fmt.Printf("  * creating %s-aip-file.txt\n", config.CollectionCode)
-	log.Printf("[INFO] creating %s-aip-file.txt", config.CollectionCode)
-	of, err := os.Create(filepath.Join(config.LogLoc, fmt.Sprintf("%s-aip-file.txt", config.CollectionCode)))
-	if err != nil {
-		panic(err)
-	}
-	defer of.Close()
-	aipWriter = bufio.NewWriter(of)
-
-	//check flags
-	if err := checkFlags(); err != nil {
-		return err
-	}
-
-	//setup client
-	if err := setupClient(); err != nil {
-		return err
-	}
-
-	if err := transferDirectories(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func checkFlags() error {
 
 	//check config exists

@@ -6,7 +6,6 @@ import (
 )
 
 func init() {
-	// Add your commands here
 	amaticaSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	amaticaCmd.AddCommand(amaticaSizeCmd)
 	amaticaPrepCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
@@ -14,6 +13,9 @@ func init() {
 	amaticaClearCmd.Flags().BoolVarP(&ingests, "ingests", "i", false, "")
 	amaticaClearCmd.Flags().BoolVarP(&transfers, "transfers", "t", false, "")
 	amaticaCmd.AddCommand(amaticaClearCmd)
+	amaticaTransferCmd.Flags().StringVarP(&amaticaConfigLoc, "config", "c", "", "path to Archivematica config file")
+	amaticaTransferCmd.Flags().IntVar(&pollTime, "poll", 15, "polling time, in seconds, between calls to Archivematica api to check status")
+	amaticaCmd.AddCommand(amaticaTransferCmd)
 	rootCmd.AddCommand(amaticaCmd)
 }
 
@@ -47,6 +49,16 @@ var amaticaClearCmd = &cobra.Command{
 	Short: "Clear Archivematica transfers and ingests",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.AmaticaClear(transfers, ingests); err != nil {
+			panic(err)
+		}
+	},
+}
+
+var amaticaTransferCmd = &cobra.Command{
+	Use:   "transfer",
+	Short: "Transfer SIP to Archivematica",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.TransferToArchivematica(pollTime, amaticaConfigLoc); err != nil {
 			panic(err)
 		}
 	},

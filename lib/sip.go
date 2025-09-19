@@ -342,14 +342,16 @@ func ScanAV() error {
 		if entry.IsDir() && entry.Name() != "metadata" {
 			fmt.Printf("  * Scanning %s for viruses\n", entry.Name())
 			xfer := filepath.Join(config.SIPLoc, entry.Name())
-			logName := filepath.Join(config.SIPLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
-			if _, err := os.Create(logName); err != nil {
+			//this needs to work with clamdscan
+			clamscanCmd := exec.Command("clamscan", "-r", xfer)
+
+			cmdOut, err := clamscanCmd.CombinedOutput()
+			if err != nil {
 				return err
 			}
 
-			clamscanCmd := exec.Command("clamdscan", "-v", xfer)
-			cmdOut, err := clamscanCmd.CombinedOutput()
-			if err != nil {
+			logName := filepath.Join(config.SIPLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
+			if _, err := os.Create(logName); err != nil {
 				return err
 			}
 

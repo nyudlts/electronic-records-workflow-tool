@@ -46,7 +46,7 @@ var amaticaClearCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear Archivematica transfers and ingests",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.AmaticaClear(ingests, transfers); err != nil {
+		if err := lib.AmaticaClear(transfers, ingests); err != nil {
 			panic(err)
 		}
 	},

@@ -54,19 +54,15 @@ func AmaticaClear(transfers bool, ingests bool) error {
 	var amaticaConfigLoc string
 	if runtime.GOOS == "windows" {
 		cu := strings.Split(currentUser.Username, "\\")[1]
-		amaticaConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-aspace.yml", cu)
+		amaticaConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-archivematica.yml", cu)
 	} else {
-		amaticaConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
+		amaticaConfigLoc = fmt.Sprintf("/home/%s/.config/go-archivematica.yml", currentUser.Username)
 	}
-
-	fmt.Println("amatica config location:", amaticaConfigLoc)
 
 	client, err := amatica.NewAMClient(amaticaConfigLoc, 20)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("%v\n", client)
 
 	if transfers {
 		fmt.Println("  * clearing completed transfers")
@@ -90,7 +86,7 @@ func AmaticaClear(transfers bool, ingests bool) error {
 	}
 
 	if ingests {
-		fmt.Println("  * clearing completed transfers")
+		fmt.Println("  * clearing completed ingests")
 		completedIngests, err := client.GetCompletedIngests()
 		if err != nil {
 			return err
@@ -154,6 +150,13 @@ func PrepAmatica(nWorkers int) error {
 
 	params.TransferInfo = transferInfo
 
+	logFile, err := os.Create(filepath.Join(config.LogLoc, fmt.Sprintf("%s-amatica-prep.log", params.ResourceCode)))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	log.Println("[INFO] creating Transfer packages")
 	results, err := processWorkOrderRows()
 	if err != nil {
@@ -162,7 +165,7 @@ func PrepAmatica(nWorkers int) error {
 
 	//create an output log
 	log.Println("[INFO] creating output report")
-	outputTSVfilename := fmt.Sprintf("%s-xip-prep.tsv", params.ResourceCode)
+	outputTSVfilename := fmt.Sprintf("%s-amatica-prep.tsv", params.ResourceCode)
 	outputFile, err := os.Create(filepath.Join(config.LogLoc, outputTSVfilename))
 	if err != nil {
 		return err
@@ -176,7 +179,7 @@ func PrepAmatica(nWorkers int) error {
 	}
 	writer.Flush()
 
-	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
+	log.Printf("[INFO] ewt xfer prep completed for %s_%s", params.PartnerCode, params.ResourceCode)
 
 	return nil
 
@@ -314,9 +317,6 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 	if err != nil {
 		log.Printf("[INFO] WORKER %d no clamscan log in metadata directory in %s", workerId, erID)
 	} else {
-		if !checkClamscanLog(clamscanLogLocation) {
-			return fmt.Errorf("clamscan.txt contained infected files")
-		}
 		log.Printf("[INFO] WORKER %d copying clamscan log to metadata directory in %s", workerId, erID)
 		clamscanLogTarget := filepath.Join(ERMDDirLoc, clamscanLog)
 		_, err := copyFile(clamscanLogLocation, clamscanLogTarget)

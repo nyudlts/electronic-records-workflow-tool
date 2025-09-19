@@ -7,10 +7,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
+	amatica "github.com/nyudlts/go-archivematica"
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
 )
@@ -34,6 +37,76 @@ func PrintXferPackageSize(directories bool) error {
 	if directories {
 		if err := printDirectoryStats(config.XferLoc); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func AmaticaClear(transfers bool, ingests bool) error {
+	fmt.Println("ewt amatica clear, version", VERSION)
+
+	currentUser, err := user.Current()
+	if err != nil {
+		return (err)
+	}
+
+	var amaticaConfigLoc string
+	if runtime.GOOS == "windows" {
+		cu := strings.Split(currentUser.Username, "\\")[1]
+		amaticaConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-aspace.yml", cu)
+	} else {
+		amaticaConfigLoc = fmt.Sprintf("/home/%s/.config/go-aspace.yml", currentUser.Username)
+	}
+
+	fmt.Println("amatica config location:", amaticaConfigLoc)
+
+	client, err := amatica.NewAMClient(amaticaConfigLoc, 20)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", client)
+
+	if transfers {
+		fmt.Println("  * clearing completed transfers")
+		completedTransfers, err := client.GetCompletedTransfers()
+		if err != nil {
+			return err
+		}
+
+		completedTransfersMap, err := client.GetCompletedTransfersMap(completedTransfers)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range completedTransfersMap {
+			fmt.Printf("clearing %s: %s\n", k, v.Name)
+			if err := client.DeleteTransfer(v.UUID); err != nil {
+				return err
+			}
+			fmt.Printf("%s: %s cleared\n", k, v.Name)
+		}
+	}
+
+	if ingests {
+		fmt.Println("  * clearing completed transfers")
+		completedIngests, err := client.GetCompletedIngests()
+		if err != nil {
+			return err
+		}
+
+		completedIngestsMap, err := client.GetCompletedIngestsMap(completedIngests)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range completedIngestsMap {
+			fmt.Printf("clearing %s: %s\n", k, v.Name)
+			if err := client.DeleteIngest(v.UUID); err != nil {
+				return err
+			}
+			fmt.Printf("%s: %s cleared\n", k, v.Name)
 		}
 	}
 

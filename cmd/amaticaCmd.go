@@ -11,6 +11,9 @@ func init() {
 	amaticaCmd.AddCommand(amaticaSizeCmd)
 	amaticaPrepCmd.Flags().IntVar(&numWorkers, "workers", 1, "number of worker threads to process SIPs")
 	amaticaCmd.AddCommand(amaticaPrepCmd)
+	amaticaClearCmd.Flags().BoolVarP(&ingests, "ingests", "i", false, "")
+	amaticaClearCmd.Flags().BoolVarP(&transfers, "transfers", "t", false, "")
+	amaticaCmd.AddCommand(amaticaClearCmd)
 	rootCmd.AddCommand(amaticaCmd)
 }
 
@@ -34,6 +37,16 @@ var amaticaPrepCmd = &cobra.Command{
 	Short: "Prepare SIP package for transfer to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrepAmatica(numWorkers); err != nil {
+			panic(err)
+		}
+	},
+}
+
+var amaticaClearCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear Archivematica transfers and ingests",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.AmaticaClear(ingests, transfers); err != nil {
 			panic(err)
 		}
 	},

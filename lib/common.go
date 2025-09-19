@@ -15,7 +15,7 @@ var (
 	workOrderLocation string
 )
 
-const VERSION = "v1.1.0"
+const VERSION = "v1.1.0b"
 
 func loadConfig() error {
 	//read the adoc-config

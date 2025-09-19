@@ -2,9 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
+)
+
+var (
+	aspaceResourceURLPtn     = regexp.MustCompile(`^/repositories/[2|3|6|99]/resources/\d*$`)
+	partnerPtn               = regexp.MustCompile(`^[tamwag|fales|nyuarchives|dlts]`)
+	contentClassificationPtn = regexp.MustCompile(`[open|closed|restricted]`)
+	packageFormatPtn         = regexp.MustCompile(`["1.0.0"|"1.0.1"]`)
+	contentTypePtn           = regexp.MustCompile(`electronic_records|electronic_records-do-not-create-DOs`)
+	transferTypePtn          = regexp.MustCompile(`[AIP|XIP]`)
+	useStatementPtn          = regexp.MustCompile(`electronic-records-reading-room`)
 )
 
 type AdocConfig struct {

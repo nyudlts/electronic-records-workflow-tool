@@ -15,8 +15,8 @@ var vfs embed.FS
 
 var rootCmd = &cobra.Command{}
 
-const version = "v1.0.0b"
-const VERSION = "v1.1.0"
+const version = "v1.0.0b.0"
+const VERSION = "v1.1.0b.0"
 
 // common flags
 var (

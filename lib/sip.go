@@ -8,7 +8,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"sort"
 	"strings"
+
+	"github.com/nyudlts/go-aspace"
+	"gopkg.in/yaml.v2"
 )
 
 func PrintSIPPackageSize(directories bool) error {
@@ -118,6 +123,8 @@ func ValidateSIP() error {
 		return err
 	}
 
+	var workOrder aspace.WorkOrder
+
 	//create a logger
 	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-validate.log", config.CollectionCode)))
 	if err != nil {
@@ -166,6 +173,155 @@ func ValidateSIP() error {
 	log.Printf("[INFO] %s contains a metadata directory\n", config.SIPLoc)
 	fmt.Println("OK")
 
+	//check that a workOrder exists
+	fmt.Print("  3. checking that a valid workorder file exists: ")
+	workorderName, err := getWorkOrderFile(mdDirLocation)
+	if err != nil {
+		fmt.Printf("metadata directory %s does not contain a work order\n", mdDirLocation)
+		log.Printf("[ERROR] metadata directory %s does not contain a work order\n", mdDirLocation)
+	} else {
+		//check that the workorder is valid
+		workOrder, err = parseWorkOrder(mdDirLocation, workorderName)
+		if err != nil {
+			fmt.Printf("work order %s is not valid: %s\n", mdDirLocation, err.Error())
+			log.Printf("[ERROR] work order %s is not valid: %s\n", mdDirLocation, err.Error())
+		} else {
+			fmt.Println("OK")
+			log.Printf("[INFO] check 3. %s contains a valid worker order \n", mdDirLocation)
+		}
+	}
+
+	//get a list of componentIDs from work order
+	fmt.Printf("  4. checking workorder %s for duplicate cuids: ", workorderName)
+	componentIDs := []string{}
+	//get an array of componentIDs
+	dupeCount := 0
+	for _, row := range workOrder.Rows {
+		if woContains(row.GetComponentID(), componentIDs) {
+			log.Printf("[ERROR] duplicate componentID, %s, found in workorder\n", row.GetComponentID())
+			dupeCount++
+		} else {
+			componentIDs = append(componentIDs, row.GetComponentID())
+		}
+	}
+
+	sort.Strings(componentIDs)
+	log.Printf("[INFO] check 4. %s contains %d duplicate cuids \n", workorderName, dupeCount)
+	if dupeCount > 0 {
+		fmt.Println("ERROR")
+	} else {
+		fmt.Println("OK")
+	}
+
+	//check that all componentIDs in the workorder exist in the SIP
+	fmt.Print("  5. checking all ER directories in workorder exist: ")
+	missingDirs := 0
+	for _, componentID := range componentIDs {
+		erLocation := filepath.Join(config.SIPLoc, componentID)
+		if _, err := os.Stat(erLocation); err != nil {
+			missingDirs++
+			log.Printf("[ERROR] componentID, %s is missing in transfered directories\n", componentID)
+			//fmt.Printf("  * cuid %s is missing from transferred directories", componentID)
+		}
+	}
+	log.Printf("[INFO] check 5. %s contains %d missing transfer directories \n", workorderName, missingDirs)
+
+	if missingDirs > 0 {
+		fmt.Println("ERROR")
+	} else {
+		fmt.Println("OK")
+	}
+
+	//check there are no extra directories in source location
+	fmt.Print("  6. checking that there no extra directories or files in SIP directory: ")
+	sourceDirs, err := os.ReadDir(config.SIPLoc)
+	if err != nil {
+		log.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
+		fmt.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
+	} else {
+
+		extraDirs := 0
+		for _, sourceDir := range sourceDirs {
+			if sourceDir.Name() != "metadata" {
+				if !woContains(sourceDir.Name(), componentIDs) {
+					extraDirs++
+					log.Printf("[ERROR] %s is not listed on workorder\n", sourceDir.Name())
+				}
+			}
+		}
+
+		log.Printf("[INFO] check 6. %s contained %d extra objects\n", config.SIPLoc, extraDirs)
+		if extraDirs > 0 {
+			fmt.Println("ERROR")
+		} else {
+			fmt.Println("OK")
+		}
+	}
+
+	//check that SIP contains a valid transfer-info.txt
+	fmt.Print("  7. checking that valid transfer-info.txt exists: ")
+	xferInfoLocation := filepath.Join(mdDirLocation, "transfer-info.txt")
+	_, err = os.Stat(xferInfoLocation)
+	if err != nil {
+		fmt.Println("transfer-info.txt does not exist in metadata directory")
+		log.Println("[ERROR] transfer-info,txt does not exist in metadata directory")
+	} else {
+		xferBytes, err := os.ReadFile(xferInfoLocation)
+		if err != nil {
+			fmt.Printf("could not read transfer-info.txt: %s\n", xferInfoLocation)
+			log.Printf("[ERROR]could not read transfer-info.txt: %s\n", xferInfoLocation)
+		} else {
+			transferInfo := TransferInfo{}
+			if err := yaml.Unmarshal(xferBytes, &transferInfo); err != nil {
+				fmt.Println("could not unmarshal transfer-info.txt")
+				log.Println("[ERROR] could not unmarshal transfer-info.txt")
+			} else {
+				if err := transferInfo.Validate(); err != nil {
+					fmt.Printf("transfer-info.txt is not valid: %s\n", err.Error())
+					log.Printf("[ERROR] transfer-info.txt is not valid: %s\n", err.Error())
+				} else {
+					log.Printf("[INFO] check 7. %s contains a valid transfer-info.txt \n", mdDirLocation)
+					fmt.Println("OK")
+				}
+			}
+		}
+	}
+
+	//check that clamscan logs
+	fmt.Print("  8. checking clamscan.logs: ")
+	clamscanLogPtn := regexp.MustCompile("clamscan.log$")
+
+	//check there are no failed clamscan logs
+	mdFiles, err := os.ReadDir(mdDirLocation)
+	if err != nil {
+		log.Printf("[ERROR] cannot open metadata directory: %s\n", mdDirLocation)
+		fmt.Printf("cannot open metadata directory: %s\n", mdDirLocation)
+	} else {
+		failedClamScans := 0
+		for _, mdFile := range mdFiles {
+			if clamscanLogPtn.MatchString(mdFile.Name()) {
+				fileBytes, err := os.ReadFile(filepath.Join(mdDirLocation, mdFile.Name()))
+				if err != nil {
+					log.Printf("[ERROR] cannot read clamscan log: %s", mdFile.Name())
+					fmt.Printf("cannot read clamscan log: %s\n", mdFile.Name())
+				} else {
+					if !clamInfectedPtn.Match(fileBytes) {
+						failedClamScans++
+						log.Printf("[ERROR] clamscan %s contained infected files", mdFile.Name())
+					}
+				}
+			}
+		}
+
+		log.Printf("[INFO] check 8. SIP contained %d failed clamscan scans", failedClamScans)
+
+		if failedClamScans > 0 {
+			fmt.Println("ERROR")
+		} else {
+			fmt.Println("OK")
+		}
+	}
+
 	//finish up
 	fmt.Printf("  * Validation report written to %s\n", logFile.Name())
 	return nil
@@ -191,7 +347,7 @@ func ScanAV() error {
 				return err
 			}
 
-			clamscanCmd := exec.Command("clamscan", "-r", xfer)
+			clamscanCmd := exec.Command("clamdscan", "-v", xfer)
 			cmdOut, err := clamscanCmd.CombinedOutput()
 			if err != nil {
 				return err
@@ -204,4 +360,13 @@ func ScanAV() error {
 		}
 	}
 	return nil
+}
+
+func woContains(s string, sl []string) bool {
+	for _, sls := range sl {
+		if s == sls {
+			return true
+		}
+	}
+	return false
 }

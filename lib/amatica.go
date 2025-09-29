@@ -414,6 +414,7 @@ func copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
+// move to go-aspace lib
 func getStringArray(row aspace.WorkOrderRow) []string {
 	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
 }

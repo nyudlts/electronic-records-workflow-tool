@@ -109,6 +109,7 @@ type Config struct {
 	AIPLoc           string `yaml:"aip-location"`
 	AMTransferSource string `yaml:"archivematica-transfer-source"`
 	XferLoc          string `yaml:"xfer-location"`
+	AIPStoreLoc      string `yaml:"aipstore-location"`
 }
 
 type TransferInfo struct {

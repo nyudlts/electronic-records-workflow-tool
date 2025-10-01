@@ -29,15 +29,20 @@ func TransferSource() error {
 
 	fmt.Printf("  * Transferring %s to sip directory\n", config.SourceLoc)
 	var cmd *exec.Cmd
+	var b []byte
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("robocopy", config.SourceLoc, config.SIPLoc, "/E", "/DCOPY:DAT")
+		b, err = cmd.CombinedOutput()
+		if err != nil && err.Error() != "exit status 1" {
+			return err
+		}
 	} else {
 		cmd = exec.Command("rsync", "-rav", config.SourceLoc, config.SIPLoc)
-	}
 
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil
+		b, err = cmd.CombinedOutput()
+		if err != nil {
+			return err
+		}
 	}
 
 	if _, err := writer.Write(b); err != nil {

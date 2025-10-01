@@ -14,6 +14,7 @@ func init() {
 	rstarCmd.AddCommand(rstarPrepCmd)
 	rstarCmd.AddCommand(rstarValidateCmd)
 	rstarCmd.AddCommand(rstarTransferCmd)
+	rstarCmd.AddCommand(rstarCleanCmd)
 	rootCmd.AddCommand(rstarCmd)
 }
 
@@ -75,6 +76,16 @@ var rstarTransferCmd = &cobra.Command{
 	Short: "ewt rstar transfer command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferRStarPackages(); err != nil {
+			panic(err)
+		}
+	},
+}
+
+var rstarCleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "remove all content from aips directory",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.CleanAIPDirectory(); err != nil {
 			panic(err)
 		}
 	},

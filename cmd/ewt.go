@@ -33,6 +33,7 @@ var (
 	projectLoc       string
 	profile          string
 	numWorkers       int
+	fullValidation   bool
 )
 
 func Execute() {

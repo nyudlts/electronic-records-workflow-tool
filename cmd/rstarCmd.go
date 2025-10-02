@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/nyudlts/electronic-records-workflow-tool/lib"
 	"github.com/spf13/cobra"
 )
@@ -12,6 +14,7 @@ func init() {
 	rstarPrepSingleCmd.Flags().StringVarP(&aipLoc, "aip-location", "a", "", "path to the AIP package")
 	rstarPrepCmd.AddCommand(rstarPrepSingleCmd)
 	rstarCmd.AddCommand(rstarPrepCmd)
+	rstarValidateCmd.Flags().BoolVarP(&fullValidation, "full", "f", false, "perform full validation")
 	rstarCmd.AddCommand(rstarValidateCmd)
 	rstarCmd.AddCommand(rstarTransferCmd)
 	rstarCmd.AddCommand(rstarCleanCmd)
@@ -65,8 +68,8 @@ var rstarValidateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "ewt rstar validate command",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.ValidateRStarPackages(); err != nil {
-			panic(err)
+		if err := lib.ValidateRStarPackages(fullValidation); err != nil {
+			fmt.Println("  * Validation errors detected see log for details")
 		}
 	},
 }

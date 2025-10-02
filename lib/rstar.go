@@ -132,8 +132,66 @@ func PrepareSinglePackage(aipLocation string) error {
 	return nil
 }
 
-func ValidateRStarPackages() error {
+func ValidateRStarPackages(fullValidation bool) error {
 	fmt.Println("ewt rstar validate", VERSION)
+
+	//load the config
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//create a log file
+	logFile, err := os.Create(fmt.Sprintf("logs/%s-rstar-validate.log", config.CollectionCode))
+	if err != nil {
+		return err
+	}
+
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	//get aips to validate
+	aips, err := os.ReadDir(config.AIPLoc)
+	if err != nil {
+		return err
+	}
+	if len(aips) == 0 {
+		fmt.Println("  * no aips found to validate")
+		log.Println("[INFO] no aips found to validate")
+		return nil
+	}
+
+	//validate each aip
+	for _, aip := range aips {
+		if aip.IsDir() {
+
+			erPath := filepath.Join(config.AIPLoc, aip.Name())
+			bag, err := bagit.GetExistingBag(erPath)
+			if err != nil {
+				return err
+			}
+
+			if fullValidation {
+				fmt.Printf("  * validating %s\n", aip.Name())
+				log.Printf("[INFO] performing full validation on %s", aip.Name())
+				if err := bag.ValidateBag(false, false); err != nil {
+					log.Printf("[ERROR] full validation failed for %s: %v", aip.Name(), err)
+					return err
+				}
+				fmt.Printf("  * validation complete for %s\n", aip.Name())
+				log.Printf("[INFO] validation complete for %s", aip.Name())
+			} else {
+				fmt.Printf("  * fast validating %s\n", aip.Name())
+				log.Printf("[INFO] performing fast validation on %s", aip.Name())
+				if err := bag.ValidateBag(true, false); err != nil {
+					log.Printf("[ERROR] fast validation failed for %s: %v", aip.Name(), err)
+					return err
+				}
+				fmt.Printf("  * validation complete for %s\n", aip.Name())
+				log.Printf("[INFO] validation complete for %s", aip.Name())
+			}
+
+		}
+	}
 	return nil
 }
 

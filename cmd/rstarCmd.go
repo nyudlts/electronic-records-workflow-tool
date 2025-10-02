@@ -69,7 +69,7 @@ var rstarValidateCmd = &cobra.Command{
 	Short: "ewt rstar validate command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ValidateRStarPackages(fullValidation); err != nil {
-			fmt.Println("  * Validation errors detected see log for details")
+			fmt.Println("  * Validation errors detected see rstar-validate log for details")
 		}
 	},
 }
@@ -79,7 +79,7 @@ var rstarTransferCmd = &cobra.Command{
 	Short: "ewt rstar transfer command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferRStarPackages(); err != nil {
-			panic(err)
+			fmt.Printf("  * transfer errors detected: %v\n", err.Error())
 		}
 	},
 }
@@ -89,7 +89,7 @@ var rstarCleanCmd = &cobra.Command{
 	Short: "remove all content from aips directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.CleanAIPDirectory(); err != nil {
-			panic(err)
+			fmt.Printf("  * Error cleaning aips directory: %v\n", err.Error())
 		}
 	},
 }

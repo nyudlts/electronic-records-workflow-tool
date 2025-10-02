@@ -197,6 +197,52 @@ func ValidateRStarPackages(fullValidation bool) error {
 
 func TransferRStarPackages() error {
 	fmt.Println("ewt rstar transfer", VERSION)
+	//load the config
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//read aip directory
+	aips, err := os.ReadDir(config.AIPLoc)
+	if err != nil {
+		return err
+	}
+	if len(aips) == 0 {
+		fmt.Println("  * no aips found to transfer")
+		return nil
+	}
+
+	//create the log file
+	xferLogFile := filepath.Join("logs", fmt.Sprintf("%s-rstar-transfer.txt", config.CollectionCode))
+	_, err = os.Create(xferLogFile)
+	if err != nil {
+		return err
+	}
+
+	//transfer aips
+	for _, aip := range aips {
+		fmt.Printf("  * transferring %s\n", aip.Name())
+		xferBag := filepath.Join(config.AIPLoc, aip.Name())
+		xferCmd := exec.Command("rstar-scp.exp", xferBag)
+		cmdOutput, err := xferCmd.CombinedOutput()
+		if err != nil {
+			return err
+		}
+		cmdOutput = append(cmdOutput, []byte("\n")...)
+
+		xferLog, err := os.OpenFile(xferLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0775)
+		if err != nil {
+			return err
+		}
+		defer xferLog.Close()
+
+		if _, err = xferLog.Write(cmdOutput); err != nil {
+			return err
+		}
+	}
+
+	fmt.Println("  * rstar transfer complete")
+
 	return nil
 }
 

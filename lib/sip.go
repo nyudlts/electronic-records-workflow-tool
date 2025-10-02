@@ -138,7 +138,7 @@ func ValidateSIP() error {
 	log.Printf("[INFO] validating SIP transfer package at %s\n", config.SIPLoc)
 
 	//check that the source directory exists
-	fmt.Print("  1. checking that SIP location exists and is a directory: ")
+	fmt.Print("    1. checking that SIP location exists and is a directory: ")
 	fileInfo, err := os.Stat(config.SIPLoc)
 	if err != nil {
 		log.Printf("[ERROR] %s\n", err.Error())
@@ -155,7 +155,7 @@ func ValidateSIP() error {
 	fmt.Println(" OK")
 
 	//check that there is a metadata directory
-	fmt.Print("  2. checking that SIP directory contains a metadata directory: ")
+	fmt.Print("    2. checking that SIP directory contains a metadata directory: ")
 	mdDirLocation := filepath.Join(config.SIPLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
@@ -174,7 +174,7 @@ func ValidateSIP() error {
 	fmt.Println("OK")
 
 	//check that a workOrder exists
-	fmt.Print("  3. checking that a valid workorder file exists: ")
+	fmt.Print("    3. checking that a valid workorder file exists: ")
 	workorderName, err := getWorkOrderFile(mdDirLocation)
 	if err != nil {
 		fmt.Printf("metadata directory %s does not contain a work order\n", mdDirLocation)
@@ -192,7 +192,7 @@ func ValidateSIP() error {
 	}
 
 	//get a list of componentIDs from work order
-	fmt.Printf("  4. checking workorder %s for duplicate cuids: ", workorderName)
+	fmt.Printf("    4. checking workorder %s for duplicate cuids: ", workorderName)
 	componentIDs := []string{}
 	//get an array of componentIDs
 	dupeCount := 0
@@ -206,7 +206,7 @@ func ValidateSIP() error {
 	}
 
 	sort.Strings(componentIDs)
-	log.Printf("[INFO] check 4. %s contains %d duplicate cuids \n", workorderName, dupeCount)
+	log.Printf("[ERROR] check 4. %s contains %d duplicate cuids \n", workorderName, dupeCount)
 	if dupeCount > 0 {
 		fmt.Println("ERROR")
 	} else {
@@ -214,7 +214,7 @@ func ValidateSIP() error {
 	}
 
 	//check that all componentIDs in the workorder exist in the SIP
-	fmt.Print("  5. checking all ER directories in workorder exist: ")
+	fmt.Print("    5. checking all ER directories in workorder exist: ")
 	missingDirs := 0
 	for _, componentID := range componentIDs {
 		erLocation := filepath.Join(config.SIPLoc, componentID)
@@ -224,7 +224,7 @@ func ValidateSIP() error {
 			//fmt.Printf("  * cuid %s is missing from transferred directories", componentID)
 		}
 	}
-	log.Printf("[INFO] check 5. %s contains %d missing transfer directories \n", workorderName, missingDirs)
+	log.Printf("[ERROR] check 5. %s contains %d missing transfer directories \n", workorderName, missingDirs)
 
 	if missingDirs > 0 {
 		fmt.Println("ERROR")
@@ -233,7 +233,7 @@ func ValidateSIP() error {
 	}
 
 	//check there are no extra directories in source location
-	fmt.Print("  6. checking that there no extra directories or files in SIP directory: ")
+	fmt.Print("    6. checking that there no extra directories or files in SIP directory: ")
 	sourceDirs, err := os.ReadDir(config.SIPLoc)
 	if err != nil {
 		log.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
@@ -259,7 +259,7 @@ func ValidateSIP() error {
 	}
 
 	//check that SIP contains a valid transfer-info.txt
-	fmt.Print("  7. checking that valid transfer-info.txt exists: ")
+	fmt.Print("    7. checking that valid transfer-info.txt exists: ")
 	xferInfoLocation := filepath.Join(mdDirLocation, "transfer-info.txt")
 	_, err = os.Stat(xferInfoLocation)
 	if err != nil {
@@ -288,7 +288,7 @@ func ValidateSIP() error {
 	}
 
 	//check that clamscan logs
-	fmt.Print("  8. checking clamscan.logs: ")
+	fmt.Print("    8. checking clamscan.logs: ")
 	clamscanLogPtn := regexp.MustCompile("clamscan.log$")
 
 	//check there are no failed clamscan logs
@@ -313,7 +313,7 @@ func ValidateSIP() error {
 			}
 		}
 
-		log.Printf("[INFO] check 8. SIP contained %d failed clamscan scans", failedClamScans)
+		log.Printf("[ERROR] check 8. SIP contained %d failed clamscan scans", failedClamScans)
 
 		if failedClamScans > 0 {
 			fmt.Println("ERROR")

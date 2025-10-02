@@ -9,7 +9,7 @@ func init() {
 	rstarSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	rstarCmd.AddCommand(rstarSizeCmd)
 	rstarPrepCmd.AddCommand(rstarPrepPackagesCmd)
-	rstarPrepSingleCmd.Flags().StringVarP(&aipLoc, "path", "p", "", "path to the AIP package")
+	rstarPrepSingleCmd.Flags().StringVarP(&aipLoc, "aip-location", "a", "", "path to the AIP package")
 	rstarPrepCmd.AddCommand(rstarPrepSingleCmd)
 	rstarCmd.AddCommand(rstarPrepCmd)
 	rstarCmd.AddCommand(rstarValidateCmd)

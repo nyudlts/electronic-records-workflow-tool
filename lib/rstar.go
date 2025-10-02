@@ -98,8 +98,37 @@ func PrepareRStarPackages() error {
 	return nil
 }
 
-func PrepareSinglePackage(path string) error {
+func PrepareSinglePackage(aipLocation string) error {
 	fmt.Println("ewt rstar prep single package", VERSION)
+
+	//load the config
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//create a log file
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-rstar-prep-package.log", config.CollectionCode)))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	//check the aip location
+	fi, err := os.Stat(aipLocation)
+	if err != nil {
+		return fmt.Errorf("aip package %s does not exist: %v", aipLocation, err)
+	}
+
+	msg := fmt.Sprintf("  * processing %s", fi.Name())
+	fmt.Println(msg)
+	log.Println("[INFO]", msg)
+
+	if err := prepAmaticaAIP(aipLocation); err != nil {
+		return err
+	}
+
+	fmt.Println("\n  * rstar package prep complete")
 	return nil
 }
 

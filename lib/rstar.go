@@ -341,7 +341,7 @@ func updatePackage(bagLocation string) error {
 
 	//move the work order to the bag's root
 	fmt.Println("      * Moving work order to bag's root")
-	if err := bag.AddFileToBagRoot(woPath); err != nil {
+	if err := bag.AddFileToBagRoot(woPath); err != nil { // this is not returning an err it is panicing fix in go-bagit
 		return err
 	}
 

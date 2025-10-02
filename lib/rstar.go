@@ -67,7 +67,7 @@ func PrepareRStarPackages() error {
 	}
 	defer aipFile.Close()
 	scanner := bufio.NewScanner(aipFile)
-
+	count := 0
 	for scanner.Scan() {
 		aipLocation := scanner.Text()
 		if runtime.GOOS == "windows" {
@@ -81,6 +81,11 @@ func PrepareRStarPackages() error {
 			return fmt.Errorf("aip package %s does not exist: %v", aipFileLoc, err)
 		}
 
+		//new line if not the first package
+		if count > 0 {
+			fmt.Println()
+		}
+		count++
 		msg := fmt.Sprintf("  * processing %s", fi.Name())
 		fmt.Println(msg)
 		log.Println("[INFO]", msg)
@@ -89,7 +94,7 @@ func PrepareRStarPackages() error {
 			return fmt.Errorf("preparing package %s failed: %v", fi.Name(), err)
 		}
 	}
-	fmt.Println("  * rstar package prep complete")
+	fmt.Printf("\n  * rstar package prep complete, processed %d packages\n", count)
 	return nil
 }
 
@@ -119,6 +124,11 @@ func CleanAIPDirectory() error {
 		return err
 	}
 
+	if len(objs) == 0 {
+		fmt.Println("  * aip directory is already clean")
+		return nil
+	}
+
 	for _, obj := range objs {
 		objPath := filepath.Join(config.AIPLoc, obj.Name())
 		fmt.Printf("  * removing %s\n", obj.Name())
@@ -136,9 +146,9 @@ func prepAmaticaAIP(amaticaAIPLocation string) error {
 		return err
 	}
 	aipStageLoc := filepath.Join(config.AIPLoc, fi.Name())
-	msg := fmt.Sprintf("copying %s to aip directory", fi.Name())
+	msg := "copying package to aip directory"
 	fmt.Printf("    * %s\n", msg)
-	log.Printf("[INFO] %s", msg)
+	log.Printf("[INFO] %s + %s", msg, fi.Name())
 	var cmd *exec.Cmd
 	var out []byte
 	if runtime.GOOS == "windows" {
@@ -161,27 +171,29 @@ func prepAmaticaAIP(amaticaAIPLocation string) error {
 		return err
 	}
 
-	msg = fmt.Sprintf("    * Updating package %s", fi.Name())
-	fmt.Println(msg)
-	log.Printf("[INFO] %s", msg)
+	msg = ("Updating package")
+	fmt.Println("    * " + msg)
+	log.Printf("[INFO] %s %s", msg, fi.Name())
 
 	if err := updatePackage(aipStageLoc); err != nil {
 		return err
 	}
+
+	fmt.Println("  * processing complete for ", fi.Name())
 
 	return nil
 }
 
 func updatePackage(bagLocation string) error {
 
-	fmt.Println("      * opening bag", filepath.Base(bagLocation))
+	fmt.Println("      * opening bag")
 	bag, err := bagit.GetExistingBag(bagLocation)
 	if err != nil {
 		return err
 	}
 
 	//validate the bag
-	fmt.Printf("      * Validating bag %s\n", filepath.Base(bagLocation))
+	fmt.Println("      * Validating bag")
 	if err := bag.ValidateBag(false, false); err != nil {
 		return err
 	}
@@ -217,7 +229,7 @@ func updatePackage(bagLocation string) error {
 	}
 
 	//Update the hostname
-	fmt.Println("      * Adding hostname to tag set: ")
+	fmt.Println("      * Adding hostname to tag set")
 	hostname, err := os.Hostname()
 	if err != nil {
 		return err
@@ -268,60 +280,37 @@ func updatePackage(bagLocation string) error {
 		return err
 	}
 
-	/*
+	//create new tag manifest
+	fmt.Println("      * Creating new tagmanifest-sha256.txt")
+	tagManifest, err := bagit.NewManifest(bagLocation, "tagmanifest-sha256.txt")
+	if err != nil {
+		return err
+	}
 
-		fmt.Printf("  * Opening bag-info.txt: ")
-		bagInfoFile, err := os.Open(bagInfoLocation)
-		if err != nil {
-			return err
-		}
-		defer bagInfoFile.Close()
-		fmt.Printf("OK\n")
+	//update the checksum for bag-info.txt
+	fmt.Println("      * Updating checksum for bag-info.txt in tagmanifest-sha256.txt")
+	if err := tagManifest.UpdateManifest("bag-info.txt"); err != nil {
+		return err
+	}
 
-		fmt.Printf("  * Rewriting bag-info.txt: ")
-		if err := os.WriteFile(bagInfoLocation, bagInfoBytes, 0777); err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
+	fmt.Println("      * Rewriting tagmanifest-sha256.txt")
+	if err := tagManifest.Serialize(); err != nil {
+		return err
+	}
 
-		//create new manifest object for tagmanifest-sha256.txt
-		fmt.Printf("  * Creating new tagmanifest-sha256.txt: ")
-		tagManifest, err := bagit.NewManifest(bagLocation, "tagmanifest-sha256.txt")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
+	//validate the updated bag
+	fmt.Println("      * Validating the updated bag")
+	if err := bag.ValidateBag(false, false); err != nil {
+		return err
+	}
 
-		//update the checksum for bag-info.txt
-		fmt.Printf("  * Updating checksum for bag-info.txt in tagmanifest-sha256.txt: ")
-		if err := tagManifest.UpdateManifest("bag-info.txt"); err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
+	//delete the backup bag-info
+	fmt.Println("      * Deleting backup bag-info.txt")
+	if err := os.Remove(backupLocation); err != nil {
+		return err
+	}
 
-		fmt.Printf("  * Rewriting tagmanifest-sha256.txt: ")
-		if err := tagManifest.Serialize(); err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
+	fmt.Println("    * Package update complete")
 
-		//validate the updated bag
-		fmt.Printf("\nValidating the updated bag: ")
-		if err := bag.ValidateBag(false, false); err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
-
-		//delete the backup bag-info
-		fmt.Printf("Deleting backup bag-info.txt: ")
-		if err := os.Remove(backupLocation); err != nil {
-			return err
-		}
-		fmt.Printf("OK\n")
-
-
-	*/
-	fmt.Println("    * Package preparation complete")
-	fmt.Println()
 	return nil
 }

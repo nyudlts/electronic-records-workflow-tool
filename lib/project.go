@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -75,6 +76,10 @@ func generateConfig() error {
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
 	config.XferLoc = filepath.Join(config.ProjectLoc, "xfer")
 	config.SourceLoc, err = filepath.Abs(sourceLoc)
+	if runtime.GOOS == "linux" && !strings.HasSuffix(config.SourceLoc, "/") {
+		//rsync on linux needs the trailing slash to copy contents of directory
+		config.SourceLoc += "/"
+	}
 	if err != nil {
 		return err
 	}

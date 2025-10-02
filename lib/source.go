@@ -37,6 +37,7 @@ func TransferSource() error {
 			return err
 		}
 	} else {
+
 		cmd = exec.Command("rsync", "-rav", config.SourceLoc, config.SIPLoc)
 
 		b, err = cmd.CombinedOutput()
@@ -60,7 +61,7 @@ func TransferSource() error {
 		if err := os.Mkdir(mdDirLoc, 0755); err != nil {
 			return err
 		}
-		fmt.Printf("  * created metadata directory in %s", config.SIPLoc)
+		fmt.Printf("  * created metadata directory in %s\n", config.SIPLoc)
 	}
 
 	fmt.Println("  * Transfer complete")

@@ -244,3 +244,47 @@ func (ti TransferInfo) Validate() error {
 
 	return nil
 }
+
+type LogType int
+
+const (
+	RSTAR_TRANSFER LogType = iota
+	RSTAR_VALIDATE
+	RSTAR_PREP_PACKAGES
+	RSTAR_PREP_PACKAGE
+)
+
+func ReadLog(logType LogType) error {
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	if err := printLog(GetLog(logType)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetLog(logType LogType) string {
+	var logPath string
+	switch logType {
+	case RSTAR_TRANSFER:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-transfer.txt"))
+	case RSTAR_VALIDATE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-validate.log"))
+	case RSTAR_PREP_PACKAGES:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
+	case RSTAR_PREP_PACKAGE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
+	}
+	return logPath
+}
+
+func printLog(logPath string) error {
+	logBytes, err := os.ReadFile(logPath)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(logBytes))
+	return nil
+}

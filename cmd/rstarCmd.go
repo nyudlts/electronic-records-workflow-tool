@@ -16,6 +16,7 @@ func init() {
 	rstarCmd.AddCommand(rstarPrepCmd)
 	rstarValidateCmd.Flags().BoolVarP(&fullValidation, "full", "f", false, "perform full validation")
 	rstarCmd.AddCommand(rstarValidateCmd)
+	rstarTransferCmd.AddCommand(rstarTransferLogCmd)
 	rstarCmd.AddCommand(rstarTransferCmd)
 	rstarCmd.AddCommand(rstarCleanCmd)
 	rootCmd.AddCommand(rstarCmd)
@@ -54,12 +55,32 @@ var rstarPrepPackagesCmd = &cobra.Command{
 	},
 }
 
+var rstarPrepPackagesLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "display rstar prep packages log command",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.RSTAR_PREP_PACKAGES); err != nil {
+			fmt.Printf("  * errors detected: %v\n", err.Error())
+		}
+	},
+}
+
 var rstarPrepSingleCmd = &cobra.Command{
 	Use:   "single",
 	Short: "ewt aip prep single package commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrepareSinglePackage(aipLoc); err != nil {
 			panic(err)
+		}
+	},
+}
+
+var rstarPrepSingleLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "display rstar prep single package log command",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.RSTAR_PREP_PACKAGE); err != nil {
+			fmt.Printf("  * errors detected: %v\n", err.Error())
 		}
 	},
 }
@@ -74,12 +95,32 @@ var rstarValidateCmd = &cobra.Command{
 	},
 }
 
+var rstarValidateLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "display rstar validate log command",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.RSTAR_VALIDATE); err != nil {
+			fmt.Printf("  * errors detected: %v\n", err.Error())
+		}
+	},
+}
+
 var rstarTransferCmd = &cobra.Command{
 	Use:   "transfer",
 	Short: "ewt rstar transfer command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferRStarPackages(); err != nil {
 			fmt.Printf("  * transfer errors detected: %v\n", err.Error())
+		}
+	},
+}
+
+var rstarTransferLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "display rstar transfer log command",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.RSTAR_TRANSFER); err != nil {
+			fmt.Printf("  * errors detected: %v\n", err.Error())
 		}
 	},
 }

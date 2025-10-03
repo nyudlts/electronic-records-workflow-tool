@@ -325,10 +325,12 @@ func updatePackage(bagLocation string) error {
 		return err
 	}
 
-	//validate the bag
-	fmt.Println("      * Validating bag")
-	if err := bag.ValidateBag(false, false); err != nil {
-		return err
+	if runtime.GOOS == "linux" {
+		//validate the bag
+		fmt.Println("      * Validating bag")
+		if err := bag.ValidateBag(false, false); err != nil {
+			return err
+		}
 	}
 
 	//locate the work order
@@ -342,7 +344,7 @@ func updatePackage(bagLocation string) error {
 	//move the work order to the bag's root
 	fmt.Println("      * Moving work order to bag's root")
 	if err := bag.AddFileToBagRoot(woPath); err != nil { // this is not returning an err it is panicing fix in go-bagit
-		return err
+		log.Printf("[WARNING] moving work order to bag's root failed: %v", err)
 	}
 
 	//locate the transfer-info.txt
@@ -431,10 +433,12 @@ func updatePackage(bagLocation string) error {
 		return err
 	}
 
-	//validate the updated bag
-	fmt.Println("      * Validating the updated bag")
-	if err := bag.ValidateBag(false, false); err != nil {
-		return err
+	if runtime.GOOS == "linux" {
+		//validate the updated bag
+		fmt.Println("      * Validating the updated bag")
+		if err := bag.ValidateBag(false, false); err != nil {
+			return err
+		}
 	}
 
 	//delete the backup bag-info

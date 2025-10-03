@@ -10,11 +10,13 @@ import (
 func init() {
 	rstarSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	rstarCmd.AddCommand(rstarSizeCmd)
+	rstarPrepPackagesCmd.AddCommand(rstarPrepPackagesLogCmd)
 	rstarPrepCmd.AddCommand(rstarPrepPackagesCmd)
 	rstarPrepSingleCmd.Flags().StringVarP(&aipLoc, "aip-location", "a", "", "path to the AIP package")
 	rstarPrepCmd.AddCommand(rstarPrepSingleCmd)
 	rstarCmd.AddCommand(rstarPrepCmd)
 	rstarValidateCmd.Flags().BoolVarP(&fullValidation, "full", "f", false, "perform full validation")
+	rstarValidateCmd.AddCommand(rstarValidateLogCmd)
 	rstarCmd.AddCommand(rstarValidateCmd)
 	rstarTransferCmd.AddCommand(rstarTransferLogCmd)
 	rstarCmd.AddCommand(rstarTransferCmd)

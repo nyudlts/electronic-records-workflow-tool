@@ -21,6 +21,8 @@ func init() {
 	rstarTransferCmd.AddCommand(rstarTransferLogCmd)
 	rstarCmd.AddCommand(rstarTransferCmd)
 	rstarCmd.AddCommand(rstarCleanCmd)
+	rstarAIPFileCmd.AddCommand(rstarAIPFileLogCmd)
+	rstarCmd.AddCommand(rstarAIPFileCmd)
 	rootCmd.AddCommand(rstarCmd)
 }
 
@@ -133,6 +135,22 @@ var rstarCleanCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.CleanAIPDirectory(); err != nil {
 			fmt.Printf("  * Error cleaning aips directory: %v\n", err.Error())
+		}
+	},
+}
+
+var rstarAIPFileCmd = &cobra.Command{
+	Use:   "aipfile",
+	Short: "ewt aipfile commands",
+	Run:   func(cmd *cobra.Command, args []string) {},
+}
+
+var rstarAIPFileLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "ewt aipfile commands",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.AIP_FILE); err != nil {
+			fmt.Printf("  * Error reading aip-file: %v\n", err.Error())
 		}
 	},
 }

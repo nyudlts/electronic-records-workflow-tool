@@ -256,7 +256,8 @@ func (ti TransferInfo) Validate() error {
 type LogType int
 
 const (
-	ASPACE_CHECK LogType = iota
+	AIP_FILE LogType = iota
+	ASPACE_CHECK
 	RSTAR_TRANSFER
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
@@ -272,7 +273,9 @@ func ReadLog(logType LogType) error {
 
 	fmt.Printf("ewt log reader, version %s\n", VERSION)
 	log := GetLog(logType)
-	fmt.Printf("  * reading %s\n", log)
+	logName := filepath.Base(log)
+	fmt.Printf("  * reading %s\n\n", logName)
+
 	if err := printLog(log); err != nil {
 		return err
 	}
@@ -282,6 +285,8 @@ func ReadLog(logType LogType) error {
 func GetLog(logType LogType) string {
 	var logPath string
 	switch logType {
+	case AIP_FILE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aip-file.txt"))
 	case ASPACE_CHECK:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
 	case RSTAR_TRANSFER:

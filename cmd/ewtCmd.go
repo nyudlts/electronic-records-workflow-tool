@@ -20,6 +20,7 @@ var (
 	aipLoc           string
 	aipFileLoc       string
 	aspaceEnv        string
+	aspaceConfig     string
 	directories      bool
 	ingests          bool
 	transfers        bool

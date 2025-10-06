@@ -25,7 +25,7 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.1.0b"
+const VERSION = "v1.1.0-beta0"
 
 func loadConfig() error {
 	//read the adoc-config
@@ -252,6 +252,7 @@ const (
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
 	RSTAR_PREP_PACKAGE
+	ASPACE_CHECK
 )
 
 func ReadLog(logType LogType) error {
@@ -276,6 +277,8 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
 	case RSTAR_PREP_PACKAGE:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
+	case ASPACE_CHECK:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
 	}
 	return logPath
 }

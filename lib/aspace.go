@@ -15,19 +15,19 @@ import (
 )
 
 var (
-	aspaceConfigLoc string
 	transferInfo    TransferInfo
 	aspaceEnv       string
+	aspaceConfigLoc string
 )
 
-func AspaceHealth(aEnv *string) error {
+func AspaceHealth(aEnv *string, aConfig *string) error {
 	fmt.Printf("ewt space health, %s\n", VERSION)
 
 	if err := loadConfig(); err != nil {
 		return err
 	}
 
-	if err := getAspaceConfig(aEnv); err != nil {
+	if err := getAspaceConfig(aEnv, aConfig); err != nil {
 		return err
 	}
 
@@ -46,7 +46,7 @@ func AspaceHealth(aEnv *string) error {
 	return nil
 }
 
-func AspaceCheck(aEnv *string) error {
+func AspaceCheck(aConfig *string, aEnv *string) error {
 
 	fmt.Printf("ewt aspace check, %s\n", VERSION)
 
@@ -55,7 +55,7 @@ func AspaceCheck(aEnv *string) error {
 	}
 
 	//get aspaceConfig
-	if err := getAspaceConfig(aEnv); err != nil {
+	if err := getAspaceConfig(aEnv, aConfig); err != nil {
 		return err
 	}
 
@@ -79,8 +79,8 @@ func AspaceCheck(aEnv *string) error {
 	return nil
 }
 
-func getAspaceConfig(aEnv *string) error {
-	if aspaceConfigLoc == "" {
+func getAspaceConfig(aConfig *string, aEnv *string) error {
+	if aConfig == nil {
 		currentUser, err := user.Current()
 		if err != nil {
 			return (err)

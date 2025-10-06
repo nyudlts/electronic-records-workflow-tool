@@ -34,7 +34,7 @@ var aspaceCheckCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setAspacePointers()
 		if err := lib.AspaceCheck(configPtr, envPtr); err != nil {
-			fmt.Printf("errors detected: %s\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -44,7 +44,7 @@ var aspaceCheckLogCmd = &cobra.Command{
 	Short: "Display the log file from a previous aspace check",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.ASPACE_CHECK); err != nil {
-			fmt.Printf("errors detected: %s\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -55,7 +55,7 @@ var aspaceHealthCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		setAspacePointers()
 		if err := lib.AspaceHealth(configPtr, envPtr); err != nil {
-			fmt.Printf("errors detected: %s\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

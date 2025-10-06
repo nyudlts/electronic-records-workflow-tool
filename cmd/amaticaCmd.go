@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/nyudlts/electronic-records-workflow-tool/lib"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +31,7 @@ var amaticaSizeCmd = &cobra.Command{
 	Use: "size",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrintXferPackageSize(directories); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -39,7 +41,7 @@ var amaticaPrepCmd = &cobra.Command{
 	Short: "Prepare SIP package for transfer to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrepAmatica(numWorkers); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -49,7 +51,7 @@ var amaticaClearCmd = &cobra.Command{
 	Short: "Clear Archivematica transfers and ingests",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.AmaticaClear(transfers, ingests); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -59,7 +61,7 @@ var amaticaTransferCmd = &cobra.Command{
 	Short: "Transfer SIP to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferToArchivematica(pollTime, amaticaConfigLoc); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

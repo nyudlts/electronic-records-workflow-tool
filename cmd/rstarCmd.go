@@ -39,7 +39,7 @@ var rstarSizeCmd = &cobra.Command{
 	Short: "ewt aip size commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrintRStarPackageSize(directories); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -54,7 +54,7 @@ var rstarPrepPackagesCmd = &cobra.Command{
 	Short: "ewt aip prep packages commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrepareRStarPackages(); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -64,7 +64,7 @@ var rstarPrepPackagesLogCmd = &cobra.Command{
 	Short: "display rstar prep packages log command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.RSTAR_PREP_PACKAGES); err != nil {
-			fmt.Printf("  * errors detected: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -74,7 +74,7 @@ var rstarPrepSingleCmd = &cobra.Command{
 	Short: "ewt aip prep single package commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.PrepareSinglePackage(aipLoc); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -84,7 +84,7 @@ var rstarPrepSingleLogCmd = &cobra.Command{
 	Short: "display rstar prep single package log command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.RSTAR_PREP_PACKAGE); err != nil {
-			fmt.Printf("  * errors detected: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -94,7 +94,7 @@ var rstarValidateCmd = &cobra.Command{
 	Short: "ewt rstar validate command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ValidateRStarPackages(fullValidation); err != nil {
-			fmt.Println("  * Validation errors detected see rstar-validate log for details")
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -104,7 +104,7 @@ var rstarValidateLogCmd = &cobra.Command{
 	Short: "display rstar validate log command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.RSTAR_VALIDATE); err != nil {
-			fmt.Printf("  * errors detected: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -114,7 +114,7 @@ var rstarTransferCmd = &cobra.Command{
 	Short: "ewt rstar transfer command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferRStarPackages(); err != nil {
-			fmt.Printf("  * transfer errors detected: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -124,7 +124,7 @@ var rstarTransferLogCmd = &cobra.Command{
 	Short: "display rstar transfer log command",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.RSTAR_TRANSFER); err != nil {
-			fmt.Printf("  * errors detected: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -134,7 +134,7 @@ var rstarCleanCmd = &cobra.Command{
 	Short: "remove all content from aips directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.CleanAIPDirectory(); err != nil {
-			fmt.Printf("  * Error cleaning aips directory: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -150,7 +150,7 @@ var rstarAIPFileLogCmd = &cobra.Command{
 	Short: "ewt aipfile commands",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.AIP_FILE); err != nil {
-			fmt.Printf("  * Error reading aip-file: %v\n", err.Error())
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

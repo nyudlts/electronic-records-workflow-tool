@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/nyudlts/electronic-records-workflow-tool/lib"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +27,7 @@ var projectInitCmd = &cobra.Command{
 	Short: "Initialize a EWT project",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.InitProject(collectionCode, sourceLoc); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -35,7 +37,7 @@ var projectArchiveCmd = &cobra.Command{
 	Short: "Archive a EWT Project",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ArchiveProject(projectLoc); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

@@ -35,7 +35,7 @@ var (
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Printf("  * error encountered: %v\n", err)
 		os.Exit(1)
 	}
 }

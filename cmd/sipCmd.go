@@ -38,7 +38,7 @@ var sipSizeCmd = &cobra.Command{
 
 		//print the total size of source directory
 		if err := lib.PrintSIPPackageSize(directories); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -48,7 +48,7 @@ var sipValidateCmd = &cobra.Command{
 	Short: "validate a sip is ready for transfer to Archivematica",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ValidateSIP(); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -63,7 +63,7 @@ var sipScanAVCmd = &cobra.Command{
 	Use: "av",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ScanAV(); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -73,7 +73,7 @@ var sipScanCleanCmd = &cobra.Command{
 	Short: "remove .DS_Store and Thumbs.db files from SIP",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.CleanSip(); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -83,7 +83,7 @@ var sipScanCleanLogCmd = &cobra.Command{
 	Short: "Read log of removed .DS_Store and Thumbs.db files from SIP",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.SIP_SCAN_CLEAN); err != nil {
-			fmt.Printf("Error reading log: %v\n", err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -92,9 +92,7 @@ var sipScanCleanLogCmd = &cobra.Command{
 var sipGenCmd = &cobra.Command{
 	Use:   "gen",
 	Short: "sub command for generate commands",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("sip gen command executed")
-	},
+	Run:   func(cmd *cobra.Command, args []string) {},
 }
 
 var sipGenXferCmd = &cobra.Command{
@@ -102,7 +100,7 @@ var sipGenXferCmd = &cobra.Command{
 	Short: "generate a transfer-info.txt in SIP MD dir",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.GenerateTransferInfo(profile); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

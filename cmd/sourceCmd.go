@@ -25,7 +25,7 @@ var sourceXferCmd = &cobra.Command{
 	Short: "Transfer source files to the SIP directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferSource(); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -35,7 +35,7 @@ var sourceXferLogCmd = &cobra.Command{
 	Short: "View transfer log",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.SOURCE_TRANSFER); err != nil {
-			fmt.Printf("Error reading log: %v\n", err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }
@@ -47,7 +47,7 @@ var sourceSizeCmd = &cobra.Command{
 
 		//print the total size of source directory
 		if err := lib.PrintSourcePackageSize(directories); err != nil {
-			panic(err)
+			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},
 }

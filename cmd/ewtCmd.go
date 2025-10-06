@@ -1,19 +1,15 @@
 package cmd
 
 import (
-	"embed"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-//go:embed adoc-config.yml
-var vfs embed.FS
-
 var rootCmd = &cobra.Command{}
 
-const VERSION = "v1.1.0b.0"
+const VERSION = "v1.1.0-beta1.0"
 
 // common flags
 var (

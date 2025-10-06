@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,13 +30,13 @@ const VERSION = "v1.1.0-beta0"
 
 func loadConfig() error {
 	//read the adoc-config
-	b, err := os.ReadFile("config.yml")
+	b, err := os.ReadFile("config.json")
 	if err != nil {
 		return err
 	}
 
 	//unmarshal to config options
-	if err := yaml.Unmarshal(b, &config); err != nil {
+	if err := json.Unmarshal(b, &config); err != nil {
 		return err
 	}
 
@@ -100,16 +101,16 @@ func getTransferInfo() (TransferInfo, error) {
 
 // model definitions
 type Config struct {
-	SIPLoc           string `yaml:"sip-location"`
-	SourceLoc        string `yaml:"source-location"`
-	PartnerCode      string `yaml:"partner-code"`
-	CollectionCode   string `yaml:"collection-code"`
-	ProjectLoc       string `yaml:"project-location"`
-	LogLoc           string `yaml:"log-location"`
-	AIPLoc           string `yaml:"aip-location"`
-	AMTransferSource string `yaml:"archivematica-transfer-source"`
-	XferLoc          string `yaml:"xfer-location"`
-	AIPStoreLoc      string `yaml:"aipstore-location"`
+	SIPLoc           string `json:"sip-location"`
+	SourceLoc        string `json:"source-location"`
+	PartnerCode      string `json:"partner-code"`
+	CollectionCode   string `json:"collection-code"`
+	ProjectLoc       string `json:"project-location"`
+	LogLoc           string `json:"log-location"`
+	AIPLoc           string `json:"aip-location"`
+	AMTransferSource string `json:"archivematica-transfer-source"`
+	XferLoc          string `json:"xfer-location"`
+	AIPStoreLoc      string `json:"aipstore-location"`
 }
 
 type TransferInfo struct {

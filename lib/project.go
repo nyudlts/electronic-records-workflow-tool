@@ -4,17 +4,16 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
-//go:embed ewt-config.yml
+//go:embed ewt-config.json
 var vfs embed.FS
 
 var (
@@ -51,14 +50,14 @@ func generateConfig() error {
 	fmt.Println("  * generating ewt config")
 
 	//read the initial file
-	configBytes, err := vfs.ReadFile("ewt-config.yml")
+	configBytes, err := vfs.ReadFile("ewt-config.json")
 	if err != nil {
 		return err
 	}
 
 	//unmarshal to config options
 	config = Config{}
-	if err := yaml.Unmarshal(configBytes, &config); err != nil {
+	if err := json.Unmarshal(configBytes, &config); err != nil {
 		return err
 	}
 
@@ -128,13 +127,13 @@ func writeEWTConfig() error {
 	fmt.Println("  * writing ewt config to project directory")
 
 	//marshall the updated config
-	b, err := yaml.Marshal(config)
+	b, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
 
 	//write the config to the project directory
-	if err := os.WriteFile(filepath.Join(config.ProjectLoc, "config.yml"), b, 0755); err != nil {
+	if err := os.WriteFile(filepath.Join(config.ProjectLoc, "config.json"), b, 0755); err != nil {
 		return err
 	}
 

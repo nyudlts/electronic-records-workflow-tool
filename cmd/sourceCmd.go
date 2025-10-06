@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/nyudlts/electronic-records-workflow-tool/lib"
 	"github.com/spf13/cobra"
 )
@@ -8,6 +10,7 @@ import (
 func init() {
 	sourceSizeCmd.Flags().BoolVarP(&directories, "directory", "d", false, "Print size info for each directory")
 	sourceCmd.AddCommand(sourceSizeCmd)
+	sourceXferCmd.AddCommand(sourceXferLogCmd)
 	sourceCmd.AddCommand(sourceXferCmd)
 	rootCmd.AddCommand(sourceCmd)
 }
@@ -23,6 +26,16 @@ var sourceXferCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.TransferSource(); err != nil {
 			panic(err)
+		}
+	},
+}
+
+var sourceXferLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "View transfer log",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.SOURCE_TRANSFER); err != nil {
+			fmt.Printf("Error reading log: %v\n", err)
 		}
 	},
 }

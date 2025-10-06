@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 //go:embed ewt-config.json
@@ -127,7 +128,7 @@ func writeEWTConfig() error {
 	fmt.Println("  * writing ewt config to project directory")
 
 	//marshall the updated config
-	b, err := json.Marshal(config)
+	b, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -143,6 +144,11 @@ func writeEWTConfig() error {
 func ArchiveProject(pl string) error {
 	fmt.Println("ewt project archive, version", VERSION)
 	projectLoc = pl
+
+	//check that the project location contains a config file
+	if err := loadConfigPath(filepath.Join(pl, "config.json")); err != nil {
+		return fmt.Errorf("error loading config from project location: %v", err)
+	}
 
 	// Remove AIP Directory
 	fmt.Println("  * removing aips directory")
@@ -180,7 +186,8 @@ func createGzip() error {
 	}
 
 	//create the gzip file
-	gzipName := filepath.Join("completed", fmt.Sprintf("%s.tgz", projectLoc))
+	timestamp := time.Now().Format("20060102-150405")
+	gzipName := filepath.Join("completed", fmt.Sprintf("%s-%s.tgz", projectLoc, timestamp))
 	gzipFile, err := os.Create(gzipName)
 	if err != nil {
 		return err

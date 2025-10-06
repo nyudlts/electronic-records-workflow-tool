@@ -8,12 +8,14 @@ import (
 )
 
 func init() {
-	sipCmd.AddCommand(sipCleanCmd)
+
 	sipGenXferCmd.Flags().StringVarP(&profile, "profile", "p", "", "profile initials")
 	sipGenCmd.AddCommand(sipGenXferCmd)
 	sipCmd.AddCommand(sipGenCmd)
 	sipCmd.AddCommand(sipValidateCmd)
 	sipScanCmd.AddCommand(sipScanAVCmd)
+	sipScanCleanCmd.AddCommand(sipScanCleanLogCmd)
+	sipScanCmd.AddCommand(sipScanCleanCmd)
 	sipCmd.AddCommand(sipScanCmd)
 	sipSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	sipCmd.AddCommand(sipSizeCmd)
@@ -41,16 +43,6 @@ var sipSizeCmd = &cobra.Command{
 	},
 }
 
-var sipCleanCmd = &cobra.Command{
-	Use:   "clean",
-	Short: "remove .DS_Store and Thumbs.db files from SIP",
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.CleanSip(); err != nil {
-			panic(err)
-		}
-	},
-}
-
 var sipValidateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "validate a sip is ready for transfer to Archivematica",
@@ -72,6 +64,26 @@ var sipScanAVCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ScanAV(); err != nil {
 			panic(err)
+		}
+	},
+}
+
+var sipScanCleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "remove .DS_Store and Thumbs.db files from SIP",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.CleanSip(); err != nil {
+			panic(err)
+		}
+	},
+}
+
+var sipScanCleanLogCmd = &cobra.Command{
+	Use:   "log",
+	Short: "Read log of removed .DS_Store and Thumbs.db files from SIP",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ReadLog(lib.SIP_SCAN_CLEAN); err != nil {
+			fmt.Printf("Error reading log: %v\n", err)
 		}
 	},
 }

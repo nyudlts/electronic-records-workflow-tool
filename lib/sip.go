@@ -42,6 +42,15 @@ func CleanSip() error {
 	if err := loadConfig(); err != nil {
 		return err
 	}
+
+	//create a logger
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-scan-clean.log", config.CollectionCode)))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	deleteCount := 0
 	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
 
@@ -51,6 +60,7 @@ func CleanSip() error {
 					return err
 				}
 				fmt.Printf("  * deleted %s\n", path)
+				log.Printf("[INFO] deleted %s\n", path)
 				deleteCount++
 			}
 		}

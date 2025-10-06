@@ -26,11 +26,18 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.1.0-beta0"
+const VERSION = "v1.1.0-beta1"
 
 func loadConfig() error {
-	//read the adoc-config
-	b, err := os.ReadFile("config.json")
+	if err := loadConfigPath("config.json"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func loadConfigPath(configPath string) error {
+	//read the ewt-config
+	b, err := os.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
@@ -249,11 +256,13 @@ func (ti TransferInfo) Validate() error {
 type LogType int
 
 const (
-	RSTAR_TRANSFER LogType = iota
+	ASPACE_CHECK LogType = iota
+	RSTAR_TRANSFER
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
 	RSTAR_PREP_PACKAGE
-	ASPACE_CHECK
+	SIP_SCAN_CLEAN
+	SOURCE_TRANSFER
 )
 
 func ReadLog(logType LogType) error {
@@ -261,7 +270,10 @@ func ReadLog(logType LogType) error {
 		return err
 	}
 
-	if err := printLog(GetLog(logType)); err != nil {
+	fmt.Printf("ewt log reader, version %s\n", VERSION)
+	log := GetLog(logType)
+	fmt.Printf("  * reading %s\n", log)
+	if err := printLog(log); err != nil {
 		return err
 	}
 	return nil
@@ -270,6 +282,8 @@ func ReadLog(logType LogType) error {
 func GetLog(logType LogType) string {
 	var logPath string
 	switch logType {
+	case ASPACE_CHECK:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
 	case RSTAR_TRANSFER:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-transfer.txt"))
 	case RSTAR_VALIDATE:
@@ -278,8 +292,10 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
 	case RSTAR_PREP_PACKAGE:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
-	case ASPACE_CHECK:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
+	case SIP_SCAN_CLEAN:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-clean.log"))
+	case SOURCE_TRANSFER:
+		logPath = filepath.Join(config.LogLoc, "rsync", fmt.Sprintf("%s-%s", config.CollectionCode, "source-transfer-rsync.txt"))
 	}
 	return logPath
 }

@@ -26,9 +26,7 @@ func init() {
 var sipCmd = &cobra.Command{
 	Use:   "sip",
 	Short: "ewt sip commands",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("sip subcommand executed")
-	},
+	Run:   func(cmd *cobra.Command, args []string) {},
 }
 
 var sipSizeCmd = &cobra.Command{

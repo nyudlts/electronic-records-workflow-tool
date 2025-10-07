@@ -16,6 +16,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var okPattern = regexp.MustCompile(`OK$`)
+
 func PrintSIPPackageSize(directories bool) error {
 	fmt.Println("ewt sip size, version", VERSION)
 	if err := loadConfig(); err != nil {
@@ -298,35 +300,24 @@ func ValidateSIP() error {
 	}
 
 	//check that clamscan logs
-	fmt.Print("    8. checking clamscan.logs: ")
-	clamscanLogPtn := regexp.MustCompile("clamscan.log$")
-
-	//check there are no failed clamscan logs
-	mdFiles, err := os.ReadDir(mdDirLocation)
+	fmt.Print("    8. checking clamscan log for infected files: ")
+	avLogLocation := filepath.Join("logs", fmt.Sprintf("%s-sip-scan-av.log", config.CollectionCode))
+	f, err := os.Open(avLogLocation)
 	if err != nil {
-		log.Printf("[ERROR] cannot open metadata directory: %s\n", mdDirLocation)
-		fmt.Printf("cannot open metadata directory: %s\n", mdDirLocation)
+		fmt.Println("could not open clamscan log")
+		log.Println("[ERROR] could not open clamscan log")
 	} else {
-		failedClamScans := 0
-		for _, mdFile := range mdFiles {
-			if clamscanLogPtn.MatchString(mdFile.Name()) {
-				fileBytes, err := os.ReadFile(filepath.Join(mdDirLocation, mdFile.Name()))
-				if err != nil {
-					log.Printf("[ERROR] cannot read clamscan log: %s", mdFile.Name())
-					fmt.Printf("cannot read clamscan log: %s\n", mdFile.Name())
-				} else {
-					if !clamInfectedPtn.Match(fileBytes) {
-						failedClamScans++
-						log.Printf("[ERROR] clamscan %s contained infected files", mdFile.Name())
-					}
-				}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		infectedFiles := 0
+		for scanner.Scan() {
+			if !okPattern.MatchString(scanner.Text()) {
+				infectedFiles++
+				log.Println("[ERROR] found infected file:", scanner.Text())
 			}
 		}
-
-		log.Printf("[ERROR] check 8. SIP contained %d failed clamscan scans", failedClamScans)
-
-		if failedClamScans > 0 {
-			fmt.Println("ERROR")
+		if infectedFiles > 0 {
+			fmt.Printf("ERROR, contains %d infected files\n", infectedFiles)
 		} else {
 			fmt.Println("OK")
 		}
@@ -343,35 +334,32 @@ func ScanAV() error {
 		return err
 	}
 
-	directoryEntries, err := os.ReadDir(config.SIPLoc)
+	//create a logger and writer
+	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-scan-av.log", config.CollectionCode)))
 	if err != nil {
 		return err
 	}
+	defer logFile.Close()
+	writer := bufio.NewWriter(logFile)
+	defer writer.Flush()
 
-	for _, entry := range directoryEntries {
-		if entry.IsDir() && entry.Name() != "metadata" {
-			fmt.Printf("  * Scanning %s for viruses\n", entry.Name())
-			xfer := filepath.Join(config.SIPLoc, entry.Name())
-			//this needs to work with clamdscan
-			clamscanCmd := exec.Command("clamscan", "-r", xfer)
-
-			cmdOut, err := clamscanCmd.CombinedOutput()
+	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
+		if !info.IsDir() {
+			fmt.Println(" *  scanning", filepath.Join("sip", strings.ReplaceAll(path, config.SIPLoc, "")))
+			avCommand := exec.Command("clamdscan", "--no-summary", path)
+			avOut, err := avCommand.CombinedOutput()
 			if err != nil {
-				return err
+				return fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", path, err.Error())
 			}
-
-			logName := filepath.Join(config.SIPLoc, "metadata", fmt.Sprintf("%s_clamscan.log", entry.Name()))
-			if _, err := os.Create(logName); err != nil {
-				return err
-			}
-
-			if err := os.WriteFile(logName, cmdOut, 0644); err != nil {
-				return err
-			}
-
+			writer.Write(avOut)
 		}
+		return nil
+	}); err != nil {
+		return err
 	}
+
 	return nil
+
 }
 
 func woContains(s string, sl []string) bool {

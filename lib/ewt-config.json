@@ -1,4 +1,4 @@
 {
   "archivematica-transfer-source": "ADOC transfer source",
-  "aipstore-location": "X:\\AIPsStore"
+  "aipstore-location": "/mnt/amatica/AIPsStore"
 }

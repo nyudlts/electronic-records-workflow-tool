@@ -110,7 +110,7 @@ func transferDirectories() error {
 
 func transferPackage(xipPath string) error {
 
-	//fix this to work with windowa paths...
+	//fix this to work with windows paths...
 	//initialize the transfer
 	xipName := filepath.Base(xipPath)
 	fmt.Printf("\ninitializing transfer for %s\n", xipName)

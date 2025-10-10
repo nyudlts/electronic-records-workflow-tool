@@ -281,7 +281,7 @@ func ValidateSIP() error {
 		xferBytes, err := os.ReadFile(xferInfoLocation)
 		if err != nil {
 			fmt.Printf("could not read transfer-info.txt: %s\n", xferInfoLocation)
-			log.Printf("[ERROR]could not read transfer-info.txt: %s\n", xferInfoLocation)
+			log.Printf("[ERROR] could not read transfer-info.txt: %s\n", xferInfoLocation)
 		} else {
 			transferInfo := TransferInfo{}
 			if err := yaml.Unmarshal(xferBytes, &transferInfo); err != nil {

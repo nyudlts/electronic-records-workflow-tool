@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -45,31 +44,52 @@ func PrepareRStarPackages() error {
 		return err
 	}
 
-	//create a log file
-	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-rstar-prep-packages.log", config.CollectionCode)))
+	//open/create a log file
+	logFile, err := os.OpenFile(GetLog(RSTAR_PREP_PACKAGES), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		return err
 	}
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	//get the aip file
-	aipFileLoc := filepath.Join(config.LogLoc, fmt.Sprintf("%s-aip-file.txt", config.CollectionCode))
-	if _, err := os.Stat(aipFileLoc); err != nil {
-		log.Printf("[ERROR] aip file %s not found: %v", aipFileLoc, err)
-		return fmt.Errorf("aip file %s not found: %v", aipFileLoc, err)
+	//check aip_queue for files
+	aipFiles, err := os.ReadDir(filepath.Join(config.WorkLoc, "in"))
+	if err != nil {
+		return fmt.Errorf("reading aip queue failed: %v", err)
 	}
 
-	//open the aipFile
-	aipFile, err := os.Open(aipFileLoc)
-	if err != nil {
-		return err
+	if len(aipFiles) == 0 {
+		fmt.Println("  * no packages found to process")
+		log.Println("[INFO] no packages found to process")
+		return nil
 	}
-	defer aipFile.Close()
-	scanner := bufio.NewScanner(aipFile)
-	count := 0
-	for scanner.Scan() {
-		aipLocation := scanner.Text()
+
+	success := 0
+	failure := 0
+	for _, aipFile := range aipFiles {
+		aipPath := filepath.Join(config.WorkLoc, "in", aipFile.Name())
+		aipPathBytes, err := os.ReadFile(aipPath)
+		if err != nil {
+			fmt.Printf("  * reading aip file %s failed\n", aipFile.Name())
+			log.Printf("[ERROR] reading aip file %s failed: %v", aipFile.Name(), err)
+			failure++
+			if err := moveToFailed(aipPath); err != nil {
+				log.Printf("[ERROR] moving aip file %s to failed directory: %v", aipFile.Name(), err)
+			}
+			continue
+		}
+
+		aipLocation := strings.TrimSpace(string(aipPathBytes))
+		if aipLocation == "" {
+			fmt.Printf("  * aip file %s is empty\n", aipFile.Name())
+			log.Printf("[ERROR] aip file %s is empty", aipFile.Name())
+			failure++
+			if err := moveToFailed(aipPath); err != nil {
+				log.Printf("[ERROR] moving aip file %s to failed directory: %v", aipFile.Name(), err)
+			}
+			continue
+		}
+
 		if runtime.GOOS == "windows" {
 			aipLocation = strings.ReplaceAll(aipLocation, "/", "\\")
 			aipLocation = strings.Replace(aipLocation, "\\mnt\\amatica\\AIPsStore", config.AIPStoreLoc, 1)
@@ -77,24 +97,56 @@ func PrepareRStarPackages() error {
 
 		fi, err := os.Stat(aipLocation)
 		if err != nil {
-			log.Printf("[ERROR] aip package %s does not exist: %v", aipFileLoc, err)
-			return fmt.Errorf("aip package %s does not exist: %v", aipFileLoc, err)
+			fmt.Printf("  * aip package %s does not exist\n", aipLocation)
+			log.Printf("[ERROR] aip package %s does not exist: %v", aipLocation, err)
+			failure++
+			if err := moveToFailed(aipPath); err != nil {
+				log.Printf("[ERROR] moving aip file %s to failed directory: %v", aipFile.Name(), err)
+			}
+			continue
 		}
 
-		//new line if not the first package
-		if count > 0 {
-			fmt.Println()
-		}
-		count++
 		msg := fmt.Sprintf("  * processing %s", fi.Name())
 		fmt.Println(msg)
 		log.Println("[INFO]", msg)
 		if err := prepAmaticaAIP(aipLocation); err != nil {
+			fmt.Printf("  * preparing package %s failed\n", fi.Name())
 			log.Printf("[ERROR] preparing package %s failed: %v", fi.Name(), err)
-			return fmt.Errorf("preparing package %s failed: %v", fi.Name(), err)
+			failure++
+			if err := moveToFailed(aipPath); err != nil {
+				log.Printf("[ERROR] moving aip file %s to failed directory: %v", aipFile.Name(), err)
+			}
+			continue
 		}
+
+		if err := moveToComplete(aipPath); err != nil {
+			log.Printf("[ERROR] moving aip file %s to complete directory: %v", aipFile.Name(), err)
+		}
+		success++
 	}
-	fmt.Printf("\n  * rstar package prep complete, processed %d packages\n", count)
+
+	count := success + failure
+	fmt.Printf("\n  * rstar package prep complete, processed %d aip packages, %d failures\n", count, failure)
+	return nil
+}
+
+func moveToFailed(aipPath string) error {
+	failedDir := filepath.Join(config.WorkLoc, "failed")
+	filename := filepath.Base(aipPath)
+	failedPath := filepath.Join(failedDir, filename)
+	if err := os.Rename(aipPath, failedPath); err != nil {
+		return fmt.Errorf("Could not move file to failed directory: %v", err)
+	}
+	return nil
+}
+
+func moveToComplete(aipPath string) error {
+	completeDir := filepath.Join(config.WorkLoc, "complete")
+	filename := filepath.Base(aipPath)
+	completePath := filepath.Join(completeDir, filename)
+	if err := os.Rename(aipPath, completePath); err != nil {
+		return fmt.Errorf("Could not move file to complete directory: %v", err)
+	}
 	return nil
 }
 
@@ -141,7 +193,7 @@ func ValidateRStarPackages(fullValidation bool) error {
 	}
 
 	//create a log file
-	logFile, err := os.Create(fmt.Sprintf("logs/%s-rstar-validate.log", config.CollectionCode))
+	logFile, err := os.OpenFile(GetLog(RSTAR_VALIDATE), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		return err
 	}
@@ -150,7 +202,7 @@ func ValidateRStarPackages(fullValidation bool) error {
 	log.SetOutput(logFile)
 
 	//get aips to validate
-	aips, err := os.ReadDir(config.AIPLoc)
+	aips, err := os.ReadDir(filepath.Join(config.AIPLoc, "in"))
 	if err != nil {
 		return err
 	}
@@ -161,21 +213,32 @@ func ValidateRStarPackages(fullValidation bool) error {
 	}
 
 	//validate each aip
+	successCount := 0
+	failureCount := 0
 	for _, aip := range aips {
 		if aip.IsDir() {
 
-			erPath := filepath.Join(config.AIPLoc, aip.Name())
+			erPath := filepath.Join(config.AIPLoc, "in", aip.Name())
 			bag, err := bagit.GetExistingBag(erPath)
 			if err != nil {
-				return err
+				log.Printf("Could not open bag: %v", err)
+				failureCount++
+				if err := moveAIP(aip.Name(), "in", "failed"); err != nil {
+					log.Printf("[ERROR] moving aip %s to failed directory: %v", aip.Name(), err)
+				}
+				continue
+
 			}
 
 			if fullValidation {
 				fmt.Printf("  * validating %s\n", aip.Name())
 				log.Printf("[INFO] performing full validation on %s", aip.Name())
 				if err := bag.ValidateBag(false, false); err != nil {
-					log.Printf("[ERROR] full validation failed for %s: %v", aip.Name(), err)
-					return err
+					failureCount++
+					if err := moveAIP(aip.Name(), "in", "failed"); err != nil {
+						log.Printf("[ERROR] moving aip %s to failed directory: %v", aip.Name(), err)
+					}
+					continue
 				}
 				fmt.Printf("  * validation complete for %s\n", aip.Name())
 				log.Printf("[INFO] validation complete for %s", aip.Name())
@@ -184,13 +247,31 @@ func ValidateRStarPackages(fullValidation bool) error {
 				log.Printf("[INFO] performing fast validation on %s", aip.Name())
 				if err := bag.ValidateBag(true, false); err != nil {
 					log.Printf("[ERROR] fast validation failed for %s: %v", aip.Name(), err)
-					return err
+					failureCount++
+					if err := moveAIP(aip.Name(), "in", "failed"); err != nil {
+						log.Printf("[ERROR] moving aip %s to failed directory: %v", aip.Name(), err)
+					}
+					continue
 				}
-				fmt.Printf("  * validation complete for %s\n", aip.Name())
-				log.Printf("[INFO] validation complete for %s", aip.Name())
 			}
 
 		}
+		if err := moveAIP(aip.Name(), "in", "valid"); err != nil {
+			log.Printf("[ERROR] moving aip %s to valid directory: %v", aip.Name(), err)
+		}
+		fmt.Printf("  * validation complete for %s\n", aip.Name())
+		log.Printf("[INFO] validation complete for %s", aip.Name())
+		successCount++
+	}
+	fmt.Printf("  * rstar validation complete, %d successes, %d failures\n", successCount, failureCount)
+	return nil
+}
+
+func moveAIP(aipName string, sourceDir string, destDir string) error {
+	sourcePath := filepath.Join(config.AIPLoc, sourceDir, aipName)
+	destPath := filepath.Join(config.AIPLoc, destDir, aipName)
+	if err := os.Rename(sourcePath, destPath); err != nil {
+		return fmt.Errorf("Could not move file from %s to %s: %v", sourceDir, destDir, err)
 	}
 	return nil
 }
@@ -203,7 +284,7 @@ func TransferRStarPackages() error {
 	}
 
 	//read aip directory
-	aips, err := os.ReadDir(config.AIPLoc)
+	aips, err := os.ReadDir(filepath.Join(config.AIPLoc, "valid"))
 	if err != nil {
 		return err
 	}
@@ -213,35 +294,51 @@ func TransferRStarPackages() error {
 	}
 
 	//create the log file
-	xferLogFile := filepath.Join("logs", fmt.Sprintf("%s-rstar-transfer.txt", config.CollectionCode))
-	_, err = os.Create(xferLogFile)
+	xferLog, err := os.OpenFile(GetLog(RSTAR_TRANSFER), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		return err
 	}
+	defer xferLog.Close()
 
 	//transfer aips
+	failureCount := 0
+	successCount := 0
+
 	for _, aip := range aips {
 		fmt.Printf("  * transferring %s\n", aip.Name())
-		xferBag := filepath.Join(config.AIPLoc, aip.Name())
+		xferBag := filepath.Join(config.AIPLoc, "valid", aip.Name())
 		xferCmd := exec.Command("rstar-scp.exp", xferBag)
 		cmdOutput, err := xferCmd.CombinedOutput()
 		if err != nil {
-			return err
+			failureCount++
+			fmt.Printf("    * transfer of %s failed\n", aip.Name())
+			log.Printf("[ERROR] transfer of %s failed: %v", aip.Name(), err)
+			log.Printf("[ERROR] rstar-scp output: %s", string(cmdOutput))
+			if err := moveAIP(aip.Name(), "valid", "failed"); err != nil {
+				log.Printf("[ERROR] moving aip %s to failed directory: %v", aip.Name(), err)
+			}
+			continue
 		}
 		cmdOutput = append(cmdOutput, []byte("\n")...)
 
-		xferLog, err := os.OpenFile(xferLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0775)
-		if err != nil {
-			return err
-		}
-		defer xferLog.Close()
-
 		if _, err = xferLog.Write(cmdOutput); err != nil {
-			return err
+			failureCount++
+			fmt.Printf("    * writing rstar-scp output for %s failed\n", aip.Name())
+			log.Printf("[ERROR] writing rstar-scp output for %s failed: %v", aip.Name(), err)
+			if err := moveAIP(aip.Name(), "valid", "failed"); err != nil {
+				log.Printf("[ERROR] moving aip %s to failed directory: %v", aip.Name(), err)
+			}
+			continue
 		}
+
+		if err := moveAIP(aip.Name(), "valid", "complete"); err != nil {
+			log.Printf("[ERROR] moving aip %s to complete directory: %v", aip.Name(), err)
+			continue
+		}
+		successCount++
 	}
 
-	fmt.Println("  * rstar transfer complete")
+	fmt.Printf("  * rstar transfers complete, %d successes, %d failures\n", successCount, failureCount)
 
 	return nil
 }
@@ -278,7 +375,7 @@ func prepAmaticaAIP(amaticaAIPLocation string) error {
 	if err != nil {
 		return err
 	}
-	aipStageLoc := filepath.Join(config.AIPLoc, fi.Name())
+	aipStageLoc := filepath.Join(config.AIPLoc, "in", fi.Name())
 	msg := "copying package to aip directory"
 	fmt.Printf("    * %s\n", msg)
 	log.Printf("[INFO] %s + %s", msg, fi.Name())
@@ -291,7 +388,10 @@ func prepAmaticaAIP(amaticaAIPLocation string) error {
 			return err
 		}
 	} else {
-		cmd = exec.Command("rsync", "-rav", amaticaAIPLocation, config.AIPLoc)
+		if !strings.HasSuffix(amaticaAIPLocation, "/") {
+			amaticaAIPLocation = amaticaAIPLocation + "/"
+		}
+		cmd = exec.Command("rsync", "-rav", amaticaAIPLocation, aipStageLoc)
 		out, err = cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println()

@@ -7,6 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	envPtr    *string
+	configPtr *string
+)
+
 func init() {
 	aspaceCheckCmd.Flags().StringVarP(&aspaceEnv, "environment", "e", "", "")
 	aspaceCheckCmd.Flags().StringVarP(&aspaceConfig, "config", "c", "", "")
@@ -21,12 +26,10 @@ func init() {
 var aspaceCmd = &cobra.Command{
 	Use:   "aspace",
 	Short: "ewt ArchivesSpace commands",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Help())
+	},
 }
-
-var (
-	envPtr    *string
-	configPtr *string
-)
 
 var aspaceCheckCmd = &cobra.Command{
 	Use:   "check",

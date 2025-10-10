@@ -24,7 +24,7 @@ var (
 )
 
 func InitProject(cCode string, sLoc string) error {
-	fmt.Println("ewt project init, versions", VERSION)
+	fmt.Println("ewt project init, version", VERSION)
 
 	collectionCode = cCode
 	sourceLoc = sLoc
@@ -76,13 +76,24 @@ func generateConfig() error {
 	config.LogLoc = filepath.Join(config.ProjectLoc, "logs")
 	config.XferLoc = filepath.Join(config.ProjectLoc, "xfer")
 	config.SourceLoc, err = filepath.Abs(sourceLoc)
-	if runtime.GOOS == "linux" && !strings.HasSuffix(config.SourceLoc, "/") {
-		//rsync on linux needs the trailing slash to copy contents of directory
-		config.SourceLoc += "/"
+	switch runtime.GOOS {
+	case "linux":
+		{
+			if !strings.HasSuffix(config.SourceLoc, "/") {
+				//rsync on linux needs the trailing slash to copy contents of directory
+				config.SourceLoc += "/"
+			}
+		}
+	case "windows":
+		{
+			//ensure windows paths use backslashes
+			config.SourceLoc = filepath.Clean(config.SourceLoc)
+			if !strings.HasSuffix(config.SourceLoc, "\\") {
+				config.SourceLoc += "\\"
+			}
+		}
 	}
-	if err != nil {
-		return err
-	}
+	config.WorkLoc = filepath.Join(config.LogLoc, "aip_queue")
 
 	return nil
 }
@@ -95,8 +106,24 @@ func mkProjectDir() error {
 		return err
 	}
 
-	//create the aips directory
+	//create the aips directories
 	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "in"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "valid"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "complete"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "failed"), 0775); err != nil {
 		return err
 	}
 
@@ -107,6 +134,23 @@ func mkProjectDir() error {
 
 	//create the resync output directory
 	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "logs", "rsync"), 0775); err != nil {
+		return err
+	}
+
+	//create the aip_queue working directory
+	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "in"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "failure"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "success"), 0775); err != nil {
 		return err
 	}
 

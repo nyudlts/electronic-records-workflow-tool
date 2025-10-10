@@ -177,6 +177,12 @@ func transferPackage(xipPath string) error {
 	log.Printf("[INFO] %s written to aip-file", aipPath)
 	fmt.Printf("%s written to aip-file\n", aipPath)
 
+	//write file to work directory
+	workFile := filepath.Join(config.WorkLoc, filepath.Base(aipPath)+".txt")
+	if err := os.WriteFile(workFile, []byte(aipPath), 0755); err != nil {
+		return fmt.Errorf("could not write aip to workfile directory")
+	}
+
 	//done
 	return nil
 }

@@ -18,6 +18,9 @@ func init() {
 var sourceCmd = &cobra.Command{
 	Use:   "source",
 	Short: "ewt source commands",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Help())
+	},
 }
 
 var sourceXferCmd = &cobra.Command{
@@ -44,7 +47,6 @@ var sourceSizeCmd = &cobra.Command{
 	Use:   "size",
 	Short: "Get size of source directory",
 	Run: func(cmd *cobra.Command, args []string) {
-
 		//print the total size of source directory
 		if err := lib.PrintSourcePackageSize(directories); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)

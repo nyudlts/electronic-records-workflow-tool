@@ -19,7 +19,9 @@ func init() {
 var projectCmd = &cobra.Command{
 	Use:   "project",
 	Short: "ewt project commands",
-	Run:   func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Help())
+	},
 }
 
 var projectInitCmd = &cobra.Command{

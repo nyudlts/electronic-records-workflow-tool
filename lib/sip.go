@@ -345,8 +345,8 @@ func ScanAV() error {
 
 	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() {
-			fmt.Println(" *  scanning", filepath.Join("sip", strings.ReplaceAll(path, config.SIPLoc, "")))
-			avCommand := exec.Command("clamdscan", "--no-summary", path)
+			fmt.Println(" *  scanning", filepath.Join("sip", strings.ReplaceAll(path, config.SIPLoc, ""))) //get the directory name
+			avCommand := exec.Command("clamdscan", "--fdpass", "--no-summary", path)                       // set the quarantine location in the config
 			avOut, err := avCommand.CombinedOutput()
 			if err != nil {
 				return fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", path, err.Error())

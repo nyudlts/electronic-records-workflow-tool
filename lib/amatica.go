@@ -65,23 +65,36 @@ func AmaticaClear(transfers bool, ingests bool) error {
 		return err
 	}
 
+	logFileName := GetLog(AMATICA_CLEAR)
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		return fmt.Errorf("error creating log file %s: %v", logFileName, err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	if transfers {
 		fmt.Println("  * clearing completed transfers")
+		log.Println("[INFO] clearing completed transfers")
 		completedTransfers, err := client.GetCompletedTransfers()
 		if err != nil {
+			log.Printf("[ERROR] error getting completed transfers: %v", err)
 			return err
 		}
 
 		completedTransfersMap, err := client.GetCompletedTransfersMap(completedTransfers)
 		if err != nil {
+			log.Printf("[ERROR] error creating completed transfers map: %v", err)
 			return err
 		}
 
 		for k, v := range completedTransfersMap {
 			fmt.Printf("clearing %s: %s\n", k, v.Name)
 			if err := client.DeleteTransfer(v.UUID); err != nil {
+				log.Printf("[ERROR] error deleting transfer %s: %v", v.Name, err)
 				return err
 			}
+			log.Println("[INFO] deleted transfer " + v.Name)
 			fmt.Printf("%s: %s cleared\n", k, v.Name)
 		}
 	}
@@ -355,21 +368,6 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		_, err := copyFile(ftkCSVLocation, ftkCSVTarget)
 		if err != nil {
 			return (err)
-		}
-	}
-
-	//check for and copy Clamscan logs
-	clamscanLog := fmt.Sprintf("%s_clamscan.log", erID)
-	clamscanLogLocation := filepath.Join(params.Source, "metadata", clamscanLog)
-	_, err = os.Stat(clamscanLogLocation)
-	if err != nil {
-		log.Printf("[INFO] WORKER %d no clamscan log in metadata directory in %s", workerId, erID)
-	} else {
-		log.Printf("[INFO] WORKER %d copying clamscan log to metadata directory in %s", workerId, erID)
-		clamscanLogTarget := filepath.Join(ERMDDirLoc, clamscanLog)
-		_, err := copyFile(clamscanLogLocation, clamscanLogTarget)
-		if err != nil {
-			return err
 		}
 	}
 

@@ -9,8 +9,6 @@ import (
 
 var rootCmd = &cobra.Command{}
 
-const VERSION = "v1.1.0-beta1.0"
-
 // common flags
 var (
 	aipLoc           string

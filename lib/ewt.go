@@ -26,7 +26,7 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.1.0-beta1"
+const VERSION = "v1.1.0"
 
 func loadConfig() error {
 	if err := loadConfigPath("config.json"); err != nil {
@@ -118,6 +118,7 @@ type Config struct {
 	AMTransferSource string `json:"archivematica-transfer-source"`
 	XferLoc          string `json:"xfer-location"`
 	AIPStoreLoc      string `json:"aipstore-location"`
+	WorkLoc          string `json:"work-location"`
 }
 
 type TransferInfo struct {
@@ -257,14 +258,52 @@ type LogType int
 
 const (
 	AIP_FILE LogType = iota
+	AMATICA_CLEAR
+	AMATICA_PREP
+	AMATICA_TRANSFER
 	ASPACE_CHECK
 	RSTAR_TRANSFER
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
 	RSTAR_PREP_PACKAGE
 	SIP_SCAN_CLEAN
+	SIP_SCAN_AV
 	SOURCE_TRANSFER
+	SIP_VALIDATE
 )
+
+func GetLog(logType LogType) string {
+	var logPath string
+	switch logType {
+	case AIP_FILE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aip-file.txt"))
+	case AMATICA_CLEAR:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "amatica-clear.log"))
+	case AMATICA_PREP:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "amatica-prep.log"))
+	case AMATICA_TRANSFER:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "amatica-transfer.log"))
+	case ASPACE_CHECK:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
+	case RSTAR_TRANSFER:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-transfer.txt"))
+	case RSTAR_VALIDATE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-validate.log"))
+	case RSTAR_PREP_PACKAGES:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
+	case RSTAR_PREP_PACKAGE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
+	case SIP_SCAN_CLEAN:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-clean.log"))
+	case SIP_SCAN_AV:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-av.log"))
+	case SIP_VALIDATE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-validate.log"))
+	case SOURCE_TRANSFER:
+		logPath = filepath.Join(config.LogLoc, "rsync", fmt.Sprintf("%s-%s", config.CollectionCode, "source-transfer-rsync.txt"))
+	}
+	return logPath
+}
 
 func ReadLog(logType LogType) error {
 	if err := loadConfig(); err != nil {
@@ -280,29 +319,6 @@ func ReadLog(logType LogType) error {
 		return err
 	}
 	return nil
-}
-
-func GetLog(logType LogType) string {
-	var logPath string
-	switch logType {
-	case AIP_FILE:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aip-file.txt"))
-	case ASPACE_CHECK:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
-	case RSTAR_TRANSFER:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-transfer.txt"))
-	case RSTAR_VALIDATE:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-validate.log"))
-	case RSTAR_PREP_PACKAGES:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
-	case RSTAR_PREP_PACKAGE:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
-	case SIP_SCAN_CLEAN:
-		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-clean.log"))
-	case SOURCE_TRANSFER:
-		logPath = filepath.Join(config.LogLoc, "rsync", fmt.Sprintf("%s-%s", config.CollectionCode, "source-transfer-rsync.txt"))
-	}
-	return logPath
 }
 
 func printLog(logPath string) error {

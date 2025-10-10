@@ -30,7 +30,7 @@ var rstarCmd = &cobra.Command{
 	Use:   "rstar",
 	Short: "ewt aip commands",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		fmt.Println(cmd.Help())
 	},
 }
 
@@ -47,6 +47,9 @@ var rstarSizeCmd = &cobra.Command{
 var rstarPrepCmd = &cobra.Command{
 	Use:   "prep",
 	Short: "ewt aip prep commands",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Help())
+	},
 }
 
 var rstarPrepPackagesCmd = &cobra.Command{
@@ -142,7 +145,9 @@ var rstarCleanCmd = &cobra.Command{
 var rstarAIPFileCmd = &cobra.Command{
 	Use:   "aipfile",
 	Short: "ewt aipfile commands",
-	Run:   func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(cmd.Help())
+	},
 }
 
 var rstarAIPFileLogCmd = &cobra.Command{

@@ -199,7 +199,7 @@ func ValidateSIP() error {
 			log.Printf("[ERROR] work order %s is not valid: %s\n", mdDirLocation, err.Error())
 		} else {
 			fmt.Println("OK")
-			log.Printf("[INFO] check 3. %s contains a valid worker order \n", mdDirLocation)
+			log.Printf("[INFO] check 3. %s contains a valid work order \n", mdDirLocation)
 		}
 	}
 

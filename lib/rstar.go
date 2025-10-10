@@ -135,7 +135,7 @@ func moveToFailed(aipPath string) error {
 	filename := filepath.Base(aipPath)
 	failedPath := filepath.Join(failedDir, filename)
 	if err := os.Rename(aipPath, failedPath); err != nil {
-		return fmt.Errorf("Could not move file to failed directory: %v", err)
+		return fmt.Errorf("could not move file to failed directory: %v", err)
 	}
 	return nil
 }

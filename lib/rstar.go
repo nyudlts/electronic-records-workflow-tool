@@ -145,7 +145,7 @@ func moveToComplete(aipPath string) error {
 	filename := filepath.Base(aipPath)
 	completePath := filepath.Join(completeDir, filename)
 	if err := os.Rename(aipPath, completePath); err != nil {
-		return fmt.Errorf("Could not move file to complete directory: %v", err)
+		return fmt.Errorf("could not move file to complete directory: %v", err)
 	}
 	return nil
 }

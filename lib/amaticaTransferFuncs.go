@@ -1,85 +1,35 @@
-package cmd
+package lib
 
 import (
 	"bufio"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
+	"strings"
 	"time"
 
 	amatica "github.com/nyudlts/go-archivematica"
-	"github.com/spf13/cobra"
 )
 
 const timeFormat = "2006-01-02 15:04:05"
 
 var (
-	poll         time.Duration
-	client       *amatica.AMClient
-	xferDirs     []fs.DirEntry
-	aipWriter    *bufio.Writer
-	amLocation   amatica.Location
-	locationName string
+	locationName     string
+	polltime         int
+	poll             time.Duration
+	client           *amatica.AMClient
+	amaticaConfigLoc string
+	xferDirs         []os.DirEntry
+	aipWriter        *bufio.Writer
+	amLocation       amatica.Location
 )
 
-func init() {
-	xferAmaticaCmd.Flags().StringVar(&amaticaConfigLoc, "config", "", "if not set will default to `/home/'username'/.config/go-archivematica.yml")
-	xferAmaticaCmd.Flags().IntVar(&pollTime, "poll", 15, "polling time, in seconds, between calls to Archivematica api to check status")
-	amaticaCmd.AddCommand(xferAmaticaCmd)
-}
-
-var xferAmaticaCmd = &cobra.Command{
-	Use:   "transfer",
-	Short: "Transfer SIPs in XFER directory to Archivematica",
-	Run: func(cmd *cobra.Command, args []string) {
-
-		//load the project config
-		if err := loadProjectConfig(); err != nil {
-			panic(err)
-		}
-
-		//check program flags
-		fmt.Println("checking program flags")
-		if err := checkFlags(); err != nil {
-			panic(err)
-		}
-
-		//create a log file
-		fmt.Println("creating log File")
-		logFilename := filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%s-amatica-transfer.log", adocConfig.CollectionCode))
-
-		logFile, err := os.Create(logFilename)
-		if err != nil {
-			panic(err)
-		}
-		defer logFile.Close()
-		log.SetOutput(logFile)
-
-		//create the aip-file
-		fmt.Printf("creating %s-aip-file.txt\n", adocConfig.CollectionCode)
-		log.Printf("[INFO] creating %s-aip-file.txt", adocConfig.CollectionCode)
-		of, err := os.Create(filepath.Join(adocConfig.LogLoc, fmt.Sprintf("%s-aip-file.txt", adocConfig.CollectionCode)))
-		if err != nil {
-			panic(err)
-		}
-		defer of.Close()
-		aipWriter = bufio.NewWriter(of)
-
-		if err := setup(); err != nil {
-			panic(err)
-		}
-
-		if err := xferDirectories(); err != nil {
-			panic(err)
-		}
-	},
-}
-
 func checkFlags() error {
+
 	//check config exists
 	if amaticaConfigLoc != "" {
 		fi, err := os.Stat(amaticaConfigLoc)
@@ -90,48 +40,37 @@ func checkFlags() error {
 			return fmt.Errorf("%s is a directory, config file required", amaticaConfigLoc)
 		}
 	} else {
-
 		currentUser, err := user.Current()
 		if err != nil {
 			return (err)
 		}
 
-		configPath := fmt.Sprintf("/home/%s/.config/go-archivematica.yml", currentUser.Username)
-		cf, err := os.Stat(configPath)
+		if runtime.GOOS == "windows" {
+			cu := strings.Split(currentUser.Username, "\\")[1]
+			amaticaConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-archivematica.yml", cu)
+		} else {
+			amaticaConfigLoc = fmt.Sprintf("/home/%s/.config/go-archivematica.yml", currentUser.Username)
+		}
+
+		client, err = amatica.NewAMClient(amaticaConfigLoc, 20)
 		if err != nil {
 			return err
 		}
-
-		if cf.IsDir() {
-			return fmt.Errorf("%s is a directory, config file required", configPath)
-		}
-
-		amaticaConfigLoc = configPath
-	}
-
-	//check transfer directory exists
-	fi, err := os.Stat("xfer")
-	if err != nil {
-		return err
-	}
-
-	if !fi.IsDir() {
-		return fmt.Errorf("%s is not a directory", filepath.Join(adocConfig.ProjectLoc, "xfer"))
 	}
 
 	return nil
 }
 
-func setup() error {
+func setupClient() error {
 	// set the transfer location
-	locationName = adocConfig.AMTransferSource
+	locationName = config.AMTransferSource
 
 	//set the poll time
-	fmt.Printf("setting polling time to %d seconds\n", pollTime)
-	log.Printf("[INFO] setting polling time to %d seconds", pollTime)
-	poll = time.Duration(pollTime * int(time.Second))
+	fmt.Printf("  * setting polling time to %d seconds\n", polltime)
+	log.Printf("[INFO] setting polling time to %d seconds", polltime)
+	poll = time.Duration(polltime * int(time.Second))
 	//create a client
-	fmt.Println("creating go-archivematica client")
+	fmt.Println("  * creating go-archivematica client")
 	log.Println("[INFO] creating go-archivematica client")
 	var err error
 	client, err = amatica.NewAMClient(amaticaConfigLoc, 20)
@@ -140,7 +79,7 @@ func setup() error {
 	}
 
 	//process the directory
-	fmt.Printf("reading source directory: %s\n", "xfer/")
+	fmt.Printf("  * reading source directory: %s\n", "xfer/")
 	log.Printf("[INFO] reading source directory: %s", "xfer/")
 	xferDirs, err = os.ReadDir("xfer")
 	if err != nil {
@@ -154,12 +93,12 @@ func setup() error {
 	return nil
 }
 
-func xferDirectories() error {
+func transferDirectories() error {
 	fmt.Printf("transferring packages from %s\n", "xfer/")
 	log.Printf("[INFO] transferring packages from %s", "xfer")
 
 	for _, xferDir := range xferDirs {
-		xipPath := filepath.Join(adocConfig.CollectionCode, "xfer", xferDir.Name())
+		xipPath := filepath.Join(config.CollectionCode, "xfer", xferDir.Name())
 		if err := transferPackage(xipPath); err != nil {
 			//log the err instead
 			return err
@@ -171,6 +110,7 @@ func xferDirectories() error {
 
 func transferPackage(xipPath string) error {
 
+	//fix this to work with windows paths...
 	//initialize the transfer
 	xipName := filepath.Base(xipPath)
 	fmt.Printf("\ninitializing transfer for %s\n", xipName)
@@ -236,6 +176,12 @@ func transferPackage(xipPath string) error {
 	aipWriter.Flush()
 	log.Printf("[INFO] %s written to aip-file", aipPath)
 	fmt.Printf("%s written to aip-file\n", aipPath)
+
+	//write file to work directory
+	workFile := filepath.Join(config.WorkLoc, "in", filepath.Base(aipPath)+".txt")
+	if err := os.WriteFile(workFile, []byte(aipPath), 0755); err != nil {
+		return fmt.Errorf("could not write aip to workfile directory: %w", err)
+	}
 
 	//done
 	return nil
@@ -306,27 +252,6 @@ func approveTransfer(xferUUID string) (amatica.TransferStatus, error) {
 	}
 
 	return approvedTransfer, nil
-}
-
-func findUnapprovedTransfer(uuid string) (bool, error) {
-	unapprovedTransfers, err := client.GetUnapprovedTransfers()
-	if err != nil {
-		return false, err
-	}
-
-	unapprovedTransfersMap, err := client.GetUnapprovedTransfersMap(unapprovedTransfers)
-	if err != nil {
-		return false, err
-	}
-
-	//find the unapproved transfer
-	for k := range unapprovedTransfersMap {
-		if k == uuid {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }
 
 func transferProcessing(xferUUID string) (amatica.TransferStatus, error) {
@@ -400,4 +325,25 @@ func ingestProcessing(ingestUUID string) (amatica.IngestStatus, error) {
 
 	return ingestStatus, nil
 
+}
+
+func findUnapprovedTransfer(uuid string) (bool, error) {
+	unapprovedTransfers, err := client.GetUnapprovedTransfers()
+	if err != nil {
+		return false, err
+	}
+
+	unapprovedTransfersMap, err := client.GetUnapprovedTransfersMap(unapprovedTransfers)
+	if err != nil {
+		return false, err
+	}
+
+	//find the unapproved transfer
+	for k := range unapprovedTransfersMap {
+		if k == uuid {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

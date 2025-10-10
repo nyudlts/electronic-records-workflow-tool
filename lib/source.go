@@ -29,15 +29,21 @@ func TransferSource() error {
 
 	fmt.Printf("  * Transferring %s to sip directory\n", config.SourceLoc)
 	var cmd *exec.Cmd
+	var b []byte
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("robocopy", config.SourceLoc, config.SIPLoc, "/E", "/DCOPY:DAT")
+		b, err = cmd.CombinedOutput()
+		if err != nil && err.Error() != "exit status 1" {
+			return err
+		}
 	} else {
-		cmd = exec.Command("rsync", "-rav", config.SourceLoc, config.SIPLoc)
-	}
 
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil
+		cmd = exec.Command("rsync", "-rav", config.SourceLoc, config.SIPLoc)
+
+		b, err = cmd.CombinedOutput()
+		if err != nil {
+			return err
+		}
 	}
 
 	if _, err := writer.Write(b); err != nil {
@@ -55,7 +61,7 @@ func TransferSource() error {
 		if err := os.Mkdir(mdDirLoc, 0755); err != nil {
 			return err
 		}
-		fmt.Printf("  * created metadata directory in %s", config.SIPLoc)
+		fmt.Printf("  * created metadata directory in %s\n", config.SIPLoc)
 	}
 
 	fmt.Println("  * Transfer complete")

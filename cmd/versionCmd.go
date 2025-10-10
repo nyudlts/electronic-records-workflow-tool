@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/nyudlts/electronic-records-workflow-tool/lib"
 	"github.com/spf13/cobra"
 )
 
@@ -14,6 +15,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "print the version of ewt",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("ewt %s\n", VERSION)
+		fmt.Printf("ewt %s\n", lib.VERSION)
 	},
 }

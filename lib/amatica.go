@@ -1,16 +1,20 @@
 package lib
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
+	amatica "github.com/nyudlts/go-archivematica"
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
 )
@@ -34,6 +38,85 @@ func PrintXferPackageSize(directories bool) error {
 	if directories {
 		if err := printDirectoryStats(config.XferLoc); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func AmaticaClear(transfers bool, ingests bool) error {
+	fmt.Println("ewt amatica clear, version", VERSION)
+
+	currentUser, err := user.Current()
+	if err != nil {
+		return (err)
+	}
+
+	var amaticaConfigLoc string
+	if runtime.GOOS == "windows" {
+		cu := strings.Split(currentUser.Username, "\\")[1]
+		amaticaConfigLoc = fmt.Sprintf("C:\\Users\\%s\\.config\\go-archivematica.yml", cu)
+	} else {
+		amaticaConfigLoc = fmt.Sprintf("/home/%s/.config/go-archivematica.yml", currentUser.Username)
+	}
+
+	client, err := amatica.NewAMClient(amaticaConfigLoc, 20)
+	if err != nil {
+		return err
+	}
+
+	logFileName := GetLog(AMATICA_CLEAR)
+	logFile, err := os.Create(logFileName)
+	if err != nil {
+		return fmt.Errorf("error creating log file %s: %v", logFileName, err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	if transfers {
+		fmt.Println("  * clearing completed transfers")
+		log.Println("[INFO] clearing completed transfers")
+		completedTransfers, err := client.GetCompletedTransfers()
+		if err != nil {
+			log.Printf("[ERROR] error getting completed transfers: %v", err)
+			return err
+		}
+
+		completedTransfersMap, err := client.GetCompletedTransfersMap(completedTransfers)
+		if err != nil {
+			log.Printf("[ERROR] error creating completed transfers map: %v", err)
+			return err
+		}
+
+		for k, v := range completedTransfersMap {
+			fmt.Printf("clearing %s: %s\n", k, v.Name)
+			if err := client.DeleteTransfer(v.UUID); err != nil {
+				log.Printf("[ERROR] error deleting transfer %s: %v", v.Name, err)
+				return err
+			}
+			log.Println("[INFO] deleted transfer " + v.Name)
+			fmt.Printf("%s: %s cleared\n", k, v.Name)
+		}
+	}
+
+	if ingests {
+		fmt.Println("  * clearing completed ingests")
+		completedIngests, err := client.GetCompletedIngests()
+		if err != nil {
+			return err
+		}
+
+		completedIngestsMap, err := client.GetCompletedIngestsMap(completedIngests)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range completedIngestsMap {
+			fmt.Printf("clearing %s: %s\n", k, v.Name)
+			if err := client.DeleteIngest(v.UUID); err != nil {
+				return err
+			}
+			fmt.Printf("%s: %s cleared\n", k, v.Name)
 		}
 	}
 
@@ -81,6 +164,13 @@ func PrepAmatica(nWorkers int) error {
 
 	params.TransferInfo = transferInfo
 
+	logFile, err := os.Create(filepath.Join(config.LogLoc, fmt.Sprintf("%s-amatica-prep.log", params.ResourceCode)))
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	log.Println("[INFO] creating Transfer packages")
 	results, err := processWorkOrderRows()
 	if err != nil {
@@ -89,7 +179,7 @@ func PrepAmatica(nWorkers int) error {
 
 	//create an output log
 	log.Println("[INFO] creating output report")
-	outputTSVfilename := fmt.Sprintf("%s-xip-prep.tsv", params.ResourceCode)
+	outputTSVfilename := fmt.Sprintf("%s-amatica-prep.tsv", params.ResourceCode)
 	outputFile, err := os.Create(filepath.Join(config.LogLoc, outputTSVfilename))
 	if err != nil {
 		return err
@@ -103,10 +193,57 @@ func PrepAmatica(nWorkers int) error {
 	}
 	writer.Flush()
 
-	log.Printf("[INFO] adoc-stage complete for %s_%s", params.PartnerCode, params.ResourceCode)
+	log.Printf("[INFO] ewt xfer prep completed for %s_%s", params.PartnerCode, params.ResourceCode)
 
 	return nil
 
+}
+
+func TransferToArchivematica(p int, configLoc string) error {
+	polltime = p
+	amaticaConfigLoc = configLoc
+	fmt.Println("ewt amatica transfer, version", VERSION)
+	//load configuration file
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//move this to a func
+	//create a log file
+	logFilename := filepath.Join(config.LogLoc, fmt.Sprintf("%s-amatica-transfer.log", config.CollectionCode))
+
+	logFile, err := os.Create(logFilename)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	//create the aip-file and writer
+	fmt.Printf("  * creating %s-aip-file.txt\n", config.CollectionCode)
+	log.Printf("[INFO] creating %s-aip-file.txt", config.CollectionCode)
+	of, err := os.Create(filepath.Join(config.LogLoc, fmt.Sprintf("%s-aip-file.txt", config.CollectionCode)))
+	if err != nil {
+		panic(err)
+	}
+	defer of.Close()
+	aipWriter = bufio.NewWriter(of)
+
+	//check flags
+	if err := checkFlags(); err != nil {
+		return err
+	}
+
+	//setup client
+	if err := setupClient(); err != nil {
+		return err
+	}
+
+	if err := transferDirectories(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func processWorkOrderRows() ([][]string, error) {
@@ -234,24 +371,6 @@ func createERPackage(row aspace.WorkOrderRow, workerId int) error {
 		}
 	}
 
-	//check for and copy Clamscan logs
-	clamscanLog := fmt.Sprintf("%s_clamscan.log", erID)
-	clamscanLogLocation := filepath.Join(params.Source, "metadata", clamscanLog)
-	_, err = os.Stat(clamscanLogLocation)
-	if err != nil {
-		log.Printf("[INFO] WORKER %d no clamscan log in metadata directory in %s", workerId, erID)
-	} else {
-		if !checkClamscanLog(clamscanLogLocation) {
-			return fmt.Errorf("clamscan.txt contained infected files")
-		}
-		log.Printf("[INFO] WORKER %d copying clamscan log to metadata directory in %s", workerId, erID)
-		clamscanLogTarget := filepath.Join(ERMDDirLoc, clamscanLog)
-		_, err := copyFile(clamscanLogLocation, clamscanLogTarget)
-		if err != nil {
-			return err
-		}
-	}
-
 	log.Printf("[INFO] WORKER %d moving payload %s to xfer dir", workerId, erID)
 	// move the payload directory to to er directory
 	payloadSource := filepath.Join(config.SIPLoc, erID)
@@ -293,6 +412,7 @@ func copyFile(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
+// move to go-aspace lib
 func getStringArray(row aspace.WorkOrderRow) []string {
 	return []string{row.GetResourceID(), row.GetRefID(), row.GetURI(), row.GetContainerIndicator1(), row.GetContainerIndicator2(), row.GetContainerIndicator3(), row.GetTitle(), row.GetComponentID()}
 }
@@ -302,17 +422,4 @@ func createDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
 	dc.Title = row.GetTitle()
 	return dc
-}
-
-func checkClamscanLog(logPath string) bool {
-	logBytes, err := os.ReadFile(logPath)
-	if err != nil {
-		panic(err)
-	}
-
-	if infectedFilesPtn.Match(logBytes) {
-		return true
-	}
-
-	return false
 }

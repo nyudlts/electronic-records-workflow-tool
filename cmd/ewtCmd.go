@@ -16,6 +16,7 @@ var (
 	aspaceEnv        string
 	aspaceConfig     string
 	directories      bool
+	ewtConfig        string
 	ingests          bool
 	transfers        bool
 	sourceLoc        string

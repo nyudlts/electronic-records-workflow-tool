@@ -3,28 +3,38 @@ package lib
 import (
 	"archive/tar"
 	"compress/gzip"
-	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 )
 
-//go:embed ewt-config.json
-var vfs embed.FS
-
 var (
 	collectionCode string
 	sourceLoc      string
 	projectLoc     string
+	configLoc      string
 )
 
-func InitProject(cCode string, sLoc string) error {
+func InitProject(cCode string, sLoc string, config string) error {
 	fmt.Println("ewt project init, version", VERSION)
+
+	//determine config location
+	if config == "" {
+		user, err := user.Current()
+		if err != nil {
+			panic(fmt.Sprintf("Error getting current user: %v", err))
+		}
+
+		configLoc = filepath.Join(user.HomeDir, ".config", "ewt.config")
+	} else {
+		configLoc = config
+	}
 
 	collectionCode = cCode
 	sourceLoc = sLoc
@@ -51,7 +61,7 @@ func generateConfig() error {
 	fmt.Println("  * generating ewt config")
 
 	//read the initial file
-	configBytes, err := vfs.ReadFile("ewt-config.json")
+	configBytes, err := os.ReadFile(configLoc)
 	if err != nil {
 		return err
 	}

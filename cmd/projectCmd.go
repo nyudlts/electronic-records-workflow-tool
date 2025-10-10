@@ -10,6 +10,9 @@ import (
 func init() {
 	projectInitCmd.Flags().StringVarP(&collectionCode, "collection-code", "c", "", "the collection code to use for adoc")
 	projectInitCmd.Flags().StringVarP(&sourceLoc, "source-location", "s", "", "the source location for the collection")
+	projectInitCmd.Flags().StringVarP(&ewtConfig, "config", "j", "", "location of ewt config file (defaults to $HOME/.config/ewt.config)")
+	projectInitCmd.MarkFlagRequired("collection-code")
+	projectInitCmd.MarkFlagRequired("source-location")
 	projectCmd.AddCommand(projectInitCmd)
 	projectArchiveCmd.Flags().StringVarP(&projectLoc, "project-location", "p", "", "Project name")
 	projectCmd.AddCommand(projectArchiveCmd)
@@ -28,7 +31,7 @@ var projectInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a EWT project",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.InitProject(collectionCode, sourceLoc); err != nil {
+		if err := lib.InitProject(collectionCode, sourceLoc, ewtConfig); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

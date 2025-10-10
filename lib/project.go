@@ -30,7 +30,10 @@ func InitProject(cCode string, sLoc string, config string) error {
 		if err != nil {
 			panic(fmt.Sprintf("Error getting current user: %v", err))
 		}
-
+		if runtime.GOOS == "windows" {
+			hd := os.Getenv("USERPROFILE")
+			configLoc = filepath.Join(hd, ".config", "ewt.config")
+		}
 		configLoc = filepath.Join(user.HomeDir, ".config", "ewt.config")
 	} else {
 		configLoc = config

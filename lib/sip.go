@@ -276,7 +276,7 @@ func ValidateSIP() error {
 	_, err = os.Stat(xferInfoLocation)
 	if err != nil {
 		fmt.Println("transfer-info.txt does not exist in metadata directory")
-		log.Println("[ERROR] transfer-info,txt does not exist in metadata directory")
+		log.Println("[ERROR] transfer-info.txt does not exist in metadata directory")
 	} else {
 		xferBytes, err := os.ReadFile(xferInfoLocation)
 		if err != nil {

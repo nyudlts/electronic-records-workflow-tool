@@ -271,7 +271,7 @@ func moveAIP(aipName string, sourceDir string, destDir string) error {
 	sourcePath := filepath.Join(config.AIPLoc, sourceDir, aipName)
 	destPath := filepath.Join(config.AIPLoc, destDir, aipName)
 	if err := os.Rename(sourcePath, destPath); err != nil {
-		return fmt.Errorf("Could not move file from %s to %s: %v", sourceDir, destDir, err)
+		return fmt.Errorf("could not move file from %s to %s: %v", sourceDir, destDir, err)
 	}
 	return nil
 }

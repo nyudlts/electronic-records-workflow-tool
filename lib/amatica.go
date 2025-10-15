@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"time"
 
 	amatica "github.com/nyudlts/go-archivematica"
 	"github.com/nyudlts/go-aspace"
@@ -202,6 +203,7 @@ func PrepAmatica(nWorkers int) error {
 func TransferToArchivematica(p int, configLoc string) error {
 	polltime = p
 	amaticaConfigLoc = configLoc
+	startTime := time.Now()
 	fmt.Println("ewt amatica transfer, version", VERSION)
 	//load configuration file
 	if err := loadConfig(); err != nil {
@@ -242,6 +244,9 @@ func TransferToArchivematica(p int, configLoc string) error {
 	if err := transferDirectories(); err != nil {
 		return err
 	}
+
+	elapsed := time.Since(startTime)
+	fmt.Printf("*  Processing Time: %s\n", elapsed.String())
 
 	return nil
 }

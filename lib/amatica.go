@@ -123,6 +123,21 @@ func AmaticaClear(transfers bool, ingests bool) error {
 	return nil
 }
 
+func CountAmaticaTransfers() error {
+	fmt.Println("ewt amatica count, version", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	files, err := os.ReadDir(config.XferLoc)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("found %d transfer packages in xfer\n", len(files))
+	return nil
+}
+
 func PrepAmatica(nWorkers int) error {
 
 	fmt.Println("ewt amatica prep,", VERSION)

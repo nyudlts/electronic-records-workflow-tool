@@ -26,7 +26,7 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.1.0"
+const VERSION = "v1.2.0-alpha"
 
 func loadConfig() error {
 	if err := loadConfigPath("config.json"); err != nil {
@@ -268,6 +268,7 @@ const (
 	RSTAR_PREP_PACKAGE
 	SIP_SCAN_CLEAN
 	SIP_SCAN_AV
+	SIP_SCAN_CHARS
 	SOURCE_TRANSFER
 	SIP_VALIDATE
 )
@@ -297,6 +298,8 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-clean.log"))
 	case SIP_SCAN_AV:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-av.log"))
+	case SIP_SCAN_CHARS:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-chars.log"))
 	case SIP_VALIDATE:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-validate.log"))
 	case SOURCE_TRANSFER:

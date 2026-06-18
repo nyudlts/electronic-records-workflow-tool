@@ -21,6 +21,7 @@ func init() {
 	amaticaTransferCmd.Flags().StringVarP(&amaticaConfigLoc, "config", "c", "", "path to Archivematica config file")
 	amaticaTransferCmd.Flags().IntVar(&pollTime, "poll", 15, "polling time, in seconds, between calls to Archivematica api to check status")
 	amaticaCmd.AddCommand(amaticaTransferCmd)
+	amaticaCmd.AddCommand(amaticaCountCmd)
 	rootCmd.AddCommand(amaticaCmd)
 }
 
@@ -96,6 +97,16 @@ var amaticaTransferLogCmd = &cobra.Command{
 	Short: "view Archivematica transfer log",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.AMATICA_TRANSFER); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+var amaticaCountCmd = &cobra.Command{
+	Use:   "count",
+	Short: "Count Archivematica active archivematica transfers",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.CountAmaticaTransfers(); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

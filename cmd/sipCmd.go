@@ -18,6 +18,7 @@ func init() {
 	sipScanCmd.AddCommand(sipScanAVCmd)
 	sipScanCleanCmd.AddCommand(sipScanCleanLogCmd)
 	sipScanCmd.AddCommand(sipScanCleanCmd)
+	sipScanCmd.AddCommand(sipScanNonPrintCharsCmd)
 	sipCmd.AddCommand(sipScanCmd)
 	sipSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	sipCmd.AddCommand(sipSizeCmd)
@@ -107,6 +108,17 @@ var sipScanCleanLogCmd = &cobra.Command{
 	Short: "Read log of removed .DS_Store and Thumbs.db files from SIP",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ReadLog(lib.SIP_SCAN_CLEAN); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+// scan sip for non-printable characters, rename and log
+var sipScanNonPrintCharsCmd = &cobra.Command{
+	Use:   "chars",
+	Short: "Scan SIP for non-printable characters, rename and log",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ScanNonPrintChars(); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

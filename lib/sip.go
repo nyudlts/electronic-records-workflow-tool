@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
+	"unicode"
 
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
@@ -343,23 +345,98 @@ func ScanAV() error {
 	writer := bufio.NewWriter(logFile)
 	defer writer.Flush()
 
+	// collect all file paths before scanning
+	var files []string
 	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() {
-			fmt.Println(" *  scanning", filepath.Join("sip", strings.ReplaceAll(path, config.SIPLoc, ""))) //get the directory name
-			avCommand := exec.Command("clamdscan", "--fdpass", "--no-summary", path)                       // set the quarantine location in the config
-			avOut, err := avCommand.CombinedOutput()
-			if err != nil {
-				return fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", path, err.Error())
-			}
-			writer.Write(avOut)
+			files = append(files, path)
 		}
 		return nil
 	}); err != nil {
 		return err
 	}
 
-	return nil
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		scanErr error
+	)
 
+	for _, path := range files {
+		wg.Add(1)
+		go func(p string) {
+			defer wg.Done()
+			fmt.Println(" *  scanning", filepath.Join("sip", strings.ReplaceAll(p, config.SIPLoc, ""))) // get the directory name
+			avCommand := exec.Command("clamdscan", "--fdpass", "--no-summary", p)                       // set the quarantine location in the config
+			avOut, err := avCommand.CombinedOutput()
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil {
+				scanErr = fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", p, err.Error())
+				return
+			}
+			writer.Write(avOut)
+		}(path)
+	}
+
+	wg.Wait()
+	return scanErr
+}
+
+func ScanNonPrintChars() error {
+	fmt.Println("ewt sip scan chars, version", VERSION)
+
+	//load the project configuration
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//create a logger
+	logFile, err := os.OpenFile(GetLog(SIP_SCAN_CHARS), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+
+	if err := cleanFileNames(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func cleanFileNames() error {
+	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
+
+		cleanedName := cleanName(info.Name())
+		if cleanedName != info.Name() {
+			log.Printf("[INFO] path %s contains non-printable characters", path)
+			fmt.Printf("  * path %s contains non-printable characters\n", path)
+			/*
+				newPath := filepath.Join(filepath.Dir(path), cleanedName)
+				if err := os.Rename(path, newPath); err != nil {
+					log.Printf("[ERROR] could not rename %s to %s: %s at %s: %v", info.Name(), cleanedName, path, err.Error())
+				}
+			*/
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func cleanName(name string) string {
+
+	cleanedName := strings.Map(func(r rune) rune {
+		if unicode.IsGraphic(r) && unicode.IsPrint(r) {
+			return r
+		}
+		return []rune("_")[0]
+	}, name)
+
+	return cleanedName
 }
 
 func woContains(s string, sl []string) bool {

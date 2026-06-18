@@ -106,7 +106,7 @@ func generateConfig() error {
 			}
 		}
 	}
-	config.WorkLoc = filepath.Join(config.LogLoc, "aip_queue")
+	config.WorkLoc = filepath.Join(config.ProjectLoc, "aips", "aip_queue")
 
 	return nil
 }
@@ -140,6 +140,23 @@ func mkProjectDir() error {
 		return err
 	}
 
+	//create the aip_queue working directory
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "aip_queue"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "aip_queue", "in"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "aip_queue", "failure"), 0775); err != nil {
+		return err
+	}
+
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "aips", "aip_queue", "complete"), 0775); err != nil {
+		return err
+	}
+
 	//create the logs directory
 	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "logs"), 0775); err != nil {
 		return err
@@ -147,23 +164,6 @@ func mkProjectDir() error {
 
 	//create the resync output directory
 	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "logs", "rsync"), 0775); err != nil {
-		return err
-	}
-
-	//create the aip_queue working directory
-	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue"), 0775); err != nil {
-		return err
-	}
-
-	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "in"), 0775); err != nil {
-		return err
-	}
-
-	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "failure"), 0775); err != nil {
-		return err
-	}
-
-	if err := os.Mkdir(filepath.Join(config.LogLoc, "aip_queue", "success"), 0775); err != nil {
 		return err
 	}
 
@@ -198,12 +198,11 @@ func writeEWTConfig() error {
 	return nil
 }
 
-func ArchiveProject(pl string) error {
+func ArchiveProject(projectLoc string) error {
 	fmt.Println("ewt project archive, version", VERSION)
-	projectLoc = pl
 
 	//check that the project location contains a config file
-	if err := loadConfigPath(filepath.Join(pl, "config.json")); err != nil {
+	if err := loadConfigPath(filepath.Join(projectLoc, "config.json")); err != nil {
 		return fmt.Errorf("error loading config from project location: %v", err)
 	}
 
@@ -211,26 +210,26 @@ func ArchiveProject(pl string) error {
 	fmt.Println("  * removing aips directory")
 	aipsDir := filepath.Join(projectLoc, "aips")
 	if err := os.RemoveAll(aipsDir); err != nil {
-		panic(err)
+		return (err)
 	}
 
 	// Remove XferDIrectory
 	fmt.Println("  * removing xfer directory")
 	xferDir := filepath.Join(projectLoc, "xfer")
 	if err := os.RemoveAll(xferDir); err != nil {
-		panic(err)
+		return (err)
 	}
 
 	// Create a gzip of the project
 	fmt.Println("  * compressing project directory")
 	if err := createGzip(); err != nil {
-		panic(err)
+		return (err)
 	}
 
 	// Remove the project directory
 	fmt.Println("  * removing project directory")
 	if err := os.RemoveAll(projectLoc); err != nil {
-		panic(err)
+		return (err)
 	}
 
 	return nil

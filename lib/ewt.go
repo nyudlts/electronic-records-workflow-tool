@@ -156,8 +156,9 @@ type Params struct {
 }
 
 type DC struct {
-	Title    string `json:"title"`
-	IsPartOf string `json:"is_part_of"`
+	Title      string `json:"title"`
+	IsPartOf   string `json:"is_part_of"`
+	Identifier string `json:"identifier"`
 }
 
 func (ti TransferInfo) Validate() error {

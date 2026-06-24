@@ -306,8 +306,8 @@ func ValidateSIP() error {
 	avLogLocation := filepath.Join("logs", fmt.Sprintf("%s-sip-scan-av.log", config.CollectionCode))
 	f, err := os.Open(avLogLocation)
 	if err != nil {
-		fmt.Println("could not open clamscan log")
-		log.Println("[ERROR] could not open clamscan log")
+		fmt.Println("WARNING: could not open clamscan log")
+		log.Println("[WARNING] could not open clamscan log")
 	} else {
 		defer f.Close()
 		scanner := bufio.NewScanner(f)

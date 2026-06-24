@@ -8,4 +8,4 @@ bin/*
 *.exe
 aip-file.txt
 Makefile
-testing/*
+test/*

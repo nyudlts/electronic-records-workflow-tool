@@ -436,5 +436,6 @@ func createDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc := DC{}
 	dc.IsPartOf = fmt.Sprintf("AIC#%s: %s", transferInfo.ResourceID, transferInfo.ResourceTitle)
 	dc.Title = row.GetTitle()
+	dc.Identifier = row.GetComponentID()
 	return dc
 }

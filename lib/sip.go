@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/fs"
 	"log"
@@ -12,7 +13,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"unicode"
 
 	"github.com/nyudlts/go-aspace"
 	"gopkg.in/yaml.v2"
@@ -383,6 +383,72 @@ func ScanAV() error {
 	return scanErr
 }
 
+func ScanDetox() error {
+	fmt.Println("ewt sip scan detox,", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	logFilePath := GetLog(SIP_SCAN_DETOX)
+	logFile, err := os.Create(logFilePath)
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	writer := bufio.NewWriter(logFile)
+	defer writer.Flush()
+	var results = []string{}
+	err = filepath.WalkDir(config.SIPLoc, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		// Run detox against this file only.
+		result, err := detoxFile(path)
+		if err != nil {
+			return err
+		}
+		if result != nil {
+			results = append(results, *result)
+		}
+		return nil
+	})
+
+	if results != nil {
+		fmt.Println("  * detox chars found:")
+		for _, result := range results {
+			writer.WriteString(result)
+			fmt.Println("   ", result)
+		}
+	} else {
+		fmt.Println("  * no detox chars found")
+		writer.WriteString("no detox chars")
+	}
+
+	return nil
+}
+
+func detoxFile(path string) (*string, error) {
+	cmd := exec.Command("detox", "-n", path)
+
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bytes.TrimSpace(out)) > 0 {
+		result := string(out)
+		return &result, nil
+	}
+
+	return nil, nil
+}
+
+/*
 func ScanNonPrintChars() error {
 	fmt.Println("ewt sip scan chars, version", VERSION)
 
@@ -412,12 +478,7 @@ func cleanFileNames() error {
 		if cleanedName != info.Name() {
 			log.Printf("[INFO] path %s contains non-printable characters", path)
 			fmt.Printf("  * path %s contains non-printable characters\n", path)
-			/*
-				newPath := filepath.Join(filepath.Dir(path), cleanedName)
-				if err := os.Rename(path, newPath); err != nil {
-					log.Printf("[ERROR] could not rename %s to %s: %s at %s: %v", info.Name(), cleanedName, path, err.Error())
-				}
-			*/
+
 		}
 
 		return nil
@@ -438,6 +499,7 @@ func cleanName(name string) string {
 
 	return cleanedName
 }
+*/
 
 func woContains(s string, sl []string) bool {
 	for _, sls := range sl {

@@ -151,10 +151,13 @@ func ValidateSIP() error {
 	fmt.Printf("  * validating SIP at %s\n", config.SIPLoc)
 	log.Printf("[INFO] validating SIP transfer package at %s\n", config.SIPLoc)
 
+	hasError := false
+
 	//check that the source directory exists
 	fmt.Print("    1. checking that SIP location exists and is a directory: ")
 	fileInfo, err := os.Stat(config.SIPLoc)
 	if err != nil {
+		hasError = true
 		log.Printf("[ERROR] %s\n", err.Error())
 		fmt.Printf("SIP location %s does not exist, exiting", config.SIPLoc)
 		return err
@@ -163,6 +166,7 @@ func ValidateSIP() error {
 	if !fileInfo.IsDir() {
 		log.Printf("[ERROR] %s is not a directory\n", config.SIPLoc)
 		fmt.Printf("  * SIP location %s is not a directory, exiting", config.SIPLoc)
+		hasError = true
 		return fmt.Errorf("%s is not a directory", config.SIPLoc)
 	}
 	log.Printf("[INFO] %s exists and is a directory", config.SIPLoc)
@@ -173,6 +177,7 @@ func ValidateSIP() error {
 	mdDirLocation := filepath.Join(config.SIPLoc, "metadata")
 	mdDir, err := os.Stat(mdDirLocation)
 	if err != nil {
+		hasError = true
 		fmt.Printf("SIP location %s does not contain a metadata directory", config.SIPLoc)
 		log.Printf("[ERROR] %s does not contain a metadata directory\n", config.SIPLoc)
 		return (err)
@@ -181,6 +186,7 @@ func ValidateSIP() error {
 	if !mdDir.IsDir() {
 		fmt.Printf("  * %s metadata directory is not a directory\n", mdDirLocation)
 		log.Printf("[ERROR] %s is not a directory\n", mdDirLocation)
+		hasError = true
 		return fmt.Errorf("[ERROR] %s is not a directory\n", mdDirLocation)
 
 	}
@@ -191,12 +197,14 @@ func ValidateSIP() error {
 	fmt.Print("    3. checking that a valid workorder file exists: ")
 	workorderName, err := getWorkOrderFile(mdDirLocation)
 	if err != nil {
+		hasError = true
 		fmt.Printf("metadata directory %s does not contain a work order\n", mdDirLocation)
 		log.Printf("[ERROR] metadata directory %s does not contain a work order\n", mdDirLocation)
 	} else {
 		//check that the workorder is valid
 		workOrder, err = parseWorkOrder(mdDirLocation, workorderName)
 		if err != nil {
+			hasError = true
 			fmt.Printf("work order %s is not valid: %s\n", mdDirLocation, err.Error())
 			log.Printf("[ERROR] work order %s is not valid: %s\n", mdDirLocation, err.Error())
 		} else {
@@ -241,6 +249,7 @@ func ValidateSIP() error {
 	log.Printf("[ERROR] check 5. %s contains %d missing transfer directories \n", workorderName, missingDirs)
 
 	if missingDirs > 0 {
+		hasError = true
 		fmt.Println("ERROR")
 	} else {
 		fmt.Println("OK")
@@ -252,6 +261,7 @@ func ValidateSIP() error {
 	if err != nil {
 		log.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
 		fmt.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
+		hasError = true
 	} else {
 
 		extraDirs := 0
@@ -266,6 +276,7 @@ func ValidateSIP() error {
 
 		log.Printf("[INFO] check 6. %s contained %d extra objects\n", config.SIPLoc, extraDirs)
 		if extraDirs > 0 {
+			hasError = true
 			fmt.Println("ERROR")
 		} else {
 			fmt.Println("OK")
@@ -282,15 +293,18 @@ func ValidateSIP() error {
 	} else {
 		xferBytes, err := os.ReadFile(xferInfoLocation)
 		if err != nil {
+			hasError = true
 			fmt.Printf("could not read transfer-info.txt: %s\n", xferInfoLocation)
 			log.Printf("[ERROR] could not read transfer-info.txt: %s\n", xferInfoLocation)
 		} else {
 			transferInfo := TransferInfo{}
 			if err := yaml.Unmarshal(xferBytes, &transferInfo); err != nil {
+				hasError = true
 				fmt.Println("could not unmarshal transfer-info.txt")
 				log.Println("[ERROR] could not unmarshal transfer-info.txt")
 			} else {
 				if err := transferInfo.Validate(); err != nil {
+					hasError = true
 					fmt.Printf("transfer-info.txt is not valid: %s\n", err.Error())
 					log.Printf("[ERROR] transfer-info.txt is not valid: %s\n", err.Error())
 				} else {
@@ -319,6 +333,7 @@ func ValidateSIP() error {
 			}
 		}
 		if infectedFiles > 0 {
+			hasError = true
 			fmt.Printf("ERROR, contains %d infected files\n", infectedFiles)
 		} else {
 			fmt.Println("OK")
@@ -327,6 +342,11 @@ func ValidateSIP() error {
 
 	//finish up
 	fmt.Printf("  * Validation report written to %s\n", logFile.Name())
+	if hasError {
+		fmt.Println("  * SIP HAS ERRORS")
+	} else {
+		fmt.Println(" * NO ERRORS FOUND SIP IS VALID")
+	}
 	return nil
 }
 
@@ -336,8 +356,9 @@ func ScanAV() error {
 		return err
 	}
 
+	logFilePath := GetLog(SIP_SCAN_AV)
 	//create a logger and writer
-	logFile, err := os.Create(filepath.Join("logs", fmt.Sprintf("%s-sip-scan-av.log", config.CollectionCode)))
+	logFile, err := os.Create(logFilePath)
 	if err != nil {
 		return err
 	}
@@ -373,7 +394,6 @@ func ScanAV() error {
 			defer mu.Unlock()
 			if err != nil {
 				scanErr = fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", p, err.Error())
-				return
 			}
 			writer.Write(avOut)
 		}(path)

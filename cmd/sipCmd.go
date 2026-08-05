@@ -77,8 +77,17 @@ var sipScanCmd = &cobra.Command{
 var sipScanAVCmd = &cobra.Command{
 	Use: "av",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lib.ScanAV(); err != nil {
-			fmt.Printf("  * error encountered: %v\n", err)
+		scanErrors, err := lib.ScanAV()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		if len(scanErrors) > 0 {
+			fmt.Printf(" *  %d error(s) encountered:\n", len(scanErrors))
+			for _, e := range scanErrors {
+				fmt.Printf("    %s", e)
+			}
 		}
 	},
 }
@@ -113,8 +122,8 @@ var sipScanCleanLogCmd = &cobra.Command{
 	},
 }
 
-var sipScanDetoxCmd = &cobra.Command {
-	Use: "detox",
+var sipScanDetoxCmd = &cobra.Command{
+	Use:   "detox",
 	Short: "sub command to run detox on file and directory names",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ScanDetox(); err != nil {

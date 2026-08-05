@@ -257,7 +257,7 @@ func ValidateSIP() error {
 	}
 
 	//check there are no extra directories in source location
-	fmt.Print("    6. checking that there no extra directories or files in SIP directory: ")
+	fmt.Print("    6. checking that there are no extra directories or files in SIP directory: ")
 	sourceDirs, err := os.ReadDir(config.SIPLoc)
 	if err != nil {
 		log.Printf("[ERROR] could not read SIP directory %s: %s\n", config.SIPLoc, err.Error())
@@ -373,17 +373,17 @@ func ValidateSIP() error {
 	return nil
 }
 
-func ScanAV() error {
+func ScanAV() ([]string, error) {
 	fmt.Println("ewt sip scan av, ", VERSION)
 	if err := loadConfig(); err != nil {
-		return err
+		return nil, err
 	}
 
 	logFilePath := GetLog(SIP_SCAN_AV)
 	//create a logger and writer
 	logFile, err := os.Create(logFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer logFile.Close()
 	writer := bufio.NewWriter(logFile)
@@ -397,7 +397,7 @@ func ScanAV() error {
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
 
 	var (
@@ -405,7 +405,7 @@ func ScanAV() error {
 		mu      sync.Mutex
 		scanErr error
 	)
-
+	var errors = []string{}
 	for _, path := range files {
 		wg.Add(1)
 		go func(p string) {
@@ -416,14 +416,15 @@ func ScanAV() error {
 			mu.Lock()
 			defer mu.Unlock()
 			if err != nil {
-				scanErr = fmt.Errorf("[ERROR] clamdscan error on %s: %s\n", p, err.Error())
+				scanErr = fmt.Errorf("[ERROR] clamdscan malware detected: %s\n", p)
+				errors = append(errors, scanErr.Error())
 			}
 			writer.Write(avOut)
 		}(path)
 	}
 
 	wg.Wait()
-	return scanErr
+	return errors, nil
 }
 
 func ScanDetox() error {

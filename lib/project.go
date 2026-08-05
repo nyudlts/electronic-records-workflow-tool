@@ -167,6 +167,11 @@ func mkProjectDir() error {
 		return err
 	}
 
+	//create the resync output directory
+	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "logs", "fix"), 0775); err != nil {
+		return err
+	}
+
 	//create the sip output directory
 	if err := os.Mkdir(filepath.Join(config.ProjectLoc, "sip"), 0775); err != nil {
 		return err

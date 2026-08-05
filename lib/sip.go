@@ -152,6 +152,7 @@ func ValidateSIP() error {
 	log.Printf("[INFO] validating SIP transfer package at %s\n", config.SIPLoc)
 
 	hasError := false
+	hasWarning := false
 
 	//check that the source directory exists
 	fmt.Print("    1. checking that SIP location exists and is a directory: ")
@@ -317,11 +318,11 @@ func ValidateSIP() error {
 
 	//check that clamscan logs
 	fmt.Print("    8. checking clamscan log for infected files: ")
-	avLogLocation := filepath.Join("logs", fmt.Sprintf("%s-sip-scan-av.log", config.CollectionCode))
+	avLogLocation := filepath.Join(GetLog(SIP_SCAN_AV))
 	f, err := os.Open(avLogLocation)
 	if err != nil {
-		fmt.Println("WARNING: could not open clamscan log")
-		log.Println("[WARNING] could not open clamscan log")
+		fmt.Println("ERROR: could not open clamscan log")
+		log.Println("[ERROR] could not open clamscan log")
 	} else {
 		defer f.Close()
 		scanner := bufio.NewScanner(f)
@@ -340,11 +341,33 @@ func ValidateSIP() error {
 		}
 	}
 
+	fmt.Print("    9. checking detox log: ")
+	detoxStat, err := os.Stat(filepath.Join(GetLog(SIP_SCAN_DETOX)))
+	if err != nil {
+		hasError = true
+		log.Println("[ERROR] no detox scan log available")
+		fmt.Print("ERROR detox scan log missing\n")
+	} else {
+		if detoxStat.Size() > 0 {
+			hasWarning = true
+			log.Println("[WARNING] detox scan contains unresolved filename issues") // this can be fleshed out to print each individual detox errors
+			fmt.Print("WARNING detox scan contains unresolved filename issues\n")
+		} else {
+			fmt.Print("OK\n")
+		}
+	}
+
 	//finish up
 	fmt.Printf("  * Validation report written to %s\n", logFile.Name())
 	if hasError {
 		fmt.Println("  * SIP HAS ERRORS")
-	} else {
+	}
+
+	if hasWarning {
+		fmt.Println("  * SIP HAS WARNINGS")
+	}
+
+	if !hasError && !hasWarning {
 		fmt.Println(" * NO ERRORS FOUND SIP IS VALID")
 	}
 	return nil

@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -17,8 +19,10 @@ import (
 var (
 	collectionCode string
 	sourceLoc      string
-	projectLoc     string
 	configLoc      string
+	gzipFile       *os.File
+	gzipWriter     *gzip.Writer
+	tarWriter      *tar.Writer
 )
 
 func InitProject(cCode string, sLoc string, config string) error {
@@ -211,60 +215,121 @@ func ArchiveProject(projectLoc string) error {
 		return fmt.Errorf("error loading config from project location: %v", err)
 	}
 
+	logPath := GetLog(PROJECT_ARCHIVE_CREATE)
+	logFile, err := os.Create(logPath)
+	if err != nil {
+		return fmt.Errorf("error creating log file: %v", err)
+	}
+
+	log.SetOutput(logFile)
+	log.Printf("[INFO] starting project archive for %s\n", config.CollectionCode)
+
 	// Remove AIP Directory
 	fmt.Println("  * removing aips directory")
 	aipsDir := filepath.Join(projectLoc, "aips")
-	if err := os.RemoveAll(aipsDir); err != nil {
+	log.Println("[INFO] removing aips directory")
+	if err := removeDirectory(aipsDir); err != nil {
+		log.Printf("[ERROR] error removing aips directory: %v", err)
+		fmt.Printf("  * error removing aips directory: %v\n", err)
 		return (err)
 	}
 
 	// Remove XferDIrectory
 	fmt.Println("  * removing xfer directory")
+	log.Println("[INFO] removing xfer directory")
 	xferDir := filepath.Join(projectLoc, "xfer")
-	if err := os.RemoveAll(xferDir); err != nil {
+	if err := removeDirectory(xferDir); err != nil {
+		log.Printf("[ERROR] error removing xfer directory: %v", err)
+		fmt.Printf("  * error removing xfer directory: %v\n", err)
 		return (err)
 	}
 
+	//move metadata directory to project root
+	fmt.Println("  * moving metadata directory to project root")
+	log.Println("[INFO] moving metadata directory to project root")
+	metadataDir := filepath.Join(projectLoc, "sip", "metadata")
+	if err := os.Rename(metadataDir, filepath.Join(projectLoc, "metadata")); err != nil {
+		log.Printf("[ERROR] error moving metadata directory to project root: %v", err)
+		fmt.Printf("  * error moving metadata directory to project root: %v\n", err)
+		return (err)
+	}
+
+	//remmove sip directory
+	fmt.Println("  * removing sip directory")
+	log.Println("[INFO] removing sip directory")
+	sipDir := filepath.Join(projectLoc, "sip")
+	if err := removeDirectory(sipDir); err != nil {
+		log.Printf("[ERROR] error removing sip directory: %v", err)
+		fmt.Printf("  * error removing sip directory: %v\n", err)
+		return (err)
+	}
+
+	log.Println("[INFO] creating gzip of project directory")
+	fmt.Println("  * creating gzip of project directory")
+	if _, err := os.Stat(config.ProjectLoc); err != nil {
+		return err
+	}
+
+	//create the gzip file
+	timestamp := time.Now().Format("20060102-150405")
+	projectName := filepath.Base(config.ProjectLoc)
+	gzipName := filepath.Join("completed", fmt.Sprintf("%s-%s.tgz", projectName, timestamp))
+	log.Printf("[INFO] creating gzip file: %s\n", gzipName)
+	fmt.Printf("  * creating gzip file: %s\n", gzipName)
+	gzipFile, err = os.Create(gzipName)
+	if err != nil {
+		log.Printf("[ERROR] error creating gzip file: %v\n", err)
+		fmt.Printf("  * error creating gzip file: %v\n", err)
+		return err
+	}
+	defer gzipFile.Close()
+
+	//create the gzip writer
+	gzipWriter = gzip.NewWriter(gzipFile)
+	defer gzipWriter.Close()
+
+	//create the tar writer
+	tarWriter = tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
 	// Create a gzip of the project
 	fmt.Println("  * compressing project directory")
+	log.Println("[INFO] compressing project directory")
 	if err := createGzip(); err != nil {
+		fmt.Printf("  * error compressing project directory: %v\n", err)
+		log.Printf("[ERROR] error compressing project directory: %v", err)
 		return (err)
+	}
+
+	logFile.Close()
+
+	fmt.Println("  * adding archive create log file to tar")
+	logFileInfo, err := os.Stat(logPath)
+	if err != nil {
+		return fmt.Errorf("error stating archive createlog file: %v", err)
+	}
+	if err := writeToTar(logPath, logFileInfo, filepath.Base(config.ProjectLoc)); err != nil {
+		return fmt.Errorf("error adding archive create log file to tar: %v", err)
 	}
 
 	// Remove the project directory
 	fmt.Println("  * removing project directory")
 	if err := os.RemoveAll(projectLoc); err != nil {
+		fmt.Printf("  * error removing project directory: %v\n", err)
 		return (err)
 	}
 
 	return nil
 }
 
+var archiveLogPtn = regexp.MustCompile(".*project-archive-create.log$")
+
 // Derived from: https://medium.com/@skdomino/taring-untaring-files-in-go-6b07cf56bc07
 func createGzip() error {
-	if _, err := os.Stat(projectLoc); err != nil {
-		return err
-	}
-
-	//create the gzip file
-	timestamp := time.Now().Format("20060102-150405")
-	gzipName := filepath.Join("completed", fmt.Sprintf("%s-%s.tgz", projectLoc, timestamp))
-	gzipFile, err := os.Create(gzipName)
-	if err != nil {
-		return err
-	}
-	defer gzipFile.Close()
-
-	//create the gzip writer
-	gzipWriter := gzip.NewWriter(gzipFile)
-	defer gzipWriter.Close()
-
-	//create the tar writer
-	tarWriter := tar.NewWriter(gzipWriter)
-	defer tarWriter.Close()
+	fmt.Println("  * creating gzip of project directory")
 
 	//walk the project location and add all files to the tar
-	return filepath.Walk(projectLoc, func(file string, fi os.FileInfo, err error) error {
+	return filepath.Walk(config.ProjectLoc, func(file string, fi os.FileInfo, err error) error {
 		//return an error
 		if err != nil {
 			return err
@@ -275,32 +340,90 @@ func createGzip() error {
 			return nil
 		}
 
-		//create a new tar header
-		header, err := tar.FileInfoHeader(fi, fi.Name())
-		if err != nil {
-			return err
-		}
-		header.Name = strings.TrimPrefix(strings.Replace(file, projectLoc, "", -1), string(filepath.Separator))
-
-		//write the header
-		if err := tarWriter.WriteHeader(header); err != nil {
-			return err
+		if archiveLogPtn.MatchString(fi.Name()) {
+			log.Printf("[INFO] skipping log file: %s\n", fi.Name())
+			fmt.Printf("  * skipping log file: %s\n", fi.Name())
+			return nil
 		}
 
-		//read the file
-		f, err := os.Open(file)
-		if err != nil {
+		if err := writeToTar(file, fi, filepath.Base(config.ProjectLoc)); err != nil {
 			return err
 		}
-
-		//copy the file data to the tar
-		if _, err := io.Copy(tarWriter, f); err != nil {
-			return err
-		}
-
-		//close the file
-		f.Close()
 
 		return nil
 	})
+}
+
+func writeToTar(file string, fi os.FileInfo, projectName string) error {
+	log.Printf("[INFO] adding file to tar: %s\n", file)
+	fmt.Printf("  * adding file to tar: %s\n", file)
+
+	//create a new tar header
+	header, err := tar.FileInfoHeader(fi, fi.Name())
+	if err != nil {
+		return err
+	}
+
+	relPath, err := filepath.Rel(config.ProjectLoc, file)
+	if err != nil {
+		return err
+	}
+
+	header.Name = filepath.ToSlash(filepath.Join(projectName, relPath))
+
+	//write the header
+	if err := tarWriter.WriteHeader(header); err != nil {
+		return err
+	}
+
+	//read the file
+	f, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+
+	//copy the file data to the tar
+
+	if _, err := io.Copy(tarWriter, f); err != nil {
+		log.Printf("[ERROR] error adding file to tar: %v\n", err)
+		fmt.Printf("  * error adding %v to tar: %v\n", file, err)
+		return err
+	}
+
+	//close the file
+	f.Close()
+
+	return nil
+
+}
+
+func removeDirectory(dir string) error {
+	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			fmt.Println("    * removing file: ", path)
+			log.Printf("[INFO] removing file: %s\n", path)
+			if err := os.Remove(path); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if err := os.RemoveAll(dir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func VerifyProjectArchive(archivePath string) error {
+	fmt.Println("ewt project archive verify, version", VERSION)
+	return nil
 }

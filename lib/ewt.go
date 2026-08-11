@@ -263,6 +263,7 @@ const (
 	AMATICA_PREP
 	AMATICA_TRANSFER
 	ASPACE_CHECK
+	PROJECT_ARCHIVE_CREATE
 	RSTAR_TRANSFER
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
@@ -271,8 +272,8 @@ const (
 	SIP_SCAN_AV
 	SIP_SCAN_DETOX
 	SIP_SCAN_CHARS
-	SOURCE_TRANSFER
 	SIP_VALIDATE
+	SOURCE_TRANSFER
 )
 
 func GetLog(logType LogType) string {
@@ -288,6 +289,8 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "amatica-transfer.log"))
 	case ASPACE_CHECK:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "aspace-check.tsv"))
+	case PROJECT_ARCHIVE_CREATE:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "project-archive-create.log"))
 	case RSTAR_TRANSFER:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-transfer.txt"))
 	case RSTAR_VALIDATE:

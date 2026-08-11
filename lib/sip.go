@@ -55,26 +55,35 @@ func CleanSip() error {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
+	var removeList = []string{".DS_Store", "Thumbs.db", "Desktop.ini", "Icon\r"}
+
 	deleteCount := 0
 	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
-
 		if !info.IsDir() {
-			if info.Name() == ".DS_Store" || info.Name() == "Thumbs.db" {
+			if contains(removeList, info.Name()) {
 				if err := os.Remove(path); err != nil {
 					return err
 				}
-				fmt.Printf("  * deleted %s\n", path)
-				log.Printf("[INFO] deleted %s\n", path)
+				fmt.Printf("  * deleted %q\n", path)
+				log.Printf("[INFO] deleted %q\n", path)
 				deleteCount++
 			}
 		}
-
 		return nil
 	}); err != nil {
 		return err
 	}
 	fmt.Printf("  * %d files deleted\n", deleteCount)
 	return nil
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 func GenerateTransferInfo(profile string) error {
@@ -344,9 +353,9 @@ func ValidateSIP() error {
 	fmt.Print("    9. checking detox log: ")
 	detoxStat, err := os.Stat(filepath.Join(GetLog(SIP_SCAN_DETOX)))
 	if err != nil {
-		hasError = true
-		log.Println("[ERROR] no detox scan log available")
-		fmt.Print("ERROR detox scan log missing\n")
+		hasWarning = true
+		log.Println("[WARNING] no detox scan log available")
+		fmt.Print("WARNING detox scan log missing\n")
 	} else {
 		if detoxStat.Size() > 0 {
 			hasWarning = true

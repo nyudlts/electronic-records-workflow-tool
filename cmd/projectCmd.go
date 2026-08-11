@@ -15,6 +15,7 @@ func init() {
 	projectInitCmd.MarkFlagRequired("source-location")
 	projectCmd.AddCommand(projectInitCmd)
 	projectCmd.AddCommand(projectArchiveCmd)
+	projectArchiveCmd.AddCommand(projectArchiveVerifyCmd)
 	rootCmd.AddCommand(projectCmd)
 }
 
@@ -41,6 +42,16 @@ var projectArchiveCmd = &cobra.Command{
 	Short: "Archive a EWT Project",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ArchiveProject(args[0]); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+var projectArchiveVerifyCmd = &cobra.Command{
+	Use:   "verify",
+	Short: "Verify an EWT Project Archive",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.VerifyProjectArchive(args[0]); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

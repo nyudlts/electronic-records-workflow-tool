@@ -33,36 +33,36 @@ Available Commands:
   version     print the version of ewt
 ```
 
-## `amatica`
+### `amatica`
 
 Archivematica-related commands.
 
-### Subcommands
+#### Subcommands
 
 * `prep`
 * `transfer`
 
-## `aspace`
+### `aspace`
 
 ArchivesSpace-related commands.
 
-### Subcommands
+#### Subcommands
 
 * `check`
 
-## `completion`
+### `completion`
 
 Generates the autocompletion script for the specified shell.
 
-## `help`
+### `help`
 
 Displays help information for `ewt` and its commands.
 
-## `project`
+### `project`
 
 Project initialization and closeout commands.
 
-### `init`
+#### `init`
 
 Initializes a new project.
 
@@ -98,24 +98,24 @@ For example:
 
 The project directory can then be used as the working directory for subsequent `ewt` commands.
 
-### `archive`
+#### `archive`
 
 Closes out the project by removing file assets and compressing the project logs, metadata, and `config.json` into a `.tgz` archive.
 
-## `rstar`
+### `rstar`
 
 AIP preparation and validation commands.
 
-### Subcommands
+#### Subcommands
 
 * `prep`
 * `validate`
 
-## `sip`
+### `sip`
 
 SIP generation, scanning, sizing, and validation commands.
 
-### Subcommands
+#### Subcommands
 
 * `gen`
   * `transfer`
@@ -126,22 +126,22 @@ SIP generation, scanning, sizing, and validation commands.
 * `size`
 * `validate`
 
-### `gen`
+#### `gen`
 
 generate metadata files
 
-#### `gen transfer`
+##### `gen transfer`
 generate a transfer-info.txt file at ./sip/metadata
 ```$ ewt sip gen transfer -p dm
 ewt sip gen transfer, version v1.2.0-alpha
   * generating transfer info for profile: dm
 ```  
 
-### `scan`
+#### `scan`
 
 Scans the SIP for various conditions. `scan` has its own subcommands for individual types of scans.
 
-#### `scan av`
+##### `scan av`
 
 Scans the SIP for viruses and other malware. Creates a log in the logs directory that the validation step uses.
 
@@ -156,7 +156,7 @@ ewt sip scan av,  v1.2.0-alpha
     [ERROR] clamdscan malware detected: /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/eicar.com
 ```
 
-#### `scan clean`
+##### `scan clean`
 
 Scans the SIP for common unwanted files, such as `.DS_Store`, `Thumbs.db`, and `Desktop.ini` and deletes them. Creates a log in the logs directory. 
 
@@ -167,7 +167,7 @@ ewt sip clean, version v1.2.0-alpha
   * 2 files deleted
 ```
 
-#### `scan detox`
+##### `scan detox`
 
 Scans filenames for characters that may cause problems in downstream systems.
 
@@ -178,7 +178,7 @@ ewt sip scan detox, v1.2.0-alpha
     /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/fales_mss.657 - Copy.json -> /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/fales_mss.657-Copy.json
 ```
 
-### `size`
+#### `size`
 Prints the size and number of files in the SIP.
 
 ```text
@@ -187,7 +187,7 @@ ewt sip size, version v1.2.0-alpha
 /home/don/ewt-test/dlts_test100/sip: 7 files in 3 directories, 45 MB
 ```
 
-### `validate`
+#### `validate`
 
 Validates the SIP.
 
@@ -208,11 +208,11 @@ ewt sip validate, v1.2.0-alpha
   * SIP HAS WARNINGS
 ```
 
-## `source`
+### `source`
 
 Commands for working with the source material as configured in the project init step.
 
-### Subcommands
+#### Subcommands
 
 * `size`
 
@@ -232,7 +232,7 @@ $ ewt source transfer, version v1.2.0-alpha
   * Transfer complete
 ```
 
-## `version`
+### `version`
 
 Prints the installed version of `ewt`.
 

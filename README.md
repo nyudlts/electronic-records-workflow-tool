@@ -162,7 +162,8 @@ ewt sip validate, v1.2.0-alpha
     9. checking detox log: WARNING detox scan contains unresolved filename issues
   * Validation report written to logs/dlts_tes100-sip-validate.log
   * SIP HAS ERRORS
-  * SIP HAS WARNINGS```
+  * SIP HAS WARNINGS
+```
 
 ## `source`
 

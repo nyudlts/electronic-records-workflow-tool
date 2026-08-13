@@ -40,7 +40,16 @@ Available Commands:
 Archivematica-related commands.
 
 #### Subcommands
+* `gen`
 
+copy a specified mcpProcessing.xml profile from `templates/mcp` directory to each directory in `xfer`
+
+```
+$ ewt amatica gen -p dev-accessions.xml
+ewt amatica gen, v1.2.0
+  * copying dev-accessions.xml to all xfer directories
+  * writing dev-accessions.xml to dlts_tes100_DLTS_TEST_101_ER_1
+```
 * `prep`
 
 move and update all directories in `sip` to `xfer`
@@ -53,10 +62,31 @@ ewt amatica prep, v1.2.0
   * WORKER 1 completed DLTS_TEST_101_ER_1
 ```
 * `transfer`
-* `gen`
 
-copy a processingMCP.xml from the templates directory to each package in the `xfer` directory.
+iterate directories in `xfer` and push them through archivematica
 
+```
+$ ewt amatica transfer
+ewt amatica transfer, version v1.2.0
+  * creating dlts_test-aip-file.txt
+  * setting polling time to 15 seconds
+  * creating go-archivematica client
+  * reading source directory: xfer/
+transferring packages from xfer/
+
+initializing transfer for dlts_test_DLTS_TEST_101_ER_1
+transfer /mnt/staging/ewt/dlts_test/xfer/dlts_test_DLTS_TEST_101_ER_1 initialized
+requesting transfer processing for dlts_test_DLTS_TEST_101_ER_1
+transfer request message: Copy successful.
+transfer processing requested for /mnt/staging/ewt/dlts_test/xfer/dlts_test_DLTS_TEST_101_ER_1-ed38a456-92d0-497e-8651-563392174042
+<snip>
+```
+each package that makes it through Archivematica, will have a queue file written to `rstar/aip_queu/in/` that will be used for the `rstar` `prep` `packages` command
+
+```
+$ ls aips/aip_queue/in/
+dlts_test_DLTS_TEST_101_ER_1-17a24dda-6052-4dcc-8a86-0068b83fbdbc.txt
+```
 
 ### `aspace`
 
@@ -130,14 +160,34 @@ The project directory can then be used as the working directory for subsequent `
 
 Closes out the project by removing file assets and compressing the project logs, metadata, and `config.json` into a `.tgz` archive.
 
+```
+$ ewt project archive dlts_test
+ewt project archive, version v1.2.0-alpha
+  * removing aips directory
+  * removing xfer directory
+  * moving metadata directory to project root
+  * removing sip directory
+  * creating gzip of project directory
+  * creating gzip file: completed/dlts_test-20260813-123210.tgz
+  <snip>
+```
 ### `rstar`
 
 AIP preparation and validation commands.
 
 #### Subcommands
 
-* `prep`
+* `prep packages`
+
+transfer any packages from archivematica's AIPsStore to the `aips/in` directory in project. 
+
 * `validate`
+
+validate all packages packages transferred from archivematica's AIPsStore to the `aips/in` directory in project. Validated packages are transferred to `aips/valid` 
+
+* `transfer`
+
+transfer any packages in `aips/valid` to rstar
 
 ### `sip`
 

@@ -162,7 +162,7 @@ Closes out the project by removing file assets and compressing the project logs,
 
 ```
 $ ewt project archive dlts_test
-ewt project archive, version v1.2.0-alpha
+ewt project archive, version v1.2.0
   * removing aips directory
   * removing xfer directory
   * moving metadata directory to project root
@@ -181,13 +181,41 @@ AIP preparation and validation commands.
 
 transfer any packages from archivematica's AIPsStore to the `aips/in` directory in project. 
 
+```
+$ ewt rstar prep packages v1.2.0
+  * processing dlts_test_DLTS_TEST_101_ER_1-96bea49d-84d6-484a-89bb-a9f7ba56af7e
+    * copying package to aip directory
+    * Updating package
+      * opening bag
+      * Validating bag
+      * Locating work order
+      <snip>
+    * Package update complete
+  * processing complete for  dlts_test_DLTS_TEST_101_ER_1-96bea49d-84d6-484a-89bb-a9f7ba56af7e
+
+  * rstar package prep complete, processed 1 aip packages, 0 failures
+```
+
 * `validate`
 
 validate all packages packages transferred from archivematica's AIPsStore to the `aips/in` directory in project. Validated packages are transferred to `aips/valid` 
 
+
+```
+$ ewt rstar validate v1.2.0
+  * fast validating dlts_test_DLTS_TEST_101_ER_1-96bea49d-84d6-484a-89bb-a9f7ba56af7e
+  * validation complete for dlts_test_DLTS_TEST_101_ER_1-96bea49d-84d6-484a-89bb-a9f7ba56af7e
+  * rstar validation complete, 1 successes, 0 failures
+```
+
 * `transfer`
 
 transfer any packages in `aips/valid` to rstar
+```
+ewt rstar transfer v1.2.0
+  * transferring dlts_test_DLTS_TEST_101_ER_1-96bea49d-84d6-484a-89bb-a9f7ba56af7f
+  * rstar transfers complete, 1 successes, 0 failures
+```
 
 ### `sip`
 
@@ -211,7 +239,7 @@ generate metadata files
 ##### `gen transfer`
 generate a transfer-info.txt file at ./sip/metadata
 ```$ ewt sip gen transfer -p dm
-ewt sip gen transfer, version v1.2.0-alpha
+ewt sip gen transfer, version v1.2.0
   * generating transfer info for profile: dm
 ```  
 
@@ -224,7 +252,7 @@ Scans the SIP for various conditions. `scan` has its own subcommands for individ
 Scans the SIP for viruses and other malware. Creates a log in the logs directory that the validation step uses.
 
 ```$ ewt sip scan av
-ewt sip scan av,  v1.2.0-alpha
+ewt sip scan av, v1.2.0
  *  scanning sip/metadata/transfer-info.txt
  *  scanning sip/DLTS_TEST_101_ER_1/eicar.com
  *  scanning sip/DLTS_TEST_101_ER_1/fales_mss.657.json
@@ -239,7 +267,7 @@ ewt sip scan av,  v1.2.0-alpha
 Scans the SIP for common unwanted files, such as `.DS_Store`, `Thumbs.db`, and `Desktop.ini` and deletes them. Creates a log in the logs directory. 
 
 ```$ ewt sip scan clean
-ewt sip clean, version v1.2.0-alpha
+ewt sip clean, version v1.2.0
   * deleted "/home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/.DS_Store"
   * deleted "/home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/Icon\r"
   * 2 files deleted
@@ -251,7 +279,7 @@ Scans filenames for characters that may cause problems in downstream systems.
 
 ```
 $ ewt sip scan detox
-ewt sip scan detox, v1.2.0-alpha
+ewt sip scan detox, v1.2.0
   * detox chars found:
     /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/fales_mss.657 - Copy.json -> /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1/fales_mss.657-Copy.json
 ```
@@ -261,7 +289,7 @@ Prints the size and number of files in the SIP.
 
 ```text
 $ ewt sip size
-ewt sip size, version v1.2.0-alpha
+ewt sip size, version v1.2.0
 /home/don/ewt-test/dlts_test100/sip: 7 files in 3 directories, 45 MB
 ```
 
@@ -270,7 +298,7 @@ ewt sip size, version v1.2.0-alpha
 Validates the SIP.
 
 ```$ ewt sip validate
-ewt sip validate, v1.2.0-alpha
+ewt sip validate, v1.2.0
   * validating SIP at /home/don/ewt-test/dlts_tes100/sip
     1. checking that SIP location exists and is a directory:  OK
     2. checking that SIP directory contains a metadata directory: OK
@@ -297,7 +325,7 @@ Commands for working with the source material as configured in the project init 
 print out the size and number of files in source directory
 ```
 $ ewt source size
-ewt source size, version v1.2.0-alpha
+ewt source size, version v1.2.0
 /home/don/ewt-test-data/dlts_test101/to_rstar/: 7 files in 3 directories, 45 MB
 ```
 ##### `source transfer`
@@ -305,7 +333,7 @@ ewt source size, version v1.2.0-alpha
 rsync or robocopy the files from from source directory to sip directory
 
 ```
-$ ewt source transfer, version v1.2.0-alpha
+$ ewt source transfer, version v1.2.0
   * Transferring /home/don/ewt-test-data/dlts_test101/to_rstar/ to sip directory
   * Transfer complete
 ```

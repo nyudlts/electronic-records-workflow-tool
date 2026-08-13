@@ -22,6 +22,8 @@ func init() {
 	amaticaTransferCmd.Flags().IntVar(&pollTime, "poll", 15, "polling time, in seconds, between calls to Archivematica api to check status")
 	amaticaCmd.AddCommand(amaticaTransferCmd)
 	amaticaCmd.AddCommand(amaticaCountCmd)
+	amaticaGenCmd.Flags().StringVarP(&mcpProfile, "profile", "p", "", "")
+	amaticaCmd.AddCommand(amaticaGenCmd)
 	rootCmd.AddCommand(amaticaCmd)
 }
 
@@ -107,6 +109,15 @@ var amaticaCountCmd = &cobra.Command{
 	Short: "Count Archivematica active archivematica transfers",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.CountAmaticaTransfers(); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+var amaticaGenCmd = &cobra.Command{
+	Use: "gen",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.GenerateMCP(mcpProfile); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

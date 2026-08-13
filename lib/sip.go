@@ -471,7 +471,7 @@ func ScanDetox() error {
 		return nil
 	})
 
-	if results != nil {
+	if len(results) > 0 {
 		fmt.Println("  * detox chars found:")
 		for _, result := range results {
 			writer.WriteString(result)
@@ -479,7 +479,6 @@ func ScanDetox() error {
 		}
 	} else {
 		fmt.Println("  * no detox chars found")
-		writer.WriteString("no detox chars")
 	}
 
 	return nil
@@ -501,37 +500,26 @@ func detoxFile(path string) (*string, error) {
 	return nil, nil
 }
 
-/*
-func ScanNonPrintChars() error {
-	fmt.Println("ewt sip scan chars, version", VERSION)
-
-	//load the project configuration
+func ScanDoubleExtensions() error {
+	fmt.Println("ewt sip scan double extensions,", VERSION)
 	if err := loadConfig(); err != nil {
 		return err
 	}
-
-	//create a logger
-	logFile, err := os.OpenFile(GetLog(SIP_SCAN_CHARS), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+	logFilePath := GetLog(SIP_SCAN_EXTENSIONS)
+	logFile, err := os.Create(logFilePath)
 	if err != nil {
 		return err
 	}
 	defer logFile.Close()
+	log.SetOutput(logFile)
 
-	if err := cleanFileNames(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func cleanFileNames() error {
 	if err := filepath.Walk(config.SIPLoc, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-		cleanedName := cleanName(info.Name())
-		if cleanedName != info.Name() {
-			log.Printf("[INFO] path %s contains non-printable characters", path)
-			fmt.Printf("  * path %s contains non-printable characters\n", path)
-
+		if !info.IsDir() {
+			hasDoubleExtension(info.Name(), path)
 		}
 
 		return nil
@@ -541,18 +529,26 @@ func cleanFileNames() error {
 	return nil
 }
 
-func cleanName(name string) string {
+func hasDoubleExtension(filename string, path string) error {
 
-	cleanedName := strings.Map(func(r rune) rune {
-		if unicode.IsGraphic(r) && unicode.IsPrint(r) {
-			return r
+	ext := filepath.Ext(filename)
+	if ext == "" {
+		return nil
+	}
+
+	base := strings.TrimSuffix(filename, ext)
+
+	if filepath.Ext(base) == ext {
+		fmt.Println(" * removing double extension from", path)
+		dir := filepath.Dir(path)
+		newPath := filepath.Join(dir, base)
+		log.Printf("removing double extension from %s to %s", path, newPath)
+		if err := os.Rename(path, newPath); err != nil {
+			return err
 		}
-		return []rune("_")[0]
-	}, name)
-
-	return cleanedName
+	}
+	return nil
 }
-*/
 
 func woContains(s string, sl []string) bool {
 	for _, sls := range sl {

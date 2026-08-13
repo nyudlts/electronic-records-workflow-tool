@@ -268,6 +268,7 @@ const (
 	RSTAR_VALIDATE
 	RSTAR_PREP_PACKAGES
 	RSTAR_PREP_PACKAGE
+	SIP_SCAN_EXTENSIONS
 	SIP_SCAN_CLEAN
 	SIP_SCAN_AV
 	SIP_SCAN_DETOX
@@ -299,6 +300,8 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-packages.log"))
 	case RSTAR_PREP_PACKAGE:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "rstar-prep-single.log"))
+	case SIP_SCAN_EXTENSIONS:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-extensions.log"))
 	case SIP_SCAN_CLEAN:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-clean.log"))
 	case SIP_SCAN_AV:

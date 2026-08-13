@@ -19,9 +19,9 @@ func init() {
 	sipScanCleanCmd.AddCommand(sipScanCleanLogCmd)
 	sipScanCmd.AddCommand(sipScanCleanCmd)
 	sipScanCmd.AddCommand(sipScanDetoxCmd)
+	sipScanCmd.AddCommand(sipScanExtensionsCmd)
 	sipCmd.AddCommand(sipScanCmd)
 	sipSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
-	sipCmd.AddCommand(sipSizeCmd)
 	rootCmd.AddCommand(sipCmd)
 
 }
@@ -146,6 +146,16 @@ var sipGenXferCmd = &cobra.Command{
 	Short: "generate a transfer-info.txt in SIP MD dir",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.GenerateTransferInfo(profile); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+var sipScanExtensionsCmd = &cobra.Command{
+	Use:   "extensions",
+	Short: "remediate double file extensions in a sip",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ScanDoubleExtensions(); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

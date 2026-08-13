@@ -439,3 +439,43 @@ func createDC(transferInfo TransferInfo, row aspace.WorkOrderRow) DC {
 	dc.Identifier = row.GetComponentID()
 	return dc
 }
+
+func GenerateMCP(profile string) error {
+
+	fmt.Println("ewt amatica gen,", VERSION)
+
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	//check that the profile exists in the `..\templates` direcory
+	ewtDir, _ := filepath.Split(config.ProjectLoc)
+	templateFile := filepath.Join(ewtDir, "templates", "mcp", profile)
+	if _, err := os.Stat(templateFile); err != nil {
+		return err
+	}
+	fmt.Printf("  * copying %s to all xfer directories\n", profile)
+
+	//if it does, copy it into each directory in `xfer`
+	mcpBytes, err := os.ReadFile(templateFile)
+	if err != nil {
+		return err
+	}
+
+	xferDirectories, err := os.ReadDir(config.XferLoc)
+	if err != nil {
+		return err
+	}
+
+	for _, xferDir := range xferDirectories {
+		if xferDir.IsDir() {
+			outputFile := filepath.Join(config.XferLoc, xferDir.Name(), "processingMCP.xml")
+			fmt.Printf("  * writing %s to %s\n", profile, xferDir.Name())
+			if err := os.WriteFile(outputFile, mcpBytes, 0755); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}

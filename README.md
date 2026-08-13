@@ -4,12 +4,14 @@
 * `go v1.26`
 * `clamdscan`
 * `detox`
+* `rsync`
+
 ## Configs
 configurations for ewt are stored in a .config directory in the users home directory. 
 
-* `~/.config/ewt.config -> general ewt config
-* `~/.config/go-archivematica.yml -> configuratin for go-archivematica library
-* `~/.conifg/go-aspace.yml -> configuration for go-aspace-library
+* ~/.config/ewt.config -> general ewt config
+* ~/.config/go-archivematica.yml -> configuratin for go-archivematica library
+* ~/.conifg/go-aspace.yml -> configuration for go-aspace-library
 
 samples of these configs can be found in th `templates` directory
 ## Build
@@ -40,7 +42,21 @@ Archivematica-related commands.
 #### Subcommands
 
 * `prep`
+
+move and update all directories in `sip` to `xfer`
+```
+$ ewt amatica prep
+ewt amatica prep, v1.2.0
+  * WORKER 1 processing DLTS_TEST_101_ER_1
+    source: /home/don/ewt-test/dlts_tes100/sip/DLTS_TEST_101_ER_1
+    target: xfer/dlts_tes100_DLTS_TEST_101_ER_1/DLTS_TEST_101_ER_1
+  * WORKER 1 completed DLTS_TEST_101_ER_1
+```
 * `transfer`
+* `gen`
+
+copy a processingMCP.xml from the templates directory to each package in the `xfer` directory.
+
 
 ### `aspace`
 
@@ -49,6 +65,18 @@ ArchivesSpace-related commands.
 #### Subcommands
 
 * `check`
+
+check all dos in workorder exist in archivesspace and write the ouput to a tsv file in the logs directory
+
+```
+$ ewt aspace check
+ewt aspace check, v1.2.0
+Checking /repositories/6/archival_objects/1059314: OK
+Checking /repositories/6/archival_objects/1059315: OK
+Checking /repositories/6/archival_objects/1059316: OK
+Checking /repositories/6/archival_objects/1059317: OK
+aspace checkfile written to: logs/nyuarchives_rg35_5-aspace-check.tsv
+```
 
 ### `completion`
 
@@ -214,7 +242,7 @@ Commands for working with the source material as configured in the project init 
 
 #### Subcommands
 
-* `size`
+##### `source size`
 
 print out the size and number of files in source directory
 ```
@@ -222,7 +250,7 @@ $ ewt source size
 ewt source size, version v1.2.0-alpha
 /home/don/ewt-test-data/dlts_test101/to_rstar/: 7 files in 3 directories, 45 MB
 ```
-* `transfer`
+##### `source transfer`
 
 rsync or robocopy the files from from source directory to sip directory
 

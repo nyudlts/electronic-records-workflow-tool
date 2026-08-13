@@ -30,6 +30,7 @@ var (
 	profile          string
 	numWorkers       int
 	fullValidation   bool
+	mcpProfile       string
 )
 
 func Execute() {

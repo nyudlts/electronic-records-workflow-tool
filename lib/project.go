@@ -254,7 +254,7 @@ func ArchiveProject(projectLoc string) error {
 		return (err)
 	}
 
-	//remmove sip directory
+	//remove sip directory
 	fmt.Println("  * removing sip directory")
 	log.Println("[INFO] removing sip directory")
 	sipDir := filepath.Join(projectLoc, "sip")
@@ -272,10 +272,12 @@ func ArchiveProject(projectLoc string) error {
 
 	//create the gzip file
 	timestamp := time.Now().Format("20060102-150405")
-	projectName := filepath.Base(config.ProjectLoc)
-	gzipName := filepath.Join("completed", fmt.Sprintf("%s-%s.tgz", projectName, timestamp))
+	projectDir, projectName := filepath.Split(config.ProjectLoc)
+
+	gzipName := filepath.Join(projectDir, "completed", fmt.Sprintf("%s-%s.tgz", projectName, timestamp))
 	log.Printf("[INFO] creating gzip file: %s\n", gzipName)
 	fmt.Printf("  * creating gzip file: %s\n", gzipName)
+
 	gzipFile, err = os.Create(gzipName)
 	if err != nil {
 		log.Printf("[ERROR] error creating gzip file: %v\n", err)

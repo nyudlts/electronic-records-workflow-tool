@@ -486,17 +486,26 @@ func ScanDetox() error {
 
 func detoxFile(path string) (*string, error) {
 	cmd := exec.Command("detox", "-n", path)
-
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(bytes.TrimSpace(out)) > 0 {
-		result := string(out)
-		return &result, nil
-	}
+		o := string(out)
+		detoxSplit := strings.SplitN(o, " -> ", 2)
 
+		if len(detoxSplit) == 2 {
+			before := strings.TrimSpace(detoxSplit[0])
+			after := strings.TrimSpace(detoxSplit[1])
+
+			if after == strings.ReplaceAll(before, " ", "_") {
+				return nil, nil
+			}
+
+			return &o, nil
+		}
+	}
 	return nil, nil
 }
 

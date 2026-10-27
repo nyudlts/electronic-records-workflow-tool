@@ -20,6 +20,7 @@ func init() {
 	sipScanCmd.AddCommand(sipScanCleanCmd)
 	sipScanCmd.AddCommand(sipScanDetoxCmd)
 	sipScanCmd.AddCommand(sipScanExtensionsCmd)
+	sipScanCmd.AddCommand(sipScanFTKCmd)
 	sipCmd.AddCommand(sipScanCmd)
 	sipSizeCmd.Flags().BoolVarP(&directories, "directories", "d", false, "print directories")
 	rootCmd.AddCommand(sipCmd)
@@ -127,6 +128,16 @@ var sipScanDetoxCmd = &cobra.Command{
 	Short: "sub command to run detox on file and directory names",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lib.ScanDetox(); err != nil {
+			fmt.Printf("  * error encountered: %v\n", err)
+		}
+	},
+}
+
+var sipScanFTKCmd = &cobra.Command{
+	Use:   "ftk",
+	Short: "sub command to run FTK scan on SIP",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := lib.ScanFTKManifests(); err != nil {
 			fmt.Printf("  * error encountered: %v\n", err)
 		}
 	},

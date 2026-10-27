@@ -26,7 +26,7 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.2.1"
+const VERSION = "v1.2.2"
 
 func loadConfig() error {
 	if err := loadConfigPath("config.json"); err != nil {
@@ -273,6 +273,7 @@ const (
 	SIP_SCAN_AV
 	SIP_SCAN_DETOX
 	SIP_SCAN_CHARS
+	SIP_SCAN_FTK
 	SIP_VALIDATE
 	SOURCE_TRANSFER
 )
@@ -308,6 +309,8 @@ func GetLog(logType LogType) string {
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-av.log"))
 	case SIP_SCAN_DETOX:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-detox.log"))
+	case SIP_SCAN_FTK:
+		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-ftk.log"))
 	case SIP_SCAN_CHARS:
 		logPath = filepath.Join(config.LogLoc, fmt.Sprintf("%s-%s", config.CollectionCode, "sip-scan-chars.log"))
 	case SIP_VALIDATE:

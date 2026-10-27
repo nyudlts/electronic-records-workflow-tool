@@ -366,6 +366,22 @@ func ValidateSIP() error {
 		}
 	}
 
+	fmt.Print("    10. checking FTK Manifests: ")
+	ftkManifetLog, err := os.Stat(filepath.Join(GetLog(SIP_SCAN_FTK)))
+	if err != nil {
+		hasWarning = true
+		log.Println("     [WARNING] no FTK manifest log available")
+		fmt.Print("WARNING FTK manifest log missing\n")
+	} else {
+		if ftkManifetLog.Size() > 0 {
+			hasError = true
+			log.Println("[ERROR] FTK manifest contains unresolved issues") // this can be fleshed out to print each individual FTK errors
+			fmt.Print("ERROR FTK manifest contains unresolved issues\n")
+		} else {
+			fmt.Print("OK\n")
+		}
+	}
+
 	//finish up
 	fmt.Printf("  * Validation report written to %s\n", logFile.Name())
 	if hasError {
@@ -484,6 +500,42 @@ func ScanDetox() error {
 	return nil
 }
 
+func ScanFTKManifests() error {
+	fmt.Println("ewt sip scan ftk,", VERSION)
+	if err := loadConfig(); err != nil {
+		return err
+	}
+
+	logFilePath := GetLog(SIP_SCAN_FTK)
+	logFile, err := os.Create(logFilePath)
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+	writer := bufio.NewWriter(logFile)
+	defer writer.Flush()
+
+	root := filepath.Join(config.SIPLoc)
+	mdDir := filepath.Join(root, "metadata")
+
+	mdFiles, err := os.ReadDir(mdDir)
+	if err != nil {
+		return err
+	}
+
+	for _, mdFile := range mdFiles {
+		if strings.Contains(mdFile.Name(), "_ER_") {
+			tsvLineCount := countLines(filepath.Join(mdDir, mdFile.Name()))
+			fileCount := countFiles(filepath.Join(root, strings.Replace(mdFile.Name(), ".tsv", "", 1)))
+			if tsvLineCount != fileCount {
+				fmt.Println("ERROR: ", mdFile.Name(), " lines: ", tsvLineCount, " files: ", fileCount)
+				writer.WriteString(fmt.Sprintf("ERROR: %s lines: %d files: %d\n", mdFile.Name(), tsvLineCount, fileCount))
+			}
+		}
+	}
+	return nil
+}
+
 func detoxFile(path string) (*string, error) {
 	cmd := exec.Command("detox", "-n", path)
 	out, err := cmd.Output()
@@ -566,4 +618,34 @@ func woContains(s string, sl []string) bool {
 		}
 	}
 	return false
+}
+
+func countLines(filePath string) int {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	buf := make([]byte, 1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := file.Read(buf)
+		count += strings.Count(string(buf[:c]), string(lineSep))
+
+		if err != nil {
+			break
+		}
+	}
+	return count - 1 //remove one line for the header
+}
+
+func countFiles(dirPath string) int {
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		panic(err)
+	}
+	return len(files)
 }

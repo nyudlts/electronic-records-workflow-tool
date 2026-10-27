@@ -26,7 +26,7 @@ var (
 	clamInfectedPtn          = regexp.MustCompile("\nInfected files: 0")
 )
 
-const VERSION = "v1.2.0"
+const VERSION = "v1.2.1"
 
 func loadConfig() error {
 	if err := loadConfigPath("config.json"); err != nil {

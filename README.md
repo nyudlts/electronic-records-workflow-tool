@@ -1,7 +1,7 @@
-# electronic-records-workflow-tool v1.2.0
+# electronic-records-workflow-tool v1.2.2
 
 ## Prerequisites
-* `go v1.26`
+* `go v1.27`, if building from source
 * `clamdscan`
 * `detox`
 * `rsync`
